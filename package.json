@@ -1,0 +1,14 @@
+{
+  "name": "jwt-sd",
+  "version": "0.0.0",
+  "description": "Implementation of sd-jwt Draft 04",
+  "license": "MIT",
+  "author": "Berend Sliedrecht <blu3beri@proton.me>",
+  "main": "build/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
