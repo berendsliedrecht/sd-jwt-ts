@@ -6,9 +6,22 @@
   "author": "Berend Sliedrecht <blu3beri@proton.me>",
   "main": "build/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "clean": "rm -rf build",
+    "clean:deps": "pnpm clean && rm -rf node_modules",
+    "build": "tsc",
+    "test": "node --require ts-node/register --test ./tests/*.test.ts",
+    "prettier": "prettier --ignore-path .gitignore .",
+    "check-format": "pnpm prettier --list-different",
+    "check-types": "pnpm build --noEmit",
+    "format": "pnpm prettier --write",
+    "release": "release-it"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "18.16.16",
+    "prettier": "2.8.8",
+    "release-it": "15.10.5",
+    "ts-node": "^10.9.1",
+    "typescript": "~5.0.4"
+  }
 }
