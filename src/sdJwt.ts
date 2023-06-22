@@ -1,4 +1,4 @@
-import { MakePropertyRequired } from './types'
+import { AllKeys, MakePropertyRequired } from './types'
 import { Base64url } from './base64url'
 import { SdJwtError } from './error'
 
@@ -28,6 +28,8 @@ export class SdJwt<
   public header?: Partial<Header>
   public payload?: Partial<Payload>
   public signature?: Uint8Array
+  private disclosableKeys: Array<AllKeys<Payload>> = []
+  private decoryDigestCount: number = 0
 
   public constructor(options?: SdJwtOptions<Header, Payload>) {
     this.header = options?.header
@@ -48,6 +50,10 @@ export class SdJwt<
     const signature = Base64url.decode(sSignature)
 
     return new SdJwt({ header, payload, signature })
+  }
+
+  public setDecoyDigestCount(decoyDigestCount: number) {
+    this.decoryDigestCount = decoyDigestCount
   }
 
   public withHeader(header: Header): ReturnSdJwtWithHeader<this> {
@@ -83,7 +89,16 @@ export class SdJwt<
     return this as ReturnSdJwtWithSignature<this>
   }
 
+  public addDisclosableKey(item: AllKeys<Payload>) {
+    this.disclosableKeys.push(item)
+    return this
+  }
+
   public toCompact(): string {
+    if (this.disclosableKeys.length > 0) {
+      throw new SdJwtError('Disclosable keys are not supported yet')
+    }
+
     if (!this.header) {
       throw new SdJwtError(
         'Header must be defined for moving to compact format'
