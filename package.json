@@ -5,6 +5,9 @@
   "license": "ISC",
   "author": "Berend Sliedrecht <blu3beri@proton.me>",
   "main": "build/index.js",
+  "files": [
+    "build"
+  ],
   "scripts": {
     "clean": "rm -rf build",
     "clean:deps": "pnpm clean && rm -rf node_modules",
