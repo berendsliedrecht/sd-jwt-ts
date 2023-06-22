@@ -2,7 +2,7 @@
   "name": "jwt-sd",
   "version": "0.0.0",
   "description": "Implementation of sd-jwt Draft 04",
-  "license": "MIT",
+  "license": "ISC",
   "author": "Berend Sliedrecht <blu3beri@proton.me>",
   "main": "build/index.js",
   "scripts": {
@@ -16,9 +16,9 @@
     "format": "pnpm prettier --write",
     "release": "release-it"
   },
-  "license": "ISC",
   "devDependencies": {
     "@types/node": "18.16.16",
+    "buffer": "6.0.3",
     "prettier": "2.8.8",
     "release-it": "15.10.5",
     "ts-node": "^10.9.1",
