@@ -2,7 +2,6 @@ import { MakePropertyRequired } from './types'
 import { Base64url } from './base64url'
 import { SdJwtError } from './error'
 import { HasherAlgorithm } from './hasherAlgorithm'
-import jp from 'jsonpath'
 
 type ReturnSdJwtWithHeader<T extends SdJwt> = MakePropertyRequired<T, 'header'>
 type ReturnSdJwtWithPayload<T extends SdJwt> = MakePropertyRequired<
