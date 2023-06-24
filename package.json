@@ -20,11 +20,15 @@
     "release": "release-it"
   },
   "devDependencies": {
+    "@types/jsonpath": "0.2.0",
     "@types/node": "18.16.16",
     "buffer": "6.0.3",
     "prettier": "2.8.8",
     "release-it": "15.10.5",
     "ts-node": "^10.9.1",
     "typescript": "~5.0.4"
+  },
+  "dependencies": {
+    "jsonpath": "1.1.1"
   }
 }

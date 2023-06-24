@@ -1,6 +1,8 @@
-import { AllKeys, MakePropertyRequired } from './types'
+import { MakePropertyRequired } from './types'
 import { Base64url } from './base64url'
 import { SdJwtError } from './error'
+import { query } from 'jsonpath'
+import { parse } from 'jsonpath'
 
 type ReturnSdJwtWithHeader<T extends SdJwt> = MakePropertyRequired<T, 'header'>
 type ReturnSdJwtWithPayload<T extends SdJwt> = MakePropertyRequired<
@@ -11,6 +13,15 @@ type ReturnSdJwtWithSignature<T extends SdJwt> = MakePropertyRequired<
   T,
   'signature'
 >
+
+export type SdJwtToCompactOptions = {
+  additionalDisclosablePaths?: Array<string>
+  makeAllDisclosable?: boolean
+  hashAlgorithm: {
+    identifier: HasherAlgorithmIdentifier | string
+    hasher: (input: string) => string
+  }
+}
 
 export type SdJwtOptions<
   Header extends Record<string, unknown>,
@@ -28,7 +39,8 @@ export class SdJwt<
   public header?: Partial<Header>
   public payload?: Partial<Payload>
   public signature?: Uint8Array
-  private disclosableKeys: Array<AllKeys<Payload>> = []
+
+  private disclosablePaths: Array<string> = []
   private decoryDigestCount: number = 0
 
   public constructor(options?: SdJwtOptions<Header, Payload>) {
@@ -89,13 +101,30 @@ export class SdJwt<
     return this as ReturnSdJwtWithSignature<this>
   }
 
-  public addDisclosableKey(item: AllKeys<Payload>) {
-    this.disclosableKeys.push(item)
+  public addDisclosablepath(path: string) {
+    try {
+      parse(path)
+    } catch {
+      throw new SdJwtError(`Invalid json path provided. '${path}'`)
+    }
+
+    this.disclosablePaths.push(path)
     return this
   }
 
-  public toCompact(): string {
-    if (this.disclosableKeys.length > 0) {
+  private createDisclosure(key: string, path: string): string {
+    const [item] = query(this.payload, path, 1)
+    if (!item) {
+      throw new SdJwtError(`Could not find item in payload for query '${path}'`)
+    }
+
+    const disclosure = ['TODO: salt', key, item]
+
+    return Base64url.encode(JSON.stringify(disclosure))
+  }
+
+  public toCompact(options: SdJwtToCompactOptions): string {
+    if (this.disclosablePaths.length > 0) {
       throw new SdJwtError('Disclosable keys are not supported yet')
     }
 
