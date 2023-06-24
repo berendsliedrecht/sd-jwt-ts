@@ -2,20 +2,29 @@ import { MakePropertyRequired } from './types'
 import { Base64url } from './base64url'
 import { SdJwtError } from './error'
 import { HasherAlgorithm } from './hasherAlgorithm'
+import { deleteByPath } from './util'
 
 type ReturnSdJwtWithHeader<T extends SdJwt> = MakePropertyRequired<T, 'header'>
 type ReturnSdJwtWithPayload<T extends SdJwt> = MakePropertyRequired<
   T,
   'payload'
 >
-type ReturnSdJwtWithDisclosablePayload<T extends SdJwt> = MakePropertyRequired<
-  T,
-  'disclosablePayload'
->
 type ReturnSdJwtWithSignature<T extends SdJwt> = MakePropertyRequired<
   T,
   'signature'
 >
+
+export type DisclosureFrame<DP> = {
+  [K in keyof DP]?: DP[K] extends Record<string, unknown>
+    ? ({ __decoyCount?: number } & DisclosureFrame<DP[K]>) | boolean
+    : boolean
+} & { __decoyCount?: number }
+
+export type DisclosurePayload<DP> = {
+  [K in keyof DP]?: DP[K] extends Record<string, unknown>
+    ? SdJwtPayloadProperties & DisclosureFrame<DP[K]>
+    : DP[K]
+}
 
 /**
  * A simple hash function that takes the base64url encoded variant of the disclosure and MUST return a base64url encoded version of the digest
@@ -31,24 +40,25 @@ export type HasherAndAlgorithm = {
  */
 export type SaltGenerator = (key: string) => string
 
-export type SdJwtToCompactOptions = {
-  additionalDisclosablePaths?: Array<{ key: string; path: string }>
+export type SdJwtToCompactOptions<
+  DisclosablePayload extends Record<string, unknown>
+> = {
+  disclosureFrame?: DisclosureFrame<DisclosablePayload>
 }
 
 export type SdJwtOptions<
   Header extends Record<string, unknown>,
-  Payload extends Record<string, unknown>,
-  DisclosablePayload extends Record<string, unknown>
+  Payload extends Record<string, unknown>
 > = {
   header?: Header
   payload?: Payload
-  disclosablePayload?: DisclosablePayload
   signature?: Uint8Array
 }
 
-export type SdJwtAdditionalOptions = {
+export type SdJwtAdditionalOptions<DP extends Record<string, unknown>> = {
   hasherAndAlgorithm?: HasherAndAlgorithm
   saltGenerator?: SaltGenerator
+  disclosureFrame?: DisclosureFrame<DP>
 }
 
 export type SdJwtPayloadProperties = {
@@ -58,26 +68,22 @@ export type SdJwtPayloadProperties = {
 
 export class SdJwt<
   Header extends Record<string, unknown> = Record<string, unknown>,
-  Payload extends Record<string, unknown> = Record<string, unknown>,
-  DisclosablePayload extends Record<string, unknown> = Record<string, unknown>
+  Payload extends Record<string, unknown> = Record<string, unknown>
 > {
   public header?: Partial<Header>
   public payload?: Partial<Payload & SdJwtPayloadProperties>
-  public disclosablePayload?: Partial<DisclosablePayload>
   public signature?: Uint8Array
 
   private saltGenerator?: SaltGenerator
   private hasherAndAlgorithm?: HasherAndAlgorithm
-
-  private decoryDigestCount: number = 0
+  private disclosureFrame?: DisclosureFrame<Payload>
 
   public constructor(
-    options?: SdJwtOptions<Header, Payload, DisclosablePayload>,
-    additionalOptions?: SdJwtAdditionalOptions
+    options?: SdJwtOptions<Header, Payload>,
+    additionalOptions?: SdJwtAdditionalOptions<Payload>
   ) {
     this.header = options?.header
     this.payload = options?.payload
-    this.disclosablePayload = options?.disclosablePayload
     this.signature = options?.signature
 
     if (additionalOptions?.hasherAndAlgorithm) {
@@ -86,6 +92,10 @@ export class SdJwt<
 
     if (additionalOptions?.saltGenerator) {
       this.withSaltGenerator(additionalOptions.saltGenerator)
+    }
+
+    if (additionalOptions?.disclosureFrame) {
+      this.withDisclosureFrame(additionalOptions.disclosureFrame)
     }
   }
 
@@ -101,12 +111,11 @@ export class SdJwt<
     const [sSignature] = sSignatureAndDisclosures.split('~')
     const signature = Base64url.decode(sSignature)
 
-    return new SdJwt({ header, payload, signature })
-  }
-
-  public withDecoyDigestCount(decoyDigestCount: number) {
-    this.decoryDigestCount = decoyDigestCount
-    return this
+    return new SdJwt<Header, Payload>({
+      header,
+      payload,
+      signature,
+    })
   }
 
   public withSaltGenerator(saltGenerator: SaltGenerator) {
@@ -143,11 +152,9 @@ export class SdJwt<
     return this as ReturnSdJwtWithPayload<this>
   }
 
-  public withDisclosablePayload(
-    disclosablePayload: DisclosablePayload
-  ): ReturnSdJwtWithDisclosablePayload<this> {
-    this.disclosablePayload = disclosablePayload
-    return this as ReturnSdJwtWithDisclosablePayload<this>
+  public withDisclosureFrame(disclosureFrame: DisclosureFrame<Payload>) {
+    this.disclosureFrame = disclosureFrame
+    return this
   }
 
   public addPayloadClaim(
@@ -157,15 +164,6 @@ export class SdJwt<
     this.payload ??= {}
     this.payload = { [item]: value, ...this.payload }
     return this as ReturnSdJwtWithPayload<this>
-  }
-
-  public addDisclosablePayloadClaim(
-    item: keyof DisclosablePayload,
-    value: DisclosablePayload[typeof item] | unknown
-  ): ReturnSdJwtWithDisclosablePayload<this> {
-    this.disclosablePayload ??= {}
-    this.disclosablePayload = { [item]: value, ...this.disclosablePayload }
-    return this as ReturnSdJwtWithDisclosablePayload<this>
   }
 
   public withSignature(signature: Uint8Array): ReturnSdJwtWithSignature<this> {
@@ -195,34 +193,73 @@ export class SdJwt<
     return this.hasherAndAlgorithm.hasher(disclosure)
   }
 
-  private addDiscolsureDigestClaim(
-    digest: string,
-    base: Record<string, unknown> | undefined = this.payload
-  ): ReturnSdJwtWithPayload<this> {
-    if (base) {
-      const digests: Array<string> = (base?._sd as Array<string>) ?? []
-      digests.push(digest)
-      base._sd = digests
-    } else {
-      const digests: Array<string> = (this.payload?._sd as Array<string>) ?? []
-      digests.push(digest)
-      this.addPayloadClaim('_sd', digests)
+  private createDecoy(count: number): Array<string> {
+    const decoys: Array<string> = []
+    if (!this.saltGenerator) {
+      throw new SdJwtError(
+        'Cannot create a disclosure without a salt generator. You can set it with this.withSaltGenerator()'
+      )
     }
-
-    return this as ReturnSdJwtWithPayload<this>
+    if (!this.hasherAndAlgorithm) {
+      throw new SdJwtError(
+        'A hasher and algorithm must be set in order to create a digest of a disclosure. You can set it with this.withHasherAndAlgorithm()'
+      )
+    }
+    for (let i = 0; i < count; i++) {
+      decoys.push(this.hashDisclosure(this.saltGenerator(i.toString())))
+    }
+    return decoys
   }
 
-  private createAndAddDisclosures(): Array<string> {
-    return Object.entries(this.disclosablePayload ?? {}).map(([key, value]) => {
-      const disclosure = this.createDisclosure(key, value)
-      const digest = this.hashDisclosure(disclosure)
-      this.addDiscolsureDigestClaim(digest)
-
-      return disclosure
+  private applyDisclosureFrame(
+    object: Payload,
+    frame: DisclosureFrame<Payload>,
+    disclosures: Array<string> = [],
+    keys: Array<string> = [],
+    cleanup: Array<Array<string>> = []
+  ): { disclosures: Array<string>; payload: Record<string, unknown> } {
+    Object.entries(frame).forEach(([key, value]) => {
+      const newKeys = [...keys, key]
+      if (key === '__decoyCount' && typeof value === 'number') {
+        const sd: Array<string> = Array.from((object._sd as string[]) ?? [])
+        this.createDecoy(value).forEach((digest) => sd.push(digest))
+        // @ts-ignore
+        object._sd = sd
+      } else if (typeof value === 'boolean') {
+        if (value === true) {
+          const sd: Array<string> = Array.from((object._sd as string[]) ?? [])
+          const disclosure = this.createDisclosure(key, object[key])
+          disclosures.push(disclosure)
+          const digest = this.hashDisclosure(disclosure)
+          sd.push(digest)
+          //@ts-ignore
+          object._sd = sd
+          cleanup.push(newKeys)
+        }
+      } else if (typeof value === 'object' && !Array.isArray(value)) {
+        this.applyDisclosureFrame(
+          object[key] as Payload,
+          value as DisclosureFrame<Payload>,
+          disclosures,
+          newKeys,
+          cleanup
+        )
+      } else {
+        throw new SdJwtError(
+          `Invalid type in frame with key '${key}' and type '${typeof value}'. Only Record<string, unknown> and boolean are allowed.`
+        )
+      }
     })
+
+    const payloadClone = { ...object }
+    cleanup.forEach((path) => {
+      deleteByPath(payloadClone, path.join('.'))
+    })
+
+    return { disclosures, payload: payloadClone }
   }
 
-  public toCompact(options?: SdJwtToCompactOptions): string {
+  public toCompact(options?: SdJwtToCompactOptions<Payload>): string {
     if (!this.header) {
       throw new SdJwtError(
         'Header must be defined for moving to compact format'
@@ -235,10 +272,17 @@ export class SdJwt<
       )
     }
 
-    const disclosures = this.createAndAddDisclosures()
+    const frame = options?.disclosureFrame ?? this.disclosureFrame
+
+    const { disclosures, payload } = frame
+      ? this.applyDisclosureFrame(
+          { ...this.payload } as Payload,
+          frame as DisclosureFrame<Payload>
+        )
+      : { disclosures: [], payload: this.payload }
 
     const sHeader = Base64url.encode(JSON.stringify(this.header))
-    const sPayload = Base64url.encode(JSON.stringify(this.payload))
+    const sPayload = Base64url.encode(JSON.stringify(payload))
     const sSignature = this.signature ? Base64url.encode(this.signature) : ''
     const sDisclosures =
       disclosures.length > 0 ? `~${disclosures.join('~')}~` : ''
