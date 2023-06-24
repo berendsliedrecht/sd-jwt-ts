@@ -4,11 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-dependencies:
-  jsonpath:
-    specifier: 1.1.1
-    version: 1.1.1
-
 devDependencies:
   '@types/jsonpath':
     specifier: 0.2.0
@@ -999,6 +994,7 @@ packages:
       {
         integrity: sha512-oIPzksmTg4/MriiaYGO+okXDT7ztn/w3Eptv/+gSIdMdKsJo0u4CfYNFJPy+4SKMuCqGw2wxnA+URMg3t8a/bQ==,
       }
+    dev: true
 
   /default-browser-id@3.0.0:
     resolution:
@@ -1267,15 +1263,7 @@ packages:
       optionator: 0.8.3
     optionalDependencies:
       source-map: 0.6.1
-
-  /esprima@1.2.2:
-    resolution:
-      {
-        integrity: sha512-+JpPZam9w5DuJ3Q67SqsMGtiHKENSMRVoxvArfJZK01/BfLEObtZ6orJa/MtoGNR/rfMgp5837T41PAmTwAv/A==,
-      }
-    engines: { node: '>=0.4.0' }
-    hasBin: true
-    dev: false
+    dev: true
 
   /esprima@4.0.1:
     resolution:
@@ -1284,6 +1272,7 @@ packages:
       }
     engines: { node: '>=4' }
     hasBin: true
+    dev: true
 
   /estraverse@4.3.0:
     resolution:
@@ -1291,6 +1280,7 @@ packages:
         integrity: sha512-39nnKffWz8xN1BU/2c79n9nB9HDzo0niYUqx6xyqUnyoAnQyyWpOTdZEeiCch8BBu515t4wp9ZmgVfVhn9EBpw==,
       }
     engines: { node: '>=4.0' }
+    dev: true
 
   /esutils@2.0.3:
     resolution:
@@ -1298,6 +1288,7 @@ packages:
         integrity: sha512-kVscqXk4OCp68SZ0dkgEKVi6/8ij300KBWTJq32P/dYeWTSwK41WyTxalN1eRmA5Z9UU/LX9D7FWSmV9SAYx6g==,
       }
     engines: { node: '>=0.10.0' }
+    dev: true
 
   /execa@5.1.1:
     resolution:
@@ -1366,6 +1357,7 @@ packages:
       {
         integrity: sha512-DCXu6Ifhqcks7TZKY3Hxp3y6qphY5SJZmrWMDrKcERSOXWQdMhU9Ig/PYrzyw/ul9jOIyh0N4M0tbC5hodg8dw==,
       }
+    dev: true
 
   /fastq@1.15.0:
     resolution:
@@ -2379,17 +2371,6 @@ packages:
       graceful-fs: 4.2.11
     dev: true
 
-  /jsonpath@1.1.1:
-    resolution:
-      {
-        integrity: sha512-l6Cg7jRpixfbgoWgkrl77dgEj8RPvND0wMH6TwQmi9Qs4TFfS9u5cUFnbeKTwj5ga5Y3BTGGNI28k117LJ009w==,
-      }
-    dependencies:
-      esprima: 1.2.2
-      static-eval: 2.0.2
-      underscore: 1.12.1
-    dev: false
-
   /keyv@4.5.2:
     resolution:
       {
@@ -2418,6 +2399,7 @@ packages:
     dependencies:
       prelude-ls: 1.1.2
       type-check: 0.3.2
+    dev: true
 
   /lines-and-columns@1.2.4:
     resolution:
@@ -2802,6 +2784,7 @@ packages:
       prelude-ls: 1.1.2
       type-check: 0.3.2
       word-wrap: 1.2.3
+    dev: true
 
   /ora@5.4.1:
     resolution:
@@ -3003,6 +2986,7 @@ packages:
         integrity: sha512-ESF23V4SKG6lVSGZgYNpbsiaAkdab6ZgOxe52p7+Kid3W3u3bxR4Vfd/o21dmN7jSt0IwgZ4v5MUd26FEtXE9w==,
       }
     engines: { node: '>= 0.8.0' }
+    dev: true
 
   /prettier@2.8.8:
     resolution:
@@ -3454,16 +3438,8 @@ packages:
       }
     engines: { node: '>=0.10.0' }
     requiresBuild: true
+    dev: true
     optional: true
-
-  /static-eval@2.0.2:
-    resolution:
-      {
-        integrity: sha512-N/D219Hcr2bPjLxPiV+TQE++Tsmrady7TqAJugLy7Xk1EumfDWS/f5dtBbkRCGE7wKKXuYockQoj8Rm2/pVKyg==,
-      }
-    dependencies:
-      escodegen: 1.14.3
-    dev: false
 
   /stdin-discarder@0.1.0:
     resolution:
@@ -3715,6 +3691,7 @@ packages:
     engines: { node: '>= 0.8.0' }
     dependencies:
       prelude-ls: 1.1.2
+    dev: true
 
   /type-fest@0.21.3:
     resolution:
@@ -3780,13 +3757,6 @@ packages:
       has-symbols: 1.0.3
       which-boxed-primitive: 1.0.2
     dev: true
-
-  /underscore@1.12.1:
-    resolution:
-      {
-        integrity: sha512-hEQt0+ZLDVUMhebKxL4x1BTtDY7bavVofhZ9KZ4aI26X9SRaE+Y3m83XUL1UP2jn8ynjndwCCpEHdUG+9pP1Tw==,
-      }
-    dev: false
 
   /unique-string@3.0.0:
     resolution:
@@ -3984,6 +3954,7 @@ packages:
         integrity: sha512-Hz/mrNwitNRh/HUAtM/VT/5VH+ygD6DV7mYKZAtHOrbs8U7lvPS6xf7EJKMF0uW1KJCl0H701g3ZGus+muE5vQ==,
       }
     engines: { node: '>=0.10.0' }
+    dev: true
 
   /wrap-ansi@6.2.0:
     resolution:
