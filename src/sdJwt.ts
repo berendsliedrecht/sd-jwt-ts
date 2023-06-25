@@ -172,41 +172,26 @@ export class SdJwt<
   }
 
   private createDisclosure(key: string, value: unknown): string {
-    if (!this.saltGenerator) {
-      throw new SdJwtError(
-        'Cannot create a disclosure without a salt generator. You can set it with this.withSaltGenerator()'
-      )
-    }
+    this.assertSaltGenerator()
 
-    const disclosure = [this.saltGenerator(key), key, value]
+    const disclosure = [this.saltGenerator!(key), key, value]
 
     return Base64url.encode(JSON.stringify(disclosure))
   }
 
   private hashDisclosure(disclosure: string): string {
-    if (!this.hasherAndAlgorithm) {
-      throw new SdJwtError(
-        'A hasher and algorithm must be set in order to create a digest of a disclosure. You can set it with this.withHasherAndAlgorithm()'
-      )
-    }
+    this.assertHashAndAlgorithm()
 
-    return this.hasherAndAlgorithm.hasher(disclosure)
+    return this.hasherAndAlgorithm!.hasher(disclosure)
   }
 
   private createDecoy(count: number): Array<string> {
+    this.assertSaltGenerator()
+    this.assertPayload()
+
     const decoys: Array<string> = []
-    if (!this.saltGenerator) {
-      throw new SdJwtError(
-        'Cannot create a disclosure without a salt generator. You can set it with this.withSaltGenerator()'
-      )
-    }
-    if (!this.hasherAndAlgorithm) {
-      throw new SdJwtError(
-        'A hasher and algorithm must be set in order to create a digest of a disclosure. You can set it with this.withHasherAndAlgorithm()'
-      )
-    }
     for (let i = 0; i < count; i++) {
-      decoys.push(this.hashDisclosure(this.saltGenerator(i.toString())))
+      decoys.push(this.hashDisclosure(this.saltGenerator!(i.toString())))
     }
     return decoys
   }
@@ -259,18 +244,46 @@ export class SdJwt<
     return { disclosures, payload: payloadClone }
   }
 
-  public toCompact(options?: SdJwtToCompactOptions<Payload>): string {
+  private assertHeader() {
     if (!this.header) {
       throw new SdJwtError(
         'Header must be defined for moving to compact format'
       )
     }
+  }
 
+  private assertPayload() {
     if (!this.payload) {
       throw new SdJwtError(
         'Payload must be defined for moving to compact format'
       )
     }
+  }
+
+  private assertSaltGenerator() {
+    if (!this.saltGenerator) {
+      throw new SdJwtError(
+        'Cannot create a disclosure without a salt generator. You can set it with this.withSaltGenerator()'
+      )
+    }
+  }
+
+  private assertHashAndAlgorithm() {
+    if (!this.hasherAndAlgorithm) {
+      throw new SdJwtError(
+        'A hasher and algorithm must be set in order to create a digest of a disclosure. You can set it with this.withHasherAndAlgorithm()'
+      )
+    }
+  }
+
+  public toSignableInput() {
+    this.assertHeader()
+    this.assertPayload()
+  }
+
+  public toCompact(options?: SdJwtToCompactOptions<Payload>): string {
+    this.assertHeader()
+    this.assertPayload()
 
     const frame = options?.disclosureFrame ?? this.disclosureFrame
 
