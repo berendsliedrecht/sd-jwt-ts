@@ -40,10 +40,9 @@ export type HasherAndAlgorithm = {
  */
 export type SaltGenerator = (key: string) => string
 
-export type Signer<Header extends Record<string, unknown>> = (
-  input: string,
-  header: Header
-) => Uint8Array
+export type Signer<
+  Header extends Record<string, unknown> = Record<string, unknown>
+> = (input: string, header: Header) => Uint8Array
 
 export type SdJwtToCompactOptions<
   DisclosablePayload extends Record<string, unknown>
@@ -136,7 +135,7 @@ export class SdJwt<
   }
 
   public withSigner(signer: Signer<Header>) {
-    this.signer = signer
+    this.signer = signer as Signer<Record<string, unknown>>
     return this
   }
 
@@ -303,7 +302,8 @@ export class SdJwt<
   }
 
   public signAndAdd(): ReturnSdJwtWithSignature<this> {
-    const signature = this.signer(this.signableInput, this.header!)
+    this.assertSigner()
+    const signature = this.signer!(this.signableInput, this.header!)
     this.withSignature(signature)
 
     return this as ReturnSdJwtWithSignature<this>
