@@ -22,7 +22,7 @@ export type DisclosureFrame<DP> = {
 
 export type DisclosurePayload<DP> = {
   [K in keyof DP]?: DP[K] extends Record<string, unknown>
-    ? SdJwtPayloadProperties & DisclosureFrame<DP[K]>
+    ? CommonSdJwtPayloadProperties & DisclosureFrame<DP[K]>
     : DP[K]
 }
 
@@ -39,6 +39,11 @@ export type HasherAndAlgorithm = {
  * Key should not be used to generate the salt as it needs to be unique. It is used for testing here
  */
 export type SaltGenerator = (key: string) => string
+
+export type Signer<Header extends Record<string, unknown>> = (
+  input: string,
+  header: Header
+) => Uint8Array
 
 export type SdJwtToCompactOptions<
   DisclosablePayload extends Record<string, unknown>
@@ -61,20 +66,27 @@ export type SdJwtAdditionalOptions<DP extends Record<string, unknown>> = {
   disclosureFrame?: DisclosureFrame<DP>
 }
 
-export type SdJwtPayloadProperties = {
+type CommonSdJwtPayloadProperties = {
   _sd_alg?: string | HasherAlgorithm
   _sd?: Array<string>
+}
+
+type CommonSdJwtHeaderProperties = {
+  alg?: string
+  jwk?: Record<string, unknown>
+  kid?: string
 }
 
 export class SdJwt<
   Header extends Record<string, unknown> = Record<string, unknown>,
   Payload extends Record<string, unknown> = Record<string, unknown>
 > {
-  public header?: Partial<Header>
-  public payload?: Partial<Payload & SdJwtPayloadProperties>
+  public header?: Partial<Header & CommonSdJwtHeaderProperties>
+  public payload?: Partial<Payload & CommonSdJwtPayloadProperties>
   public signature?: Uint8Array
 
   private saltGenerator?: SaltGenerator
+  private signer?: Signer
   private hasherAndAlgorithm?: HasherAndAlgorithm
   private disclosureFrame?: DisclosureFrame<Payload>
 
@@ -120,6 +132,11 @@ export class SdJwt<
 
   public withSaltGenerator(saltGenerator: SaltGenerator) {
     this.saltGenerator = saltGenerator
+    return this
+  }
+
+  public withSigner(signer: Signer<Header>) {
+    this.signer = signer
     return this
   }
 
@@ -246,17 +263,13 @@ export class SdJwt<
 
   private assertHeader() {
     if (!this.header) {
-      throw new SdJwtError(
-        'Header must be defined for moving to compact format'
-      )
+      throw new SdJwtError('Header must be defined')
     }
   }
 
   private assertPayload() {
     if (!this.payload) {
-      throw new SdJwtError(
-        'Payload must be defined for moving to compact format'
-      )
+      throw new SdJwtError('Payload must be defined')
     }
   }
 
@@ -276,9 +289,34 @@ export class SdJwt<
     }
   }
 
-  public toSignableInput() {
+  private assertSigner() {
+    if (!this.signer) {
+      throw new SdJwtError(
+        'A signer must be provided to create a signature. You can set it with this.withSigner()'
+      )
+    }
+  }
+
+  public get signableInput() {
+    this.assertSigner()
+    return `${this.compactHeader}.${this.compactPayload}`
+  }
+
+  public signAndAdd(): ReturnSdJwtWithSignature<this> {
+    const signature = this.signer(this.signableInput, this.header!)
+    this.withSignature(signature)
+
+    return this as ReturnSdJwtWithSignature<this>
+  }
+
+  private get compactHeader() {
     this.assertHeader()
+    return Base64url.encodeFromJson(this.header!)
+  }
+
+  private get compactPayload() {
     this.assertPayload()
+    return Base64url.encodeFromJson(this.payload!)
   }
 
   public toCompact(options?: SdJwtToCompactOptions<Payload>): string {

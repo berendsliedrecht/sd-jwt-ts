@@ -5,6 +5,10 @@ export class Base64url {
     return Buffer.from(input).toString('base64url')
   }
 
+  public static encodeFromJson(input: Record<string, unknown>): string {
+    return Buffer.from(JSON.stringify(input)).toString('base64url')
+  }
+
   public static decodeToJson<
     T extends Record<string, unknown> = Record<string, unknown>
   >(input: string): T {
