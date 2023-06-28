@@ -46,22 +46,6 @@ describe('sd-jwt', () => {
       assert.deepStrictEqual(sdJwt, 'eyJraWQiOiJhIn0.eyJleHAiOjEyM30.AQID')
     })
 
-    it('should error when creating compact format without header', () => {
-      const sdJwt = new SdJwt()
-        .addPayloadClaim('exp', 123)
-        .withSignature(Uint8Array.from([1, 2, 3]))
-
-      assert.throws(() => sdJwt.toCompact(), SdJwtError)
-    })
-
-    it('should error when creating compact format without payload', () => {
-      const sdJwt = new SdJwt()
-        .addHeaderClaim('kid', 'a')
-        .withSignature(Uint8Array.from([1, 2, 3]))
-
-      assert.throws(() => sdJwt.toCompact(), SdJwtError)
-    })
-
     it('should create an instance of sdJwt from a compact sdJwt', () => {
       const sdJwt = SdJwt.fromCompact<{ kid: string }, { exp: number }>(
         'eyJraWQiOiJhIn0.eyJleHAiOjEyM30.AQID'
@@ -83,8 +67,41 @@ describe('sd-jwt', () => {
     })
   })
 
-  describe('JWT with selective disclosure', () => {
-    it('errors when no salt method is provided', () => {
+  describe('JWT assert correct methods', () => {
+    it('should error when creating compact format without header', () => {
+      const sdJwt = new SdJwt()
+        .addPayloadClaim('exp', 123)
+        .withSignature(Uint8Array.from([1, 2, 3]))
+
+      assert.throws(
+        () => sdJwt.toCompact(),
+        new SdJwtError('Header must be defined')
+      )
+    })
+
+    it('should error when creating compact format without payload', () => {
+      const sdJwt = new SdJwt()
+        .addHeaderClaim('kid', 'a')
+        .withSignature(Uint8Array.from([1, 2, 3]))
+
+      assert.throws(
+        () => sdJwt.toCompact(),
+        new SdJwtError('Payload must be defined')
+      )
+    })
+
+    it('should error when verifying the signature without a signature', () => {
+      const sdJwt = new SdJwt()
+        .addHeaderClaim('kid', 'a')
+        .addPayloadClaim('some', 'claim')
+
+      assert.throws(
+        () => sdJwt.verifySignature(() => true),
+        new SdJwtError('Signature must be defined')
+      )
+    })
+
+    it('should error when no salt method is provided', () => {
       assert.throws(
         () =>
           new SdJwt(
@@ -101,7 +118,7 @@ describe('sd-jwt', () => {
       )
     })
 
-    it('errors when no hash method is provided', () => {
+    it('should error when no hash method is provided', () => {
       assert.throws(
         () =>
           new SdJwt(
@@ -120,9 +137,28 @@ describe('sd-jwt', () => {
       )
     })
 
+    it('should error when no signer method is provided', () => {
+      assert.throws(
+        () =>
+          new SdJwt(
+            {
+              header: { kid: 'a' },
+              payload: { exp: 123, sub: 'a' },
+              signature: Uint8Array.from([1, 2, 3]),
+            },
+            { disclosureFrame: { sub: true } }
+          ).signAndAdd(),
+        new SdJwtError(
+          'A signer must be provided to create a signature. You can set it with this.withSigner()'
+        )
+      )
+    })
+  })
+
+  describe('JWT with selective disclosure', () => {
     it('should create a SD-JWT from the specification', () => {
       const expected =
-        'eyJhbGciOiJFUzI1NiJ9.eyJfc2RfYWxnIjoic2hhLTI1NiIsImlzcyI6Imh0dHBzOi8vZXhhbXBsZS5jb20vaXNzdWVyIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE3MzU2ODk2NjEsImNuZiI6eyJqd2siOnsia3R5IjoiRUMiLCJjcnYiOiJQLTI1NiIsIngiOiJUQ0FFUjE5WnZ1M09IRjRqNFc0dmZTVm9ISVAxSUxpbERsczd2Q2VHZW1jIiwieSI6Ilp4amlXV2JaTVFHSFZXS1ZRNGhiU0lpcnNWZnVlY0NFNnQ0alQ5RjJIWlEifX0sIl9zZCI6WyI1blh5MFozUWlFYmExVjFsSnplS2hBT0dRWEZsS0xJV0NMbGhmX08tY21vIiwicHprSElNOXN2N29aSDZZS0RzUnFOZ0ZHTHBFS0lqM2M1RzZVS2FUc0FqUSIsInJuQXpDVDZEVHk0VHNYOVFDRHYyd3dBRTRaZTIwdVJpZ3RWTlFrQTUyWDAiLCJTLUpQQlNrdnFsaUZ2MV9fdGh1WHQzSXpYNUJfWlhtNFcycXM0Qm9ORnJBIiwiYnZpdzdwV0FrYnpJMDc4Wk5WYV9lTVp2azB0ZFBhNXcybzlSM1p5Y2pvNCIsIm8tTEJDRHJGRjZ0QzlldzF2QWxVbXc2WTMwQ0haRjVqT1VGaHB4NW1vZ0kiLCI5Z1poSEFoVjdMWm5PRlpxX3E3Rmg4cnpkcXJyTk0taFJXc1ZPbFczbnV3Il19.D7zXHQgMeeBXNTiCmfq1SVRkixyj4mpZoxCLcuibWxa_eixmr5B-g-DPAY93k2rs1-PqSD5aKrqwHsrg_p2lRw~WyJOYTNWb0ZGblZ3MjhqT0FyazdJTlZnIiwiYWRkcmVzcyIseyJzdHJlZXRfYWRkcmVzcyI6IjEyMyBNYWluIFN0IiwibG9jYWxpdHkiOiJBbnl0b3duIiwicmVnaW9uIjoiQW55c3RhdGUiLCJjb3VudHJ5IjoiVVMifV0~WyJyU0x1em5oaUxQQkRSWkUxQ1o4OEtRIiwic3ViIiwiam9obl9kb2VfNDIiXQ~WyJkQW9mNHNlZTFGdDBXR2dHanVjZ2pRIiwiYmlydGhkYXRlIiwiMTk0MC0wMS0wMSJd~WyJhYTFPYmdlUkJnODJudnpMYnRQTklRIiwiZ2l2ZW5fbmFtZSIsIkpvaG4iXQ~WyJ2S0t6alFSOWtsbFh2OWVkNUJ1ZHZRIiwiZW1haWwiLCJqb2huZG9lQGV4YW1wbGUuY29tIl0~WyI2VWhsZU5HUmJtc0xDOFRndTh2OFdnIiwiZmFtaWx5X25hbWUiLCJEb2UiXQ~WyJVZEVmXzY0SEN0T1BpZDRFZmhPQWNRIiwicGhvbmVfbnVtYmVyIiwiKzEtMjAyLTU1NS0wMTAxIl0~'
+        'eyJhbGciOiJFUzI1NiJ9.eyJfc2RfYWxnIjoic2hhLTI1NiIsImlzcyI6Imh0dHBzOi8vZXhhbXBsZS5jb20vaXNzdWVyIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE3MzU2ODk2NjEsImNuZiI6eyJqd2siOnsia3R5IjoiRUMiLCJjcnYiOiJQLTI1NiIsIngiOiJUQ0FFUjE5WnZ1M09IRjRqNFc0dmZTVm9ISVAxSUxpbERsczd2Q2VHZW1jIiwieSI6Ilp4amlXV2JaTVFHSFZXS1ZRNGhiU0lpcnNWZnVlY0NFNnQ0alQ5RjJIWlEifX0sIl9zZCI6WyI1blh5MFozUWlFYmExVjFsSnplS2hBT0dRWEZsS0xJV0NMbGhmX08tY21vIiwiOWdaaEhBaFY3TFpuT0ZacV9xN0ZoOHJ6ZHFyck5NLWhSV3NWT2xXM251dyIsIlMtSlBCU2t2cWxpRnYxX190aHVYdDNJelg1Ql9aWG00VzJxczRCb05GckEiLCJidml3N3BXQWtiekkwNzhaTlZhX2VNWnZrMHRkUGE1dzJvOVIzWnljam80Iiwiby1MQkNEckZGNnRDOWV3MXZBbFVtdzZZMzBDSFpGNWpPVUZocHg1bW9nSSIsInB6a0hJTTlzdjdvWkg2WUtEc1JxTmdGR0xwRUtJajNjNUc2VUthVHNBalEiLCJybkF6Q1Q2RFR5NFRzWDlRQ0R2Mnd3QUU0WmUyMHVSaWd0Vk5Ra0E1MlgwIl19.D7zXHQgMeeBXNTiCmfq1SVRkixyj4mpZoxCLcuibWxa_eixmr5B-g-DPAY93k2rs1-PqSD5aKrqwHsrg_p2lRw~WyJOYTNWb0ZGblZ3MjhqT0FyazdJTlZnIiwiYWRkcmVzcyIseyJzdHJlZXRfYWRkcmVzcyI6IjEyMyBNYWluIFN0IiwibG9jYWxpdHkiOiJBbnl0b3duIiwicmVnaW9uIjoiQW55c3RhdGUiLCJjb3VudHJ5IjoiVVMifV0~WyJyU0x1em5oaUxQQkRSWkUxQ1o4OEtRIiwic3ViIiwiam9obl9kb2VfNDIiXQ~WyJkQW9mNHNlZTFGdDBXR2dHanVjZ2pRIiwiYmlydGhkYXRlIiwiMTk0MC0wMS0wMSJd~WyJhYTFPYmdlUkJnODJudnpMYnRQTklRIiwiZ2l2ZW5fbmFtZSIsIkpvaG4iXQ~WyJ2S0t6alFSOWtsbFh2OWVkNUJ1ZHZRIiwiZW1haWwiLCJqb2huZG9lQGV4YW1wbGUuY29tIl0~WyI2VWhsZU5HUmJtc0xDOFRndTh2OFdnIiwiZmFtaWx5X25hbWUiLCJEb2UiXQ~WyJVZEVmXzY0SEN0T1BpZDRFZmhPQWNRIiwicGhvbmVfbnVtYmVyIiwiKzEtMjAyLTU1NS0wMTAxIl0~'
 
       const sdJwt = new SdJwt(
         {

@@ -26,6 +26,15 @@ export type DisclosurePayload<DP> = {
     : DP[K]
 }
 
+export type VerifyOptions<Header extends Record<string, unknown>> = {
+  message: string
+  signature: Uint8Array
+  header: Header
+}
+export type Verifier<Header extends Record<string, unknown>> = (
+  options: VerifyOptions<Header>
+) => boolean
+
 /**
  * A simple hash function that takes the base64url encoded variant of the disclosure and MUST return a base64url encoded version of the digest
  */
@@ -272,6 +281,12 @@ export class SdJwt<
     }
   }
 
+  private assertSignature() {
+    if (!this.signature) {
+      throw new SdJwtError('Signature must be defined')
+    }
+  }
+
   private assertSaltGenerator() {
     if (!this.saltGenerator) {
       throw new SdJwtError(
@@ -297,7 +312,6 @@ export class SdJwt<
   }
 
   public get signableInput() {
-    this.assertSigner()
     return `${this.compactHeader}.${this.compactPayload}`
   }
 
@@ -317,6 +331,17 @@ export class SdJwt<
   private get compactPayload() {
     this.assertPayload()
     return Base64url.encodeFromJson(this.payload!)
+  }
+
+  public verifySignature(cb: Verifier<Header>): boolean {
+    this.assertSignature()
+    const message = this.signableInput
+
+    return cb({
+      message,
+      header: this.header as Header,
+      signature: this.signature!,
+    })
   }
 
   public toCompact(options?: SdJwtToCompactOptions<Payload>): string {
