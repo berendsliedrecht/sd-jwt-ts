@@ -225,7 +225,7 @@ export class SdJwt<
         const sd: Array<string> = Array.from((object._sd as string[]) ?? [])
         this.createDecoy(value).forEach((digest) => sd.push(digest))
         // @ts-ignore
-        object._sd = sd
+        object._sd = sd.sort()
       } else if (typeof value === 'boolean') {
         if (value === true) {
           const sd: Array<string> = Array.from((object._sd as string[]) ?? [])
@@ -234,7 +234,7 @@ export class SdJwt<
           const digest = this.hashDisclosure(disclosure)
           sd.push(digest)
           //@ts-ignore
-          object._sd = sd
+          object._sd = sd.sort()
           cleanup.push(newKeys)
         }
       } else if (typeof value === 'object' && !Array.isArray(value)) {
