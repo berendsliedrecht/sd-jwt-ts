@@ -1,4 +1,4 @@
-import { MakePropertyRequired } from './types'
+import { MakePropertyRequired, OrPromise } from './types'
 import { Base64url } from './base64url'
 import { SdJwtError } from './error'
 import { HasherAlgorithm } from './hasherAlgorithm'
@@ -33,12 +33,12 @@ export type VerifyOptions<Header extends Record<string, unknown>> = {
 }
 export type Verifier<Header extends Record<string, unknown>> = (
   options: VerifyOptions<Header>
-) => boolean
+) => OrPromise<boolean>
 
 /**
  * A simple hash function that takes the base64url encoded variant of the disclosure and MUST return a base64url encoded version of the digest
  */
-export type Hasher = (input: string) => string
+export type Hasher = (input: string) => OrPromise<string>
 export type HasherAndAlgorithm = {
   hasher: Hasher
   algorithm: string | HasherAlgorithm
@@ -47,11 +47,11 @@ export type HasherAndAlgorithm = {
 /**
  * Key should not be used to generate the salt as it needs to be unique. It is used for testing here
  */
-export type SaltGenerator = (key: string) => string
+export type SaltGenerator = (key: string) => OrPromise<string>
 
 export type Signer<
   Header extends Record<string, unknown> = Record<string, unknown>
-> = (input: string, header: Header) => Uint8Array
+> = (input: string, header: Header) => OrPromise<Uint8Array>
 
 export type SdJwtToCompactOptions<
   DisclosablePayload extends Record<string, unknown>
@@ -204,35 +204,38 @@ export class SdJwt<
     return Base64url.encode(JSON.stringify(disclosure))
   }
 
-  private hashDisclosure(disclosure: string): string {
+  private async hashDisclosure(disclosure: string): Promise<string> {
     this.assertHashAndAlgorithm()
 
-    return this.hasherAndAlgorithm!.hasher(disclosure)
+    return await this.hasherAndAlgorithm!.hasher(disclosure)
   }
 
-  private createDecoy(count: number): Array<string> {
+  private async createDecoy(count: number): Promise<Array<string>> {
     this.assertSaltGenerator()
     this.assertPayload()
 
     const decoys: Array<string> = []
     for (let i = 0; i < count; i++) {
-      decoys.push(this.hashDisclosure(this.saltGenerator!(i.toString())))
+      const salt = await this.saltGenerator!(i.toString())
+      const decoy = await this.hashDisclosure(salt)
+      decoys.push(decoy)
     }
     return decoys
   }
 
-  private applyDisclosureFrame(
+  private async applyDisclosureFrame(
     object: Payload,
     frame: DisclosureFrame<Payload>,
     disclosures: Array<string> = [],
     keys: Array<string> = [],
     cleanup: Array<Array<string>> = []
-  ): { disclosures: Array<string>; payload: Record<string, unknown> } {
-    Object.entries(frame).forEach(([key, value]) => {
+  ): Promise<{ disclosures: Array<string>; payload: Record<string, unknown> }> {
+    for (const [key, value] of Object.entries(frame)) {
       const newKeys = [...keys, key]
       if (key === '__decoyCount' && typeof value === 'number') {
         const sd: Array<string> = Array.from((object._sd as string[]) ?? [])
-        this.createDecoy(value).forEach((digest) => sd.push(digest))
+        const decoy = await this.createDecoy(value)
+        decoy.forEach((digest) => sd.push(digest))
         // @ts-ignore
         object._sd = sd.sort()
       } else if (typeof value === 'boolean') {
@@ -240,7 +243,7 @@ export class SdJwt<
           const sd: Array<string> = Array.from((object._sd as string[]) ?? [])
           const disclosure = this.createDisclosure(key, object[key])
           disclosures.push(disclosure)
-          const digest = this.hashDisclosure(disclosure)
+          const digest = await this.hashDisclosure(disclosure)
           sd.push(digest)
           //@ts-ignore
           object._sd = sd.sort()
@@ -259,7 +262,7 @@ export class SdJwt<
           `Invalid type in frame with key '${key}' and type '${typeof value}'. Only Record<string, unknown> and boolean are allowed.`
         )
       }
-    })
+    }
 
     const payloadClone = { ...object }
     cleanup.forEach((path) => {
@@ -315,9 +318,9 @@ export class SdJwt<
     return `${this.compactHeader}.${this.compactPayload}`
   }
 
-  public signAndAdd(): ReturnSdJwtWithSignature<this> {
+  public async signAndAdd(): Promise<ReturnSdJwtWithSignature<this>> {
     this.assertSigner()
-    const signature = this.signer!(this.signableInput, this.header!)
+    const signature = await this.signer!(this.signableInput, this.header!)
     this.withSignature(signature)
 
     return this as ReturnSdJwtWithSignature<this>
@@ -333,25 +336,27 @@ export class SdJwt<
     return Base64url.encodeFromJson(this.payload!)
   }
 
-  public verifySignature(cb: Verifier<Header>): boolean {
+  public async verifySignature(cb: Verifier<Header>): Promise<boolean> {
     this.assertSignature()
     const message = this.signableInput
 
-    return cb({
+    return await cb({
       message,
       header: this.header as Header,
       signature: this.signature!,
     })
   }
 
-  public toCompact(options?: SdJwtToCompactOptions<Payload>): string {
+  public async toCompact(
+    options?: SdJwtToCompactOptions<Payload>
+  ): Promise<string> {
     this.assertHeader()
     this.assertPayload()
 
     const frame = options?.disclosureFrame ?? this.disclosureFrame
 
     const { disclosures, payload } = frame
-      ? this.applyDisclosureFrame(
+      ? await this.applyDisclosureFrame(
           { ...this.payload } as Payload,
           frame as DisclosureFrame<Payload>
         )
@@ -359,7 +364,16 @@ export class SdJwt<
 
     const sHeader = Base64url.encode(JSON.stringify(this.header))
     const sPayload = Base64url.encode(JSON.stringify(payload))
-    const sSignature = this.signature ? Base64url.encode(this.signature) : ''
+    if (disclosures.length > 0 && this.signature) {
+      throw new SdJwtError(
+        'Signature is already set by the user when selectively disclosable items still have to be removed. This will invalidate the signature. Try to provide a signer on SdJwt.withSigner and SdJwt.toCompact will call it at the correct time.'
+      )
+    }
+
+    const sSignature = this.signature
+      ? Base64url.encode(this.signature)
+      : Base64url.encode((await this.signAndAdd()).signature!)
+
     const sDisclosures =
       disclosures.length > 0 ? `~${disclosures.join('~')}~` : ''
 
