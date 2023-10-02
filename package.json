@@ -2,7 +2,7 @@
     "name": "jwt-sd",
     "version": "0.0.1-alpha.6",
     "description": "Implementation of sd-jwt Draft 04",
-    "license": "ISC",
+    "license": "(MIT OR Apache-2.0)",
     "author": "Berend Sliedrecht <blu3beri@proton.me>",
     "main": "build/index.js",
     "files": [
@@ -19,12 +19,14 @@
         "format": "pnpm prettier --write",
         "release": "release-it"
     },
+    "dependencies": {
+        "buffer": "^6.0.3"
+    },
     "devDependencies": {
-        "@types/node": "18.16.16",
-        "buffer": "6.0.3",
-        "prettier": "2.8.8",
-        "release-it": "15.10.5",
+        "@types/node": "^18.16.16",
+        "prettier": "^3.0.3",
+        "release-it": "16.2.1",
         "ts-node": "^10.9.1",
-        "typescript": "~5.0.4"
+        "typescript": "~5.2.2"
     }
 }
