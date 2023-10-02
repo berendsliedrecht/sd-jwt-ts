@@ -1,85 +1,85 @@
 name: 'Pipeline'
 
 on:
-  push:
-    branches: ['main']
+    push:
+        branches: ['main']
 
-  pull_request:
-    types: [opened, synchronize]
+    pull_request:
+        types: [opened, synchronize]
 
-  workflow_dispatch:
-    inputs:
-      release-type:
-        description: 'Type of release (major, minor, patch, alpha)'
-        required: true
-        default: alpha
-        type: choice
-        options:
-          - major
-          - minor
-          - patch
-          - alpha
+    workflow_dispatch:
+        inputs:
+            release-type:
+                description: 'Type of release (major, minor, patch, alpha)'
+                required: true
+                default: alpha
+                type: choice
+                options:
+                    - major
+                    - minor
+                    - patch
+                    - alpha
 
 jobs:
-  continous-integration:
-    name: 'Continuous Integration'
-    runs-on: ubuntu-latest
+    continous-integration:
+        name: 'Continuous Integration'
+        runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@v3
+        steps:
+            - uses: actions/checkout@v3
 
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 8.6.0
+            - uses: pnpm/action-setup@v2
+              with:
+                  version: 8.6.0
 
-      - name: Install dependencies
-        run: pnpm install
+            - name: Install dependencies
+              run: pnpm install
 
-      - name: Check formatting
-        run: pnpm check-format
+            - name: Check formatting
+              run: pnpm check-format
 
-      - name: Check types
-        run: pnpm check-types
+            - name: Check types
+              run: pnpm check-types
 
-      - name: Test
-        run: pnpm test
+            - name: Test
+              run: pnpm test
 
-  continious-deployment:
-    if: github.event_name == 'workflow_dispatch'
+    continious-deployment:
+        if: github.event_name == 'workflow_dispatch'
 
-    name: 'Continous Deployment'
-    runs-on: ubuntu-latest
-    needs: ['continous-integration']
+        name: 'Continous Deployment'
+        runs-on: ubuntu-latest
+        needs: ['continous-integration']
 
-    steps:
-      - uses: actions/checkout@v3
+        steps:
+            - uses: actions/checkout@v3
 
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 8.6.0
+            - uses: pnpm/action-setup@v2
+              with:
+                  version: 8.6.0
 
-      - name: Install dependencies
-        run: pnpm install
+            - name: Install dependencies
+              run: pnpm install
 
-      - name: Build
-        run: pnpm build
+            - name: Build
+              run: pnpm build
 
-      - name: Initialise the NPM config
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm config set //registry.npmjs.org/:_authToken $NPM_TOKEN
+            - name: Initialise the NPM config
+              env:
+                  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+              run: npm config set //registry.npmjs.org/:_authToken $NPM_TOKEN
 
-      - name: Publish
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          echo ${{ inputs.release-type }}
-          git config --global user.email "blu3beri@proton.me"
-          git config --global user.name "Berend Sliedrecht"
+            - name: Publish
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+                  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+              run: |
+                  echo ${{ inputs.release-type }}
+                  git config --global user.email "blu3beri@proton.me"
+                  git config --global user.name "Berend Sliedrecht"
 
-          if [ ${{ inputs.release-type }} == 'alpha' ]; then
-            pnpm release --preRelease=${{ inputs.release-type }} --npm.tag=latest
-          else
-            pnpm release ${{ inputs.release-type }}
-          fi
+                  if [ ${{ inputs.release-type }} == 'alpha' ]; then
+                    pnpm release --preRelease=${{ inputs.release-type }} --npm.tag=latest
+                  else
+                    pnpm release ${{ inputs.release-type }}
+                  fi
