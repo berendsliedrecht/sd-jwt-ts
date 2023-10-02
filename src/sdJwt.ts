@@ -32,7 +32,7 @@ export type VerifyOptions<Header extends Record<string, unknown>> = {
     header: Header
 }
 export type Verifier<Header extends Record<string, unknown>> = (
-    options: VerifyOptions<Header>
+    options: VerifyOptions<Header>,
 ) => OrPromise<boolean>
 
 /**
@@ -50,18 +50,18 @@ export type HasherAndAlgorithm = {
 export type SaltGenerator = (key: string) => OrPromise<string>
 
 export type Signer<
-    Header extends Record<string, unknown> = Record<string, unknown>
+    Header extends Record<string, unknown> = Record<string, unknown>,
 > = (input: string, header: Header) => OrPromise<Uint8Array>
 
 export type SdJwtToCompactOptions<
-    DisclosablePayload extends Record<string, unknown>
+    DisclosablePayload extends Record<string, unknown>,
 > = {
     disclosureFrame?: DisclosureFrame<DisclosablePayload>
 }
 
 export type SdJwtOptions<
     Header extends Record<string, unknown>,
-    Payload extends Record<string, unknown>
+    Payload extends Record<string, unknown>,
 > = {
     header?: Header
     payload?: Payload
@@ -87,7 +87,7 @@ type CommonSdJwtHeaderProperties = {
 
 export class SdJwt<
     Header extends Record<string, unknown> = Record<string, unknown>,
-    Payload extends Record<string, unknown> = Record<string, unknown>
+    Payload extends Record<string, unknown> = Record<string, unknown>,
 > {
     public header?: Partial<Header & CommonSdJwtHeaderProperties>
     public payload?: Partial<Payload & CommonSdJwtPayloadProperties>
@@ -100,7 +100,7 @@ export class SdJwt<
 
     public constructor(
         options?: SdJwtOptions<Header, Payload>,
-        additionalOptions?: SdJwtAdditionalOptions<Payload>
+        additionalOptions?: SdJwtAdditionalOptions<Payload>,
     ) {
         this.header = options?.header
         this.payload = options?.payload
@@ -121,7 +121,7 @@ export class SdJwt<
 
     public static fromCompact<
         Header extends Record<string, unknown> = Record<string, unknown>,
-        Payload extends Record<string, unknown> = Record<string, unknown>
+        Payload extends Record<string, unknown> = Record<string, unknown>,
     >(compact: string) {
         const [sHeader, sPayload, sSignatureAndDisclosures] = compact.split('.')
 
@@ -149,7 +149,7 @@ export class SdJwt<
     }
 
     public withHasher(
-        hasherAndAlgorithm: HasherAndAlgorithm
+        hasherAndAlgorithm: HasherAndAlgorithm,
     ): ReturnSdJwtWithPayload<this> {
         this.hasherAndAlgorithm = hasherAndAlgorithm
 
@@ -165,7 +165,7 @@ export class SdJwt<
 
     public addHeaderClaim(
         item: keyof Header,
-        value: Header[typeof item] | unknown
+        value: Header[typeof item] | unknown,
     ): ReturnSdJwtWithHeader<this> {
         this.header ??= {}
         this.header = { [item]: value, ...this.header }
@@ -184,7 +184,7 @@ export class SdJwt<
 
     public addPayloadClaim(
         item: keyof Payload,
-        value: Payload[typeof item] | unknown
+        value: Payload[typeof item] | unknown,
     ): ReturnSdJwtWithPayload<this> {
         this.payload ??= {}
         this.payload = { [item]: value, ...this.payload }
@@ -192,7 +192,7 @@ export class SdJwt<
     }
 
     public withSignature(
-        signature: Uint8Array
+        signature: Uint8Array,
     ): ReturnSdJwtWithSignature<this> {
         this.signature = signature
         return this as ReturnSdJwtWithSignature<this>
@@ -230,7 +230,7 @@ export class SdJwt<
         frame: DisclosureFrame<Payload>,
         disclosures: Array<string> = [],
         keys: Array<string> = [],
-        cleanup: Array<Array<string>> = []
+        cleanup: Array<Array<string>> = [],
     ): Promise<{
         disclosures: Array<string>
         payload: Record<string, unknown>
@@ -239,7 +239,7 @@ export class SdJwt<
             const newKeys = [...keys, key]
             if (key === '__decoyCount' && typeof value === 'number') {
                 const sd: Array<string> = Array.from(
-                    (object._sd as string[]) ?? []
+                    (object._sd as string[]) ?? [],
                 )
                 const decoy = await this.createDecoy(value)
                 decoy.forEach((digest) => sd.push(digest))
@@ -248,7 +248,7 @@ export class SdJwt<
             } else if (typeof value === 'boolean') {
                 if (value === true) {
                     const sd: Array<string> = Array.from(
-                        (object._sd as string[]) ?? []
+                        (object._sd as string[]) ?? [],
                     )
                     const disclosure = this.createDisclosure(key, object[key])
                     disclosures.push(disclosure)
@@ -264,11 +264,11 @@ export class SdJwt<
                     value as DisclosureFrame<Payload>,
                     disclosures,
                     newKeys,
-                    cleanup
+                    cleanup,
                 )
             } else {
                 throw new SdJwtError(
-                    `Invalid type in frame with key '${key}' and type '${typeof value}'. Only Record<string, unknown> and boolean are allowed.`
+                    `Invalid type in frame with key '${key}' and type '${typeof value}'. Only Record<string, unknown> and boolean are allowed.`,
                 )
             }
         }
@@ -302,7 +302,7 @@ export class SdJwt<
     private assertSaltGenerator() {
         if (!this.saltGenerator) {
             throw new SdJwtError(
-                'Cannot create a disclosure without a salt generator. You can set it with this.withSaltGenerator()'
+                'Cannot create a disclosure without a salt generator. You can set it with this.withSaltGenerator()',
             )
         }
     }
@@ -310,7 +310,7 @@ export class SdJwt<
     private assertHashAndAlgorithm() {
         if (!this.hasherAndAlgorithm) {
             throw new SdJwtError(
-                'A hasher and algorithm must be set in order to create a digest of a disclosure. You can set it with this.withHasherAndAlgorithm()'
+                'A hasher and algorithm must be set in order to create a digest of a disclosure. You can set it with this.withHasherAndAlgorithm()',
             )
         }
     }
@@ -318,7 +318,7 @@ export class SdJwt<
     private assertSigner() {
         if (!this.signer) {
             throw new SdJwtError(
-                'A signer must be provided to create a signature. You can set it with this.withSigner()'
+                'A signer must be provided to create a signature. You can set it with this.withSigner()',
             )
         }
     }
@@ -357,7 +357,7 @@ export class SdJwt<
     }
 
     public async toCompact(
-        options?: SdJwtToCompactOptions<Payload>
+        options?: SdJwtToCompactOptions<Payload>,
     ): Promise<string> {
         this.assertHeader()
         this.assertPayload()
@@ -367,7 +367,7 @@ export class SdJwt<
         const { disclosures, payload } = frame
             ? await this.applyDisclosureFrame(
                   { ...this.payload } as Payload,
-                  frame as DisclosureFrame<Payload>
+                  frame as DisclosureFrame<Payload>,
               )
             : { disclosures: [], payload: this.payload }
 
@@ -375,7 +375,7 @@ export class SdJwt<
         const sPayload = Base64url.encode(JSON.stringify(payload))
         if (disclosures.length > 0 && this.signature) {
             throw new SdJwtError(
-                'Signature is already set by the user when selectively disclosable items still have to be removed. This will invalidate the signature. Try to provide a signer on SdJwt.withSigner and SdJwt.toCompact will call it at the correct time.'
+                'Signature is already set by the user when selectively disclosable items still have to be removed. This will invalidate the signature. Try to provide a signer on SdJwt.withSigner and SdJwt.toCompact will call it at the correct time.',
             )
         }
 

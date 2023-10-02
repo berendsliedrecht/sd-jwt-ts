@@ -10,7 +10,7 @@ export class Base64url {
     }
 
     public static decodeToJson<
-        T extends Record<string, unknown> = Record<string, unknown>
+        T extends Record<string, unknown> = Record<string, unknown>,
     >(input: string): T {
         return JSON.parse(Buffer.from(input, 'base64url').toString()) as T
     }
