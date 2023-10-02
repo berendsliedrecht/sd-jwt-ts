@@ -61,8 +61,8 @@ describe('sd-jwt', async () => {
                 'eyJraWQiOiJhIn0.eyJleHAiOjEyM30.AQID',
             )
 
-            assert.deepStrictEqual(sdJwt.header?.kid, 'a')
-            assert.deepStrictEqual(sdJwt.payload?.exp, 123)
+            assert.deepStrictEqual(sdJwt.header.kid, 'a')
+            assert.deepStrictEqual(sdJwt.payload.exp, 123)
             assert.deepStrictEqual(sdJwt.signature, Uint8Array.from([1, 2, 3]))
         })
 
@@ -71,8 +71,8 @@ describe('sd-jwt', async () => {
                 'eyJraWQiOiJhIn0.eyJleHAiOjEyM30.AQID~AQID',
             )
 
-            assert.deepStrictEqual(sdJwt.header?.kid, 'a')
-            assert.deepStrictEqual(sdJwt.payload?.exp, 123)
+            assert.deepStrictEqual(sdJwt.header.kid, 'a')
+            assert.deepStrictEqual(sdJwt.payload.exp, 123)
             assert.deepStrictEqual(sdJwt.signature, Uint8Array.from([1, 2, 3]))
         })
     })

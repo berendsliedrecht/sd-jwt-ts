@@ -4,6 +4,11 @@ import { SdJwtError } from './error'
 import { HasherAlgorithm } from './hasherAlgorithm'
 import { deleteByPath } from './util'
 
+type ReturnSdJwtWithHeaderAndPayload<T extends SdJwt> = MakePropertyRequired<
+    T,
+    'header' | 'payload'
+>
+
 type ReturnSdJwtWithHeader<T extends SdJwt> = MakePropertyRequired<T, 'header'>
 type ReturnSdJwtWithPayload<T extends SdJwt> = MakePropertyRequired<
     T,
@@ -89,8 +94,8 @@ export class SdJwt<
     Header extends Record<string, unknown> = Record<string, unknown>,
     Payload extends Record<string, unknown> = Record<string, unknown>,
 > {
-    public header?: Partial<Header & CommonSdJwtHeaderProperties>
-    public payload?: Partial<Payload & CommonSdJwtPayloadProperties>
+    public header?: Header & CommonSdJwtHeaderProperties
+    public payload?: Payload & CommonSdJwtPayloadProperties
     public signature?: Uint8Array
 
     private saltGenerator?: SaltGenerator
@@ -131,11 +136,13 @@ export class SdJwt<
         const [sSignature] = sSignatureAndDisclosures.split('~')
         const signature = Base64url.decode(sSignature)
 
-        return new SdJwt<Header, Payload>({
+        const sdJwt = new SdJwt<Header, Payload>({
             header,
             payload,
             signature,
         })
+
+        return sdJwt as ReturnSdJwtWithHeaderAndPayload<typeof sdJwt>
     }
 
     public withSaltGenerator(saltGenerator: SaltGenerator) {
@@ -167,7 +174,7 @@ export class SdJwt<
         item: keyof Header,
         value: Header[typeof item] | unknown,
     ): ReturnSdJwtWithHeader<this> {
-        this.header ??= {}
+        this.header ??= {} as Header
         this.header = { [item]: value, ...this.header }
         return this as ReturnSdJwtWithHeader<this>
     }
@@ -186,7 +193,7 @@ export class SdJwt<
         item: keyof Payload,
         value: Payload[typeof item] | unknown,
     ): ReturnSdJwtWithPayload<this> {
-        this.payload ??= {}
+        this.payload ??= {} as Payload
         this.payload = { [item]: value, ...this.payload }
         return this as ReturnSdJwtWithPayload<this>
     }
@@ -373,6 +380,7 @@ export class SdJwt<
 
         const sHeader = Base64url.encode(JSON.stringify(this.header))
         const sPayload = Base64url.encode(JSON.stringify(payload))
+
         if (disclosures.length > 0 && this.signature) {
             throw new SdJwtError(
                 'Signature is already set by the user when selectively disclosable items still have to be removed. This will invalidate the signature. Try to provide a signer on SdJwt.withSigner and SdJwt.toCompact will call it at the correct time.',
