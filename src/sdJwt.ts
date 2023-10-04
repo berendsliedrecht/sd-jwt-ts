@@ -5,6 +5,7 @@ import { HasherAlgorithm } from './hasherAlgorithm'
 import { deleteByPath } from './util'
 import { SaltGenerator, createDecoys } from './createDecoys'
 import { createObjectDisclosure } from './createDisclosure'
+import { hashDisclosure } from './hashDisclosure'
 
 type ReturnSdJwtWithHeaderAndPayload<T extends SdJwt> = MakePropertyRequired<
     T,
@@ -217,7 +218,7 @@ export class SdJwt<
     private async hashDisclosure(disclosure: string): Promise<string> {
         this.assertHashAndAlgorithm()
 
-        return await this.hasherAndAlgorithm!.hasher(disclosure)
+        return await hashDisclosure(disclosure, this.hasherAndAlgorithm!.hasher)
     }
 
     private async createDecoys(count: number): Promise<Array<string>> {
