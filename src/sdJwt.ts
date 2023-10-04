@@ -3,6 +3,8 @@ import { Base64url } from './base64url'
 import { SdJwtError } from './error'
 import { HasherAlgorithm } from './hasherAlgorithm'
 import { deleteByPath } from './util'
+import { SaltGenerator, createDecoys } from './createDecoys'
+import { createObjectDisclosure } from './createDisclosure'
 
 type ReturnSdJwtWithHeaderAndPayload<T extends SdJwt> = MakePropertyRequired<
     T,
@@ -48,11 +50,6 @@ export type HasherAndAlgorithm = {
     hasher: Hasher
     algorithm: string | HasherAlgorithm
 }
-
-/**
- * Key should not be used to generate the salt as it needs to be unique. It is used for testing here
- */
-export type SaltGenerator = (key: string) => OrPromise<string>
 
 export type Signer<
     Header extends Record<string, unknown> = Record<string, unknown>,
@@ -205,12 +202,16 @@ export class SdJwt<
         return this as ReturnSdJwtWithSignature<this>
     }
 
-    private createDisclosure(key: string, value: unknown): string {
+    private async createDisclosure(
+        key: string,
+        value: unknown,
+    ): Promise<string> {
         this.assertSaltGenerator()
 
-        const disclosure = [this.saltGenerator!(key), key, value]
+        const salt = await this.saltGenerator!()
+        const disclosure = createObjectDisclosure(salt, key, value)
 
-        return Base64url.encode(JSON.stringify(disclosure))
+        return disclosure
     }
 
     private async hashDisclosure(disclosure: string): Promise<string> {
@@ -219,16 +220,16 @@ export class SdJwt<
         return await this.hasherAndAlgorithm!.hasher(disclosure)
     }
 
-    private async createDecoy(count: number): Promise<Array<string>> {
+    private async createDecoys(count: number): Promise<Array<string>> {
         this.assertSaltGenerator()
-        this.assertPayload()
+        this.assertHashAndAlgorithm()
 
-        const decoys: Array<string> = []
-        for (let i = 0; i < count; i++) {
-            const salt = await this.saltGenerator!(i.toString())
-            const decoy = await this.hashDisclosure(salt)
-            decoys.push(decoy)
-        }
+        const decoys = await createDecoys(
+            count,
+            this.saltGenerator!,
+            this.hasherAndAlgorithm!.hasher,
+        )
+
         return decoys
     }
 
@@ -248,7 +249,7 @@ export class SdJwt<
                 const sd: Array<string> = Array.from(
                     (object._sd as string[]) ?? [],
                 )
-                const decoy = await this.createDecoy(value)
+                const decoy = await this.createDecoys(value)
                 decoy.forEach((digest) => sd.push(digest))
                 // @ts-ignore
                 object._sd = sd.sort()
@@ -257,12 +258,20 @@ export class SdJwt<
                     const sd: Array<string> = Array.from(
                         (object._sd as string[]) ?? [],
                     )
-                    const disclosure = this.createDisclosure(key, object[key])
+
+                    const disclosure = await this.createDisclosure(
+                        key,
+                        object[key],
+                    )
+
                     disclosures.push(disclosure)
+
                     const digest = await this.hashDisclosure(disclosure)
                     sd.push(digest)
+
                     //@ts-ignore
                     object._sd = sd.sort()
+
                     cleanup.push(newKeys)
                 }
             } else if (typeof value === 'object' && !Array.isArray(value)) {
