@@ -8,12 +8,12 @@ describe('sd-jwt', async () => {
             const sdJwt = await new SdJwt({
                 header: { kid: 'a' },
                 payload: { exp: 123 },
-                signature: Uint8Array.from([1, 2, 3]),
+                signature: Uint8Array.from([1, 2, 3])
             }).toCompact()
 
             assert.deepStrictEqual(
                 sdJwt,
-                'eyJraWQiOiJhIn0.eyJleHAiOjEyM30.AQID',
+                'eyJraWQiOiJhIn0.eyJleHAiOjEyM30.AQID'
             )
         })
 
@@ -26,7 +26,7 @@ describe('sd-jwt', async () => {
 
             assert.deepStrictEqual(
                 sdJwt,
-                'eyJraWQiOiJhIn0.eyJleHAiOjEyM30.AQID',
+                'eyJraWQiOiJhIn0.eyJleHAiOjEyM30.AQID'
             )
         })
 
@@ -39,7 +39,7 @@ describe('sd-jwt', async () => {
 
             assert.deepStrictEqual(
                 sdJwt,
-                'eyJraWQiOiJhIn0.eyJleHAiOjEyM30.AQID',
+                'eyJraWQiOiJhIn0.eyJleHAiOjEyM30.AQID'
             )
         })
 
@@ -52,13 +52,13 @@ describe('sd-jwt', async () => {
 
             assert.deepStrictEqual(
                 sdJwt,
-                'eyJraWQiOiJhIn0.eyJleHAiOjEyM30.AQID',
+                'eyJraWQiOiJhIn0.eyJleHAiOjEyM30.AQID'
             )
         })
 
         it('should create an instance of sdJwt from a compact sdJwt', async () => {
             const sdJwt = SdJwt.fromCompact<{ kid: string }, { exp: number }>(
-                'eyJraWQiOiJhIn0.eyJleHAiOjEyM30.AQID',
+                'eyJraWQiOiJhIn0.eyJleHAiOjEyM30.AQID'
             )
 
             assert.deepStrictEqual(sdJwt.header.kid, 'a')
@@ -68,7 +68,7 @@ describe('sd-jwt', async () => {
 
         it('should create an instance of sdJwt from a compact sdJwt with disclosable', async () => {
             const sdJwt = SdJwt.fromCompact<{ kid: string }, { exp: number }>(
-                'eyJraWQiOiJhIn0.eyJleHAiOjEyM30.AQID~AQID',
+                'eyJraWQiOiJhIn0.eyJleHAiOjEyM30.AQID~AQID'
             )
 
             assert.deepStrictEqual(sdJwt.header.kid, 'a')
@@ -85,7 +85,7 @@ describe('sd-jwt', async () => {
 
             assert.rejects(
                 async () => await sdJwt.toCompact(),
-                new SdJwtError('Header must be defined'),
+                new SdJwtError('Header must be defined')
             )
         })
 
@@ -96,7 +96,7 @@ describe('sd-jwt', async () => {
 
             assert.rejects(
                 async () => await sdJwt.toCompact(),
-                new SdJwtError('Payload must be defined'),
+                new SdJwtError('Payload must be defined')
             )
         })
 
@@ -107,7 +107,7 @@ describe('sd-jwt', async () => {
 
             assert.rejects(
                 async () => await sdJwt.verifySignature(() => true),
-                new SdJwtError('Signature must be defined'),
+                new SdJwtError('Signature must be defined')
             )
         })
 
@@ -118,13 +118,13 @@ describe('sd-jwt', async () => {
                         {
                             header: { kid: 'a' },
                             payload: { exp: 123, sub: 'a' },
-                            signature: Uint8Array.from([1, 2, 3]),
+                            signature: Uint8Array.from([1, 2, 3])
                         },
-                        { disclosureFrame: { sub: true } },
+                        { disclosureFrame: { sub: true } }
                     ).toCompact(),
                 new SdJwtError(
-                    'Cannot create a disclosure without a salt generator. You can set it with this.withSaltGenerator()',
-                ),
+                    'Cannot create a disclosure without a salt generator. You can set it with this.withSaltGenerator()'
+                )
             )
         })
 
@@ -135,15 +135,15 @@ describe('sd-jwt', async () => {
                         {
                             header: { kid: 'a' },
                             payload: { exp: 123, sub: 'a' },
-                            signature: Uint8Array.from([1, 2, 3]),
+                            signature: Uint8Array.from([1, 2, 3])
                         },
-                        { disclosureFrame: { sub: true } },
+                        { disclosureFrame: { sub: true } }
                     )
                         .withSaltGenerator(() => 'salt')
                         .toCompact(),
                 new SdJwtError(
-                    'A hasher and algorithm must be set in order to create a digest of a disclosure. You can set it with this.withHasherAndAlgorithm()',
-                ),
+                    'A hasher and algorithm must be set in order to create a digest of a disclosure. You can set it with this.withHasherAndAlgorithm()'
+                )
             )
         })
 
@@ -154,13 +154,13 @@ describe('sd-jwt', async () => {
                         {
                             header: { kid: 'a' },
                             payload: { exp: 123, sub: 'a' },
-                            signature: Uint8Array.from([1, 2, 3]),
+                            signature: Uint8Array.from([1, 2, 3])
                         },
-                        { disclosureFrame: { sub: true } },
+                        { disclosureFrame: { sub: true } }
                     ).signAndAdd(),
                 new SdJwtError(
-                    'A signer must be provided to create a signature. You can set it with this.withSigner()',
-                ),
+                    'A signer must be provided to create a signature. You can set it with this.withSigner()'
+                )
             )
         })
     })

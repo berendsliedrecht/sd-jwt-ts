@@ -4,7 +4,7 @@ import assert from 'node:assert'
 import { hashDisclosure } from '../src/hashDisclosure'
 import {
     createArrayDisclosure,
-    createObjectDisclosure,
+    createObjectDisclosure
 } from '../src/createDisclosure'
 
 export const prelude = () => {
@@ -19,7 +19,7 @@ export const hasher = (i: string) =>
 export const testCreateDisclosureObjectAndHash = async (
     input: [string, string, unknown],
     expectedDisclosure: string,
-    expectedHash: string,
+    expectedHash: string
 ) => {
     const disclosure = createObjectDisclosure(...input)
 
@@ -33,7 +33,7 @@ export const testCreateDisclosureObjectAndHash = async (
 export const testCreateDisclosureArrayAndHash = async (
     input: [string, unknown],
     expectedDisclosure: string,
-    expectedHash: string,
+    expectedHash: string
 ) => {
     const disclosure = createArrayDisclosure(...input)
 

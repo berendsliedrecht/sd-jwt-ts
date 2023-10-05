@@ -66,5 +66,5 @@ export enum HasherAlgorithm {
     /**
      * K12-512: 512 bits. [draft-irtf-cfrg-kangarootwelve-06] (current)
      */
-    K12_512 = 'k12-512',
+    K12_512 = 'k12-512'
 }

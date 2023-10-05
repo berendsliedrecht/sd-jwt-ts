@@ -21,7 +21,7 @@ export type SaltGenerator = () => OrPromise<string>
 export const createDecoys = async (
     count: number,
     saltGenerator: SaltGenerator,
-    hasher: Hasher,
+    hasher: Hasher
 ) => {
     const decoys: Array<string> = []
     for (let i = 0; i < count; i++) {
