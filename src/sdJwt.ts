@@ -22,6 +22,7 @@ type ReturnSdJwtWithSignature<T extends SdJwt> = MakePropertyRequired<
     'signature'
 >
 
+// TODO: when it extends unknown it should not default to boolean.
 export type DisclosureFrame<DP> = {
     [K in keyof DP]?: DP[K] extends Record<string, unknown>
         ? ({ __decoyCount?: number } & DisclosureFrame<DP[K]>) | boolean
@@ -271,6 +272,14 @@ export class SdJwt<
                         (object._sd as string[]) ?? []
                     )
 
+                    if (!(key in object)) {
+                        throw new SdJwtError(
+                            `key, ${key}, is not inside the payload (${JSON.stringify(
+                                object
+                            )}), but it was supplied inside the frame.`
+                        )
+                    }
+
                     const disclosure = await this.createDisclosure(
                         key,
                         object[key]
@@ -401,7 +410,12 @@ export class SdJwt<
         const sHeader = Base64url.encode(JSON.stringify(this.header))
         const sPayload = Base64url.encode(JSON.stringify(payload))
 
-        if (this.disclosures && this.disclosures.length > 0 && this.signature) {
+        if (
+            this.disclosures &&
+            this.disclosures.length > 0 &&
+            this.signature &&
+            !this.signer
+        ) {
             throw new SdJwtError(
                 'Signature is already set by the user when selectively disclosable items still have to be removed. This will invalidate the signature. Try to provide a signer on SdJwt.withSigner and SdJwt.toCompact will call it at the correct time.'
             )
