@@ -4,7 +4,7 @@ import { Base64url } from './base64url'
 export const createObjectDisclosure = (
     salt: string,
     key: string,
-    value: unknown
+    value: unknown,
 ) => {
     if (typeof value === 'number' && isNaN(value)) {
         throw new SdJwtError('NaN is not allowed to be used in a disclosure.')
@@ -12,7 +12,7 @@ export const createObjectDisclosure = (
 
     if (typeof value === 'number' && !isFinite(value)) {
         throw new SdJwtError(
-            'Infinite is not allowed to be used in a disclosure.'
+            'Infinite is not allowed to be used in a disclosure.',
         )
     }
 
@@ -28,7 +28,7 @@ export const createArrayDisclosure = (salt: string, value: unknown) => {
 
     if (typeof value === 'number' && !isFinite(value)) {
         throw new SdJwtError(
-            'Infinite is not allowed to be used in a disclosure.'
+            'Infinite is not allowed to be used in a disclosure.',
         )
     }
 

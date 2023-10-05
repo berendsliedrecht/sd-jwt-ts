@@ -1,5 +1,4 @@
 import { createHash } from 'node:crypto'
-import { Base64url } from '../src/base64url'
 
 import assert from 'node:assert'
 import { hashDisclosure } from '../src/hashDisclosure'
@@ -14,15 +13,13 @@ export const prelude = () => {
         oldStringify(x, null, 0).split(',').join(', ').split(':').join(': ')
 }
 
-export const c14n = (x: string) => JSON.stringify(Base64url.decodeToJson(x))
-
 export const hasher = (i: string) =>
     createHash('sha256').update(i).digest('base64url')
 
 export const testCreateDisclosureObjectAndHash = async (
     input: [string, string, unknown],
     expectedDisclosure: string,
-    expectedHash: string
+    expectedHash: string,
 ) => {
     const disclosure = createObjectDisclosure(...input)
 
@@ -36,7 +33,7 @@ export const testCreateDisclosureObjectAndHash = async (
 export const testCreateDisclosureArrayAndHash = async (
     input: [string, unknown],
     expectedDisclosure: string,
-    expectedHash: string
+    expectedHash: string,
 ) => {
     const disclosure = createArrayDisclosure(...input)
 
