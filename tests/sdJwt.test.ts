@@ -68,12 +68,15 @@ describe('sd-jwt', async () => {
 
         it('should create an instance of sdJwt from a compact sdJwt with disclosable', async () => {
             const sdJwt = SdJwt.fromCompact<{ kid: string }, { exp: number }>(
-                'eyJraWQiOiJhIn0.eyJleHAiOjEyM30.AQID~AQID'
+                'eyJraWQiOiJhIn0.eyJleHAiOjEyM30.AQID~WyJDa0J1NE1NNklkX3RSUmRYMVptOC13IiwiZmlyc3RfbmFtZSIsIkJlcmVuZCBTbGllZHJlY2h0Il0~'
             )
 
             assert.deepStrictEqual(sdJwt.header.kid, 'a')
             assert.deepStrictEqual(sdJwt.payload.exp, 123)
             assert.deepStrictEqual(sdJwt.signature, Uint8Array.from([1, 2, 3]))
+            assert.deepStrictEqual(sdJwt.disclosures, [
+                'WyJDa0J1NE1NNklkX3RSUmRYMVptOC13IiwiZmlyc3RfbmFtZSIsIkJlcmVuZCBTbGllZHJlY2h0Il0'
+            ])
         })
     })
 

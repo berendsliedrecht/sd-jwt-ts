@@ -69,6 +69,9 @@ export type SdJwtOptions<
     header?: Header
     payload?: Payload
     signature?: Uint8Array
+
+    // TODO: we should not store the base64url encoded version
+    disclosures?: Array<string>
 }
 
 export type SdJwtAdditionalOptions<
@@ -99,6 +102,7 @@ export class SdJwt<
     public header?: Header & CommonSdJwtHeaderProperties
     public payload?: Payload & CommonSdJwtPayloadProperties
     public signature?: Uint8Array
+    public disclosures?: Array<string>
 
     private saltGenerator?: SaltGenerator
     private signer?: Signer
@@ -112,6 +116,7 @@ export class SdJwt<
         this.header = options?.header
         this.payload = options?.payload
         this.signature = options?.signature
+        this.disclosures = options?.disclosures
 
         if (additionalOptions?.hasherAndAlgorithm) {
             this.withHasher(additionalOptions.hasherAndAlgorithm)
@@ -139,13 +144,14 @@ export class SdJwt<
         const header = Base64url.decodeToJson<Header>(sHeader)
         const payload = Base64url.decodeToJson<Payload>(sPayload)
         // ignore disclosures for now
-        const [sSignature] = sSignatureAndDisclosures.split('~')
+        const [sSignature, ...disclosures] = sSignatureAndDisclosures.split('~')
         const signature = Base64url.decode(sSignature)
 
         const sdJwt = new SdJwt<Header, Payload>({
             header,
             payload,
-            signature
+            signature,
+            disclosures: disclosures.filter((d) => d.length > 0)
         })
 
         return sdJwt as ReturnSdJwtWithHeaderAndPayload<typeof sdJwt>
@@ -245,13 +251,10 @@ export class SdJwt<
     private async applyDisclosureFrame(
         object: Payload,
         frame: DisclosureFrame<Payload>,
-        disclosures: Array<string> = [],
         keys: Array<string> = [],
         cleanup: Array<Array<string>> = []
-    ): Promise<{
-        disclosures: Array<string>
-        payload: Record<string, unknown>
-    }> {
+    ): Promise<Record<string, unknown>> {
+        this.disclosures = this.disclosures ?? []
         for (const [key, value] of Object.entries(frame)) {
             const newKeys = [...keys, key]
             if (key === '__decoyCount' && typeof value === 'number') {
@@ -273,7 +276,7 @@ export class SdJwt<
                         object[key]
                     )
 
-                    disclosures.push(disclosure)
+                    this.disclosures?.push(disclosure)
 
                     const digest = await this.hashDisclosure(disclosure)
                     sd.push(digest)
@@ -287,7 +290,6 @@ export class SdJwt<
                 this.applyDisclosureFrame(
                     object[key] as Payload,
                     value as DisclosureFrame<Payload>,
-                    disclosures,
                     newKeys,
                     cleanup
                 )
@@ -303,7 +305,7 @@ export class SdJwt<
             deleteByPath(payloadClone, path.join('.'))
         })
 
-        return { disclosures, payload: payloadClone }
+        return payloadClone
     }
 
     private assertHeader() {
@@ -389,17 +391,17 @@ export class SdJwt<
 
         const frame = options?.disclosureFrame ?? this.disclosureFrame
 
-        const { disclosures, payload } = frame
+        const payload = frame
             ? await this.applyDisclosureFrame(
                   { ...this.payload } as Payload,
                   frame as DisclosureFrame<Payload>
               )
-            : { disclosures: [], payload: this.payload }
+            : this.payload
 
         const sHeader = Base64url.encode(JSON.stringify(this.header))
         const sPayload = Base64url.encode(JSON.stringify(payload))
 
-        if (disclosures.length > 0 && this.signature) {
+        if (this.disclosures && this.disclosures.length > 0 && this.signature) {
             throw new SdJwtError(
                 'Signature is already set by the user when selectively disclosable items still have to be removed. This will invalidate the signature. Try to provide a signer on SdJwt.withSigner and SdJwt.toCompact will call it at the correct time.'
             )
@@ -410,7 +412,9 @@ export class SdJwt<
             : Base64url.encode((await this.signAndAdd()).signature!)
 
         const sDisclosures =
-            disclosures.length > 0 ? `~${disclosures.join('~')}~` : ''
+            this.disclosures && this.disclosures.length > 0
+                ? `~${this.disclosures?.join('~')}~`
+                : ''
 
         return `${sHeader}.${sPayload}.${sSignature}${sDisclosures}`
     }
