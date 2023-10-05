@@ -71,9 +71,13 @@ export type SdJwtOptions<
     signature?: Uint8Array
 }
 
-export type SdJwtAdditionalOptions<DP extends Record<string, unknown>> = {
+export type SdJwtAdditionalOptions<
+    H extends Record<string, unknown>,
+    DP extends Record<string, unknown>
+> = {
     hasherAndAlgorithm?: HasherAndAlgorithm
     saltGenerator?: SaltGenerator
+    signer?: Signer<H>
     disclosureFrame?: DisclosureFrame<DP>
 }
 
@@ -103,7 +107,7 @@ export class SdJwt<
 
     public constructor(
         options?: SdJwtOptions<Header, Payload>,
-        additionalOptions?: SdJwtAdditionalOptions<Payload>
+        additionalOptions?: SdJwtAdditionalOptions<Header, Payload>
     ) {
         this.header = options?.header
         this.payload = options?.payload
@@ -119,6 +123,10 @@ export class SdJwt<
 
         if (additionalOptions?.disclosureFrame) {
             this.withDisclosureFrame(additionalOptions.disclosureFrame)
+        }
+
+        if (additionalOptions?.signer) {
+            this.withSigner(additionalOptions.signer)
         }
     }
 
