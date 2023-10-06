@@ -8,6 +8,10 @@ import {
     encodeDisclosure
 } from '../src/disclosures'
 
+/**
+ * This swaps the default JSON serializer to one that is, more, compatible with Python `json.dumps`.
+ * This is because the default json parser adds whitespace after the `:` after a key and after every `,`.
+ */
 export const prelude = () => {
     const oldStringify = JSON.stringify
     global.JSON.stringify = (x: unknown) =>
