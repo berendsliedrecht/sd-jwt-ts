@@ -4,8 +4,9 @@ import assert from 'node:assert'
 import { hashDisclosure } from '../src/hashDisclosure'
 import {
     createArrayDisclosure,
-    createObjectDisclosure
-} from '../src/createDisclosure'
+    createObjectDisclosure,
+    encodeDisclosure
+} from '../src/disclosures'
 
 export const prelude = () => {
     const oldStringify = JSON.stringify
@@ -23,9 +24,11 @@ export const testCreateDisclosureObjectAndHash = async (
 ) => {
     const disclosure = createObjectDisclosure(...input)
 
-    assert.strictEqual(disclosure, expectedDisclosure)
+    const encodedDisclosure = encodeDisclosure(disclosure)
 
-    const hash = await hashDisclosure(disclosure, hasher)
+    assert.strictEqual(encodedDisclosure, expectedDisclosure)
+
+    const hash = await hashDisclosure(encodedDisclosure, hasher)
 
     assert.strictEqual(hash, expectedHash)
 }
@@ -37,9 +40,11 @@ export const testCreateDisclosureArrayAndHash = async (
 ) => {
     const disclosure = createArrayDisclosure(...input)
 
-    assert.strictEqual(disclosure, expectedDisclosure)
+    const encodedDisclosure = encodeDisclosure(disclosure)
 
-    const hash = await hashDisclosure(disclosure, hasher)
+    assert.strictEqual(encodedDisclosure, expectedDisclosure)
+
+    const hash = await hashDisclosure(encodedDisclosure, hasher)
 
     assert.strictEqual(hash, expectedHash)
 }

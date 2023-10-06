@@ -1,11 +1,16 @@
-import { SdJwtError } from './error'
 import { Base64url } from './base64url'
+import { SdJwtError } from './error'
+
+export type DisclosureItem = [string, string, unknown] | [string, unknown]
+
+export const encodeDisclosure = (item: DisclosureItem) =>
+    Base64url.encode(JSON.stringify(item))
 
 export const createObjectDisclosure = (
     salt: string,
     key: string,
     value: unknown
-) => {
+): DisclosureItem => {
     if (typeof value === 'number' && isNaN(value)) {
         throw new SdJwtError('NaN is not allowed to be used in a disclosure.')
     }
@@ -16,12 +21,13 @@ export const createObjectDisclosure = (
         )
     }
 
-    const disclosure = [salt, key, value]
-
-    return Base64url.encode(JSON.stringify(disclosure))
+    return [salt, key, value]
 }
 
-export const createArrayDisclosure = (salt: string, value: unknown) => {
+export const createArrayDisclosure = (
+    salt: string,
+    value: unknown
+): DisclosureItem => {
     if (typeof value === 'number' && isNaN(value)) {
         throw new SdJwtError('NaN is not allowed to be used in a disclosure.')
     }
@@ -32,7 +38,5 @@ export const createArrayDisclosure = (salt: string, value: unknown) => {
         )
     }
 
-    const disclosure = [salt, value]
-
-    return Base64url.encode(JSON.stringify(disclosure))
+    return [salt, value]
 }

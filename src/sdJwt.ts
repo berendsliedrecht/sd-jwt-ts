@@ -4,7 +4,7 @@ import { SdJwtError } from './error'
 import { HasherAlgorithm } from './hasherAlgorithm'
 import { deleteByPath } from './util'
 import { SaltGenerator, createDecoys } from './createDecoys'
-import { createObjectDisclosure } from './createDisclosure'
+import { createObjectDisclosure, encodeDisclosure } from './disclosures'
 import { HasherAndAlgorithm, hashDisclosure } from './hashDisclosure'
 
 type ReturnSdJwtWithHeaderAndPayload<T extends SdJwt> = MakePropertyRequired<
@@ -220,8 +220,9 @@ export class SdJwt<
 
         const salt = await this.saltGenerator!()
         const disclosure = createObjectDisclosure(salt, key, value)
+        const encodedDisclosure = encodeDisclosure(disclosure)
 
-        return disclosure
+        return encodedDisclosure
     }
 
     private async hashDisclosure(disclosure: string): Promise<string> {
