@@ -3,7 +3,7 @@ import { Base64url } from './base64url'
 import { SdJwtError } from './error'
 import { HasherAlgorithm } from './hasherAlgorithm'
 import { deleteByPath } from './util'
-import { SaltGenerator, createDecoys } from './createDecoys'
+import { SaltGenerator, createDecoys } from './decoys'
 import { createObjectDisclosure, encodeDisclosure } from './disclosures'
 import { HasherAndAlgorithm, hashDisclosure } from './hashDisclosure'
 

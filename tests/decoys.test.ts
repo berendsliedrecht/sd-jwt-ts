@@ -1,10 +1,10 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
 
-import { createDecoys } from '../src/createDecoys'
+import { createDecoys } from '../src/decoys'
 import { createHash, getRandomValues } from 'node:crypto'
 
-describe('createDecoys', async () => {
+describe('decoys', async () => {
     it('Create correct amount of decoys', async () => {
         const decoys = await createDecoys(
             10,

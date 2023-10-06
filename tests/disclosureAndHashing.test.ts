@@ -6,7 +6,7 @@ import {
     testCreateDisclosureObjectAndHash
 } from './utils'
 
-describe('createAndHashDisclosure', () => {
+describe('disclosures and hashing', () => {
     before(prelude)
 
     describe('Specification: 5.5', () => {
