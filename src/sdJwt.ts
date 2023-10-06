@@ -5,7 +5,7 @@ import { HasherAlgorithm } from './hasherAlgorithm'
 import { deleteByPath } from './util'
 import { SaltGenerator, createDecoys } from './createDecoys'
 import { createObjectDisclosure } from './createDisclosure'
-import { hashDisclosure } from './hashDisclosure'
+import { HasherAndAlgorithm, hashDisclosure } from './hashDisclosure'
 
 type ReturnSdJwtWithHeaderAndPayload<T extends SdJwt> = MakePropertyRequired<
     T,
@@ -46,15 +46,6 @@ export type VerifyOptions<Header extends Record<string, unknown>> = {
 export type Verifier<Header extends Record<string, unknown>> = (
     options: VerifyOptions<Header>
 ) => OrPromise<boolean>
-
-/**
- * A simple hash function that takes the base64url encoded variant of the disclosure and MUST return a base64url encoded version of the digest
- */
-export type Hasher = (input: string) => OrPromise<string>
-export type HasherAndAlgorithm = {
-    hasher: Hasher
-    algorithm: string | HasherAlgorithm
-}
 
 export type Signer<
     Header extends Record<string, unknown> = Record<string, unknown>
@@ -191,7 +182,7 @@ export class SdJwt<
         value: Header[typeof item] | unknown
     ): ReturnSdJwtWithHeader<this> {
         this.header ??= {} as Header
-        this.header = { [item]: value, ...this.header }
+        this.header = { ...this.header, [item]: value }
         return this as ReturnSdJwtWithHeader<this>
     }
 
@@ -210,7 +201,7 @@ export class SdJwt<
         value: Payload[typeof item] | unknown
     ): ReturnSdJwtWithPayload<this> {
         this.payload ??= {} as Payload
-        this.payload = { [item]: value, ...this.payload }
+        this.payload = { ...this.payload, [item]: value }
         return this as ReturnSdJwtWithPayload<this>
     }
 

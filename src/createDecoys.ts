@@ -1,4 +1,4 @@
-import { Hasher } from './sdJwt'
+import { Hasher } from './hashDisclosure'
 import { OrPromise } from './types'
 
 /**

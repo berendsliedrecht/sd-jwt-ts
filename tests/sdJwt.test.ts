@@ -227,7 +227,7 @@ describe('sd-jwt', async () => {
 
             assert.strictEqual(
                 await sdJwt.toCompact(),
-                'eyJhbGciOiJFZERTQSJ9.eyJfc2RfYWxnIjoic2hhLTI1NiIsIm5lc3RlZF9maWVsZCI6eyJtb3JlX25lc3RlZF9maWVsZCI6eyJhIjpbIjEiLDIsMyw0XX19LCJfc2QiOlsiaGFzaCIsImhhc2giXX0.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwiaXNzIiwiaHR0cHM6Ly9leGFtcGxlLm9yZy9pc3N1ZXIiXQ~WyJzYWx0IiwibW9yZV9uZXN0ZWRfZmllbGQiLHsiYSI6WyIxIiwyLDMsNF19XQ~'
+                'eyJhbGciOiJFZERTQSJ9.eyJuZXN0ZWRfZmllbGQiOnsibW9yZV9uZXN0ZWRfZmllbGQiOnsiYSI6WyIxIiwyLDMsNF19fSwiX3NkX2FsZyI6InNoYS0yNTYiLCJfc2QiOlsiaGFzaCIsImhhc2giXX0.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwiaXNzIiwiaHR0cHM6Ly9leGFtcGxlLm9yZy9pc3N1ZXIiXQ~WyJzYWx0IiwibW9yZV9uZXN0ZWRfZmllbGQiLHsiYSI6WyIxIiwyLDMsNF19XQ~'
             )
         })
 
