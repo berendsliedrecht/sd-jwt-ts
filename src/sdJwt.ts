@@ -38,12 +38,6 @@ export type DisclosureFrame<T> = T extends Array<unknown>
       } & { __decoyCount?: number } & Record<string, unknown>
     : boolean
 
-export type DisclosurePayload<DP> = {
-    [K in keyof DP]?: DP[K] extends Record<string, unknown>
-        ? CommonSdJwtPayloadProperties & DisclosureFrame<DP[K]>
-        : DP[K]
-}
-
 export type VerifyOptions<Header extends Record<string, unknown>> = {
     message: string
     signature: Uint8Array
