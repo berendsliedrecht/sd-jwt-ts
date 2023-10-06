@@ -22,12 +22,11 @@ type ReturnSdJwtWithSignature<T extends SdJwt> = MakePropertyRequired<
     'signature'
 >
 
-// TODO: when it extends unknown it should not default to boolean.
 export type DisclosureFrame<DP> = {
     [K in keyof DP]?: DP[K] extends Record<string, unknown>
         ? ({ __decoyCount?: number } & DisclosureFrame<DP[K]>) | boolean
         : boolean
-} & { __decoyCount?: number }
+} & { __decoyCount?: number } & Record<string, unknown>
 
 export type DisclosurePayload<DP> = {
     [K in keyof DP]?: DP[K] extends Record<string, unknown>
@@ -144,7 +143,7 @@ export class SdJwt<
 
         const header = Base64url.decodeToJson<Header>(sHeader)
         const payload = Base64url.decodeToJson<Payload>(sPayload)
-        // ignore disclosures for now
+
         const [sSignature, ...disclosures] = sSignatureAndDisclosures.split('~')
         const signature = Base64url.decode(sSignature)
 

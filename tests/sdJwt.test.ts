@@ -1,7 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
 import { HasherAlgorithm, SdJwt, SdJwtError } from '../src'
-import { Hash } from 'node:crypto'
 
 describe('sd-jwt', async () => {
     describe('JWT without selective disclosure', async () => {
