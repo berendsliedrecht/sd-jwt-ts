@@ -22,11 +22,21 @@ type ReturnSdJwtWithSignature<T extends SdJwt> = MakePropertyRequired<
     'signature'
 >
 
-export type DisclosureFrame<DP> = {
-    [K in keyof DP]?: DP[K] extends Record<string, unknown>
-        ? ({ __decoyCount?: number } & DisclosureFrame<DP[K]>) | boolean
-        : boolean
-} & { __decoyCount?: number } & Record<string, unknown>
+export type DisclosureFrame<T> = T extends Array<unknown>
+    ? {
+          [K in keyof T]?: T[K] extends Record<string | number, unknown>
+              ? DisclosureFrame<T[K]> | boolean
+              : boolean
+      }
+    : T extends Record<string, unknown>
+    ? {
+          [K in keyof T]?: T[K] extends Array<unknown>
+              ? DisclosureFrame<T[K]> | boolean
+              : T[K] extends Record<string, unknown>
+              ? ({ __decoyCount?: number } & DisclosureFrame<T[K]>) | boolean
+              : boolean
+      } & { __decoyCount?: number } & Record<string, unknown>
+    : boolean
 
 export type DisclosurePayload<DP> = {
     [K in keyof DP]?: DP[K] extends Record<string, unknown>
