@@ -1,5 +1,3 @@
-
-
 export enum HasherAlgorithm {
     /**
      * Sha-256: 256 bits. [RFC6920] (current)

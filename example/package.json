@@ -4,7 +4,9 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "complex": "ts-node complex.ts"
+        "complex": "ts-node complex.ts",
+        "simple": "ts-node simple.ts",
+        "no-disclosures": "ts-node noDisclosures.ts"
     },
     "keywords": [],
     "author": "",
