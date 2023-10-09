@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
-import { HasherAlgorithm, SdJwt, SdJwtError } from '../src'
+import { HasherAlgorithm, KeyBinding, SdJwt, SdJwtError } from '../src'
+import { SignatureAndEncryptionAlgorithm } from '../src/signatureAndEncryptionAlgorithm'
 
 describe('sd-jwt', async () => {
     describe('JWT without selective disclosure', async () => {
@@ -171,13 +172,29 @@ describe('sd-jwt', async () => {
 
     describe('SD-JWT with key binding', async () => {
         it('should create an sd-jwt with key binding', async () => {
+            const keyBinding = new KeyBinding(
+                {
+                    header: {
+                        typ: 'kb+jwt',
+                        alg: SignatureAndEncryptionAlgorithm.ES256
+                    },
+                    payload: {
+                        iat: 123,
+                        nonce: 'secure-nonce',
+                        aud: 'https://example.org/audience'
+                    }
+                },
+                { signer: () => new Uint8Array(32).fill(42) }
+            )
+
             const sdJwt = new SdJwt<
                 { alg: 'EdDSA' },
                 { iss: 'https://example.org/issuer' }
             >(
                 {
                     header: { alg: 'EdDSA' },
-                    payload: { iss: 'https://example.org/issuer' }
+                    payload: { iss: 'https://example.org/issuer' },
+                    keyBinding
                 },
                 {
                     signer: () => new Uint8Array(32).fill(41),
@@ -189,6 +206,153 @@ describe('sd-jwt', async () => {
                     }
                 }
             )
+
+            const compactSdJwt = await sdJwt.toCompact()
+
+            assert(!compactSdJwt.endsWith('~'))
+
+            assert.strictEqual(
+                compactSdJwt,
+                'eyJhbGciOiJFZERTQSJ9.eyJfc2RfYWxnIjoic2hhLTI1NiIsIl9zZCI6WyJoYXNoIiwiaGFzaCJdfQ.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwiaXNzIiwiaHR0cHM6Ly9leGFtcGxlLm9yZy9pc3N1ZXIiXQ~eyJ0eXAiOiJrYitqd3QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOjEyMywibm9uY2UiOiJzZWN1cmUtbm9uY2UiLCJhdWQiOiJodHRwczovL2V4YW1wbGUub3JnL2F1ZGllbmNlIn0.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
+            )
+        })
+
+        it('should create an sd-jwt with key binding, without disclosures', async () => {
+            const keyBinding = new KeyBinding(
+                {
+                    header: {
+                        typ: 'kb+jwt',
+                        alg: SignatureAndEncryptionAlgorithm.ES256
+                    },
+                    payload: {
+                        iat: 123,
+                        nonce: 'secure-nonce',
+                        aud: 'https://example.org/audience'
+                    }
+                },
+                { signer: () => new Uint8Array(32).fill(42) }
+            )
+
+            const sdJwt = new SdJwt<
+                { alg: 'EdDSA' },
+                { iss: 'https://example.org/issuer' }
+            >(
+                {
+                    header: { alg: 'EdDSA' },
+                    payload: { iss: 'https://example.org/issuer' },
+                    keyBinding
+                },
+                {
+                    signer: () => new Uint8Array(32).fill(41),
+                    saltGenerator: () => 'salt',
+                    hasherAndAlgorithm: {
+                        hasher: () => 'hash',
+                        algorithm: HasherAlgorithm.Sha256
+                    }
+                }
+            )
+
+            const compactSdJwt = await sdJwt.toCompact()
+
+            assert(!compactSdJwt.endsWith('~'))
+
+            assert.strictEqual(
+                compactSdJwt,
+                'eyJhbGciOiJFZERTQSJ9.eyJpc3MiOiJodHRwczovL2V4YW1wbGUub3JnL2lzc3VlciIsIl9zZF9hbGciOiJzaGEtMjU2In0.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~eyJ0eXAiOiJrYitqd3QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOjEyMywibm9uY2UiOiJzZWN1cmUtbm9uY2UiLCJhdWQiOiJodHRwczovL2V4YW1wbGUub3JnL2F1ZGllbmNlIn0.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
+            )
+        })
+
+        it('create sd-jwt with key binding and compare', async () => {
+            const keyBinding = new KeyBinding(
+                {
+                    header: {
+                        typ: 'kb+jwt',
+                        alg: SignatureAndEncryptionAlgorithm.ES256
+                    },
+                    payload: {
+                        iat: 123,
+                        nonce: 'secure-nonce',
+                        aud: 'https://example.org/audience'
+                    }
+                },
+                { signer: () => new Uint8Array(32).fill(42) }
+            )
+
+            const sdJwt = new SdJwt<
+                { alg: 'EdDSA' },
+                { iss: 'https://example.org/issuer' }
+            >(
+                {
+                    header: { alg: 'EdDSA' },
+                    payload: { iss: 'https://example.org/issuer' },
+                    keyBinding
+                },
+                {
+                    signer: () => new Uint8Array(32).fill(41),
+                    saltGenerator: () => 'salt',
+                    disclosureFrame: { iss: true, __decoyCount: 1 },
+                    hasherAndAlgorithm: {
+                        hasher: () => 'hash',
+                        algorithm: HasherAlgorithm.Sha256
+                    }
+                }
+            )
+
+            assert.deepStrictEqual(sdJwt.keyBinding, keyBinding)
+        })
+
+        it('create sd-jwt with key binding from compact round trip', async () => {
+            const keyBinding = new KeyBinding(
+                {
+                    header: {
+                        typ: 'kb+jwt',
+                        alg: SignatureAndEncryptionAlgorithm.ES256
+                    },
+                    payload: {
+                        iat: 123,
+                        nonce: 'secure-nonce',
+                        aud: 'https://example.org/audience'
+                    }
+                },
+                { signer: () => new Uint8Array(32).fill(42) }
+            )
+
+            const sdJwt = new SdJwt<
+                { alg: 'EdDSA' },
+                { iss: 'https://example.org/issuer' }
+            >(
+                {
+                    header: { alg: 'EdDSA' },
+                    payload: { iss: 'https://example.org/issuer' },
+                    keyBinding
+                },
+                {
+                    signer: () => new Uint8Array(32).fill(41),
+                    saltGenerator: () => 'salt',
+                    disclosureFrame: { iss: true, __decoyCount: 1 },
+                    hasherAndAlgorithm: {
+                        hasher: () => 'hash',
+                        algorithm: HasherAlgorithm.Sha256
+                    }
+                }
+            )
+
+            const compactSdJwt = await sdJwt.toCompact()
+
+            assert(!compactSdJwt.endsWith('~'))
+
+            assert.strictEqual(
+                compactSdJwt,
+                'eyJhbGciOiJFZERTQSJ9.eyJfc2RfYWxnIjoic2hhLTI1NiIsIl9zZCI6WyJoYXNoIiwiaGFzaCJdfQ.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwiaXNzIiwiaHR0cHM6Ly9leGFtcGxlLm9yZy9pc3N1ZXIiXQ~eyJ0eXAiOiJrYitqd3QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOjEyMywibm9uY2UiOiJzZWN1cmUtbm9uY2UiLCJhdWQiOiJodHRwczovL2V4YW1wbGUub3JnL2F1ZGllbmNlIn0.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
+            )
+
+            const fromCompactSdJwt = SdJwt.fromCompact(compactSdJwt).withSigner(
+                () => new Uint8Array(32).fill(42)
+            )
+
+            const roundTrippedSdJwt = await fromCompactSdJwt.toCompact()
+
+            assert.deepStrictEqual(compactSdJwt, roundTrippedSdJwt)
         })
     })
 

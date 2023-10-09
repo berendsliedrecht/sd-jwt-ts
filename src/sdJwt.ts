@@ -145,12 +145,15 @@ export class SdJwt<
         Header extends Record<string, unknown> = Record<string, unknown>,
         Payload extends Record<string, unknown> = Record<string, unknown>
     >(compact: string) {
-        const [sHeader, sPayload, sSignatureAndDisclosures] = compact.split('.')
+        const [sHeader, sPayload, ...sSignatureDisclosureAndKeyBinding] =
+            compact.split('.')
+
+        const sdkb = sSignatureDisclosureAndKeyBinding.join('.')
 
         const header = Base64url.decodeToJson<Header>(sHeader)
         const payload = Base64url.decodeToJson<Payload>(sPayload)
 
-        const [sSignature, ...disclosures] = sSignatureAndDisclosures.split('~')
+        const [sSignature, ...disclosures] = sdkb.split('~')
         const signature = Base64url.decode(sSignature)
 
         let keyBinding: KeyBinding | undefined = undefined
@@ -456,10 +459,12 @@ export class SdJwt<
                 ? `~${this.disclosures?.join('~')}~`
                 : ''
 
+        const kb = await this.keyBinding?.toCompact()
+
         const sKeyBinding = this.keyBinding
             ? sDisclosures.length > 0
-                ? this.keyBinding
-                : `~${this.keyBinding}`
+                ? kb
+                : `~${kb}`
             : ''
 
         return `${sHeader}.${sPayload}.${sSignature}${sDisclosures}${sKeyBinding}`
