@@ -51,15 +51,18 @@ export class KeyBinding<
             { signer: jwt.signer }
         )
 
-        keyBinding.assertValidForKeyBinding()
-
         return keyBinding
     }
 
-    public assertValidForKeyBinding() {
+    public async assertValidForKeyBinding() {
         try {
             this.assertHeader()
             this.assertPayload()
+
+            if (!this.signature) {
+                await this.signAndAdd()
+            }
+
             this.assertSignature()
 
             const requiredHeaderProperties: Array<ClaimKeyTypeValue> = [

@@ -141,7 +141,7 @@ export class SdJwt<
         }
     }
 
-    public static fromCompact<
+    public static async fromCompact<
         Header extends Record<string, unknown> = Record<string, unknown>,
         Payload extends Record<string, unknown> = Record<string, unknown>
     >(compact: string) {
@@ -159,7 +159,7 @@ export class SdJwt<
         let keyBinding: KeyBinding | undefined = undefined
         if (compact.includes('~') && !compact.endsWith('~')) {
             const jwt = Jwt.fromCompact(disclosures[disclosures.length - 1])
-            keyBinding = KeyBinding.fromJwt(jwt)
+            keyBinding = await KeyBinding.fromJwt(jwt)
             disclosures.pop()
         }
 
@@ -189,7 +189,15 @@ export class SdJwt<
     ): ReturnSdJwtWithPayload<this> {
         this.hasherAndAlgorithm = hasherAndAlgorithm
 
-        this.addPayloadClaim('_sd_alg', hasherAndAlgorithm.algorithm)
+        this.addHasherAlgorithmToPayload()
+
+        return this as ReturnSdJwtWithPayload<this>
+    }
+
+    private addHasherAlgorithmToPayload(): ReturnSdJwtWithPayload<this> {
+        this.assertHashAndAlgorithm()
+
+        this.addPayloadClaim('_sd_alg', this.hasherAndAlgorithm!.algorithm)
 
         return this as ReturnSdJwtWithPayload<this>
     }
@@ -285,22 +293,22 @@ export class SdJwt<
         cleanup: Array<Array<string>> = []
     ): Promise<Record<string, unknown>> {
         this.disclosures = this.disclosures ?? []
-        for (const [key, value] of Object.entries(frame)) {
+
+        for (const [key, frameValue] of Object.entries(frame)) {
             const newKeys = [...keys, key]
-            if (key === '__decoyCount' && typeof value === 'number') {
+
+            if (key === '__decoyCount' && typeof frameValue === 'number') {
                 const sd: Array<string> = Array.from(
                     (object._sd as string[]) ?? []
                 )
-                const decoy = await this.createDecoys(value)
-                decoy.forEach((digest) => sd.push(digest))
+
+                const decoys = await this.createDecoys(frameValue)
+                decoys.forEach((digest) => sd.push(digest))
+
                 // @ts-ignore
                 object._sd = sd.sort()
-            } else if (typeof value === 'boolean') {
-                if (value === true) {
-                    const sd: Array<string> = Array.from(
-                        (object._sd as string[]) ?? []
-                    )
-
+            } else if (typeof frameValue === 'boolean') {
+                if (frameValue === true) {
                     if (!(key in object)) {
                         throw new SdJwtError(
                             `key, ${key}, is not inside the payload (${JSON.stringify(
@@ -314,9 +322,12 @@ export class SdJwt<
                         object[key]
                     )
 
-                    this.disclosures?.push(disclosure)
+                    this.disclosures.push(disclosure)
 
                     const digest = await this.hashDisclosure(disclosure)
+                    const sd: Array<string> = Array.from(
+                        (object._sd as string[]) ?? []
+                    )
                     sd.push(digest)
 
                     //@ts-ignore
@@ -324,24 +335,25 @@ export class SdJwt<
 
                     cleanup.push(newKeys)
                 }
-            } else if (typeof value === 'object' && !Array.isArray(value)) {
-                this.applyDisclosureFrame(
+            } else if (
+                typeof frameValue === 'object' &&
+                !Array.isArray(frameValue)
+            ) {
+                await this.applyDisclosureFrame(
                     object[key] as Payload,
-                    value as DisclosureFrame<Payload>,
+                    frameValue as DisclosureFrame<Payload>,
                     newKeys,
                     cleanup
                 )
             } else {
                 throw new SdJwtError(
-                    `Invalid type in frame with key '${key}' and type '${typeof value}'. Only Record<string, unknown> and boolean are allowed.`
+                    `Invalid type in frame with key '${key}' and type '${typeof frameValue}'. Only Record<string, unknown> and boolean are allowed.`
                 )
             }
         }
 
         const payloadClone = { ...object }
-        cleanup.forEach((path) => {
-            deleteByPath(payloadClone, path.join('.'))
-        })
+        cleanup.forEach((path) => deleteByPath(payloadClone, path.join('.')))
 
         return payloadClone
     }
@@ -427,28 +439,35 @@ export class SdJwt<
         this.assertHeader()
         this.assertPayload()
 
-        const frame = options?.disclosureFrame ?? this.disclosureFrame
+        await this.keyBinding?.assertValidForKeyBinding()
 
-        const payload = frame
+        const frame = options?.disclosureFrame ?? this.disclosureFrame
+        const shouldApplyFrame = !!frame
+
+        if (shouldApplyFrame) {
+            if (
+                this.disclosures &&
+                this.disclosures.length > 0 &&
+                this.signature &&
+                !this.signer
+            ) {
+                throw new SdJwtError(
+                    'Signature is already set by the user when selectively disclosable items still have to be removed. This will invalidate the signature. Try to provide a signer on SdJwt.withSigner and SdJwt.toCompact will call it at the correct time.'
+                )
+            }
+
+            this.addHasherAlgorithmToPayload()
+        }
+
+        const payload = shouldApplyFrame
             ? await this.applyDisclosureFrame(
                   { ...this.payload } as Payload,
                   frame as DisclosureFrame<Payload>
               )
             : this.payload
 
-        const sHeader = Base64url.encode(JSON.stringify(this.header))
-        const sPayload = Base64url.encode(JSON.stringify(payload))
-
-        if (
-            this.disclosures &&
-            this.disclosures.length > 0 &&
-            this.signature &&
-            !this.signer
-        ) {
-            throw new SdJwtError(
-                'Signature is already set by the user when selectively disclosable items still have to be removed. This will invalidate the signature. Try to provide a signer on SdJwt.withSigner and SdJwt.toCompact will call it at the correct time.'
-            )
-        }
+        const compactHeader = Base64url.encode(JSON.stringify(this.header))
+        const compactPayload = Base64url.encode(JSON.stringify(payload))
 
         const sSignature = this.signature
             ? Base64url.encode(this.signature)
@@ -467,6 +486,6 @@ export class SdJwt<
                 : `~${kb}`
             : ''
 
-        return `${sHeader}.${sPayload}.${sSignature}${sDisclosures}${sKeyBinding}`
+        return `${compactHeader}.${compactPayload}.${sSignature}${sDisclosures}${sKeyBinding}`
     }
 }

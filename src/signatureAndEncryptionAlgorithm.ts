@@ -93,6 +93,11 @@ export enum SignatureAndEncryptionAlgorithm {
     ECDH_ES = 'ECDH-ES',
 
     /**
+     * EdDSA signature algorithms
+     */
+    EdDSA = 'EdDSA',
+
+    /**
      * ECDH-ES using Concat KDF and "A128KW" wrapping
      */
     ECDH_ES_A128KW = 'ECDH-ES+A128KW',
