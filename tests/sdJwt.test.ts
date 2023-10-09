@@ -169,6 +169,29 @@ describe('sd-jwt', async () => {
         })
     })
 
+    describe('SD-JWT with key binding', async () => {
+        it('should create an sd-jwt with key binding', async () => {
+            const sdJwt = new SdJwt<
+                { alg: 'EdDSA' },
+                { iss: 'https://example.org/issuer' }
+            >(
+                {
+                    header: { alg: 'EdDSA' },
+                    payload: { iss: 'https://example.org/issuer' },
+                },
+                {
+                    signer: () => new Uint8Array(32).fill(41),
+                    saltGenerator: () => 'salt',
+                    disclosureFrame: { iss: true, __decoyCount: 1 },
+                    hasherAndAlgorithm: {
+                        hasher: () => 'hash',
+                        algorithm: HasherAlgorithm.Sha256
+                    }
+                }
+            )
+        })
+    })
+
     describe('from and to compact form', async () => {
         it('create a simple compact sd-jwt', async () => {
             const sdJwt = new SdJwt<

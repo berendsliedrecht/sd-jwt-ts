@@ -6,6 +6,7 @@ import { deleteByPath } from './util'
 import { SaltGenerator, createDecoys } from './decoys'
 import { createObjectDisclosure, encodeDisclosure } from './disclosures'
 import { HasherAndAlgorithm, hashDisclosure } from './hashDisclosure'
+import { SignatureAndEncryptionAlgorithm } from 'signatureAndEncryptionAlgorithm'
 
 type ReturnSdJwtWithHeaderAndPayload<T extends SdJwt> = MakePropertyRequired<
     T,
@@ -20,6 +21,11 @@ type ReturnSdJwtWithPayload<T extends SdJwt> = MakePropertyRequired<
 type ReturnSdJwtWithSignature<T extends SdJwt> = MakePropertyRequired<
     T,
     'signature'
+>
+
+type ReturnSdJwtWithKeyBinding<T extends SdJwt> = MakePropertyRequired<
+    T,
+    'keyBinding'
 >
 
 export type DisclosureFrame<T> = T extends Array<unknown>
@@ -57,6 +63,15 @@ export type SdJwtToCompactOptions<
     disclosureFrame?: DisclosureFrame<DisclosablePayload>
 }
 
+export type KeyBinding<
+    H extends Record<string, unknown> = Record<string, unknown>,
+    P extends Record<string, unknown> = Record<string, unknown>
+> = {
+    header: { typ: 'kb+jwt'; alg: SignatureAndEncryptionAlgorithm } & H
+    payload: { iat: number; aud: string; nonce: string } & P
+    signature: Uint8Array
+}
+
 export type SdJwtOptions<
     Header extends Record<string, unknown>,
     Payload extends Record<string, unknown>
@@ -64,6 +79,8 @@ export type SdJwtOptions<
     header?: Header
     payload?: Payload
     signature?: Uint8Array
+
+    keyBinding?: KeyBinding
 
     // TODO: we should not store the base64url encoded version
     disclosures?: Array<string>
@@ -98,6 +115,7 @@ export class SdJwt<
     public payload?: Payload & CommonSdJwtPayloadProperties
     public signature?: Uint8Array
     public disclosures?: Array<string>
+    public keyBinding?: KeyBinding
 
     private saltGenerator?: SaltGenerator
     private signer?: Signer
@@ -112,6 +130,7 @@ export class SdJwt<
         this.payload = options?.payload
         this.signature = options?.signature
         this.disclosures = options?.disclosures
+        this.keyBinding = options?.keyBinding
 
         if (additionalOptions?.hasherAndAlgorithm) {
             this.withHasher(additionalOptions.hasherAndAlgorithm)
@@ -142,11 +161,18 @@ export class SdJwt<
         const [sSignature, ...disclosures] = sSignatureAndDisclosures.split('~')
         const signature = Base64url.decode(sSignature)
 
+        let keyBinding: KeyBinding | undefined = undefined
+        if (compact.includes('~') && !compact.endsWith('~')) {
+            keyBinding = JSON.parse(disclosures[disclosures.length - 1])
+            disclosures.pop()
+        }
+
         const sdJwt = new SdJwt<Header, Payload>({
             header,
             payload,
             signature,
-            disclosures: disclosures.filter((d) => d.length > 0)
+            disclosures: disclosures.filter((d) => d.length > 0),
+            keyBinding
         })
 
         return sdJwt as ReturnSdJwtWithHeaderAndPayload<typeof sdJwt>
@@ -184,6 +210,13 @@ export class SdJwt<
         this.header ??= {} as Header
         this.header = { ...this.header, [item]: value }
         return this as ReturnSdJwtWithHeader<this>
+    }
+
+    public withKeyBinding(
+        keyBinding: KeyBinding
+    ): ReturnSdJwtWithKeyBinding<this> {
+        this.keyBinding = keyBinding
+        return this as ReturnSdJwtWithKeyBinding<this>
     }
 
     public withPayload(payload: Payload): ReturnSdJwtWithPayload<this> {
@@ -425,6 +458,12 @@ export class SdJwt<
                 ? `~${this.disclosures?.join('~')}~`
                 : ''
 
-        return `${sHeader}.${sPayload}.${sSignature}${sDisclosures}`
+        const sKeyBinding = this.keyBinding
+            ? sDisclosures.length > 0
+                ? this.keyBinding
+                : `~${this.keyBinding}`
+            : ''
+
+        return `${sHeader}.${sPayload}.${sSignature}${sDisclosures}${sKeyBinding}`
     }
 }
