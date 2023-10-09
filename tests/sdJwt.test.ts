@@ -177,7 +177,7 @@ describe('sd-jwt', async () => {
             >(
                 {
                     header: { alg: 'EdDSA' },
-                    payload: { iss: 'https://example.org/issuer' },
+                    payload: { iss: 'https://example.org/issuer' }
                 },
                 {
                     signer: () => new Uint8Array(32).fill(41),

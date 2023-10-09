@@ -7,6 +7,7 @@ import { SaltGenerator, createDecoys } from './decoys'
 import { createObjectDisclosure, encodeDisclosure } from './disclosures'
 import { HasherAndAlgorithm, hashDisclosure } from './hashDisclosure'
 import { SignatureAndEncryptionAlgorithm } from 'signatureAndEncryptionAlgorithm'
+import { Jwt } from './jwt'
 
 type ReturnSdJwtWithHeaderAndPayload<T extends SdJwt> = MakePropertyRequired<
     T,
@@ -80,7 +81,7 @@ export type SdJwtOptions<
     payload?: Payload
     signature?: Uint8Array
 
-    keyBinding?: KeyBinding
+    keyBinding?: Jwt
 
     // TODO: we should not store the base64url encoded version
     disclosures?: Array<string>
@@ -115,7 +116,7 @@ export class SdJwt<
     public payload?: Payload & CommonSdJwtPayloadProperties
     public signature?: Uint8Array
     public disclosures?: Array<string>
-    public keyBinding?: KeyBinding
+    public keyBinding?: Jwt
 
     private saltGenerator?: SaltGenerator
     private signer?: Signer
@@ -161,7 +162,7 @@ export class SdJwt<
         const [sSignature, ...disclosures] = sSignatureAndDisclosures.split('~')
         const signature = Base64url.decode(sSignature)
 
-        let keyBinding: KeyBinding | undefined = undefined
+        let keyBinding: Jwt | undefined = undefined
         if (compact.includes('~') && !compact.endsWith('~')) {
             keyBinding = JSON.parse(disclosures[disclosures.length - 1])
             disclosures.pop()
@@ -213,9 +214,14 @@ export class SdJwt<
     }
 
     public withKeyBinding(
-        keyBinding: KeyBinding
+        keyBinding: Jwt | string
     ): ReturnSdJwtWithKeyBinding<this> {
-        this.keyBinding = keyBinding
+        const kb =
+            typeof keyBinding === 'string'
+                ? Jwt.fromCompact(keyBinding)
+                : keyBinding
+
+        this.keyBinding = kb
         return this as ReturnSdJwtWithKeyBinding<this>
     }
 
