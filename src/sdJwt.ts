@@ -141,7 +141,7 @@ export class SdJwt<
         }
     }
 
-    public static async fromCompact<
+    public static fromCompact<
         Header extends Record<string, unknown> = Record<string, unknown>,
         Payload extends Record<string, unknown> = Record<string, unknown>
     >(compact: string) {
@@ -159,7 +159,7 @@ export class SdJwt<
         let keyBinding: KeyBinding | undefined = undefined
         if (compact.includes('~') && !compact.endsWith('~')) {
             const jwt = Jwt.fromCompact(disclosures[disclosures.length - 1])
-            keyBinding = await KeyBinding.fromJwt(jwt)
+            keyBinding = KeyBinding.fromJwt(jwt)
             disclosures.pop()
         }
 

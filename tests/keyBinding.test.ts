@@ -16,7 +16,9 @@ describe('key binding', async () => {
                 signature: new Uint8Array(32).fill(42)
             })
 
-            assert.doesNotThrow(() => jwt.assertValidForKeyBinding())
+            assert.doesNotReject(
+                async () => await jwt.assertValidForKeyBinding()
+            )
         })
 
         it('error when jwt does not have a header for keybinding', async () => {
@@ -29,7 +31,7 @@ describe('key binding', async () => {
                 signature: new Uint8Array(32).fill(42)
             })
 
-            assert.throws(jwt.assertValidForKeyBinding)
+            assert.rejects(jwt.assertValidForKeyBinding)
         })
 
         it('error when jwt does not have a payload for keybinding', async () => {
@@ -38,7 +40,7 @@ describe('key binding', async () => {
                 signature: new Uint8Array(32).fill(42)
             })
 
-            assert.throws(jwt.assertValidForKeyBinding)
+            assert.rejects(jwt.assertValidForKeyBinding)
         })
 
         it('error when jwt does not have a signature for keybinding', async () => {
@@ -51,7 +53,7 @@ describe('key binding', async () => {
                 }
             })
 
-            assert.throws(jwt.assertValidForKeyBinding)
+            assert.rejects(jwt.assertValidForKeyBinding)
         })
 
         it('error when jwt does not have a alg in the header for keybinding', async () => {
@@ -66,7 +68,7 @@ describe('key binding', async () => {
                 signature: new Uint8Array(32).fill(42)
             })
 
-            assert.throws(jwt.assertValidForKeyBinding)
+            assert.rejects(jwt.assertValidForKeyBinding)
         })
 
         it('error when jwt does not have a typ in the header for keybinding', async () => {
@@ -81,7 +83,7 @@ describe('key binding', async () => {
                 signature: new Uint8Array(32).fill(42)
             })
 
-            assert.throws(jwt.assertValidForKeyBinding)
+            assert.rejects(jwt.assertValidForKeyBinding)
         })
 
         it('error when jwt has a typ in the header for keybinding, but of invalid value', async () => {
@@ -96,7 +98,7 @@ describe('key binding', async () => {
                 signature: new Uint8Array(32).fill(42)
             })
 
-            assert.throws(jwt.assertValidForKeyBinding)
+            assert.rejects(jwt.assertValidForKeyBinding)
         })
 
         it('error when jwt the "aud" is missing in the payload for keybinding', async () => {
@@ -110,7 +112,7 @@ describe('key binding', async () => {
                 signature: new Uint8Array(32).fill(42)
             })
 
-            assert.throws(jwt.assertValidForKeyBinding)
+            assert.rejects(jwt.assertValidForKeyBinding)
         })
 
         it('error when jwt the "iat" is missing in the payload for keybinding', async () => {
@@ -124,7 +126,7 @@ describe('key binding', async () => {
                 signature: new Uint8Array(32).fill(42)
             })
 
-            assert.throws(jwt.assertValidForKeyBinding)
+            assert.rejects(jwt.assertValidForKeyBinding)
         })
 
         it('error when jwt the "nonce" is missing in the payload for keybinding', async () => {
@@ -138,7 +140,7 @@ describe('key binding', async () => {
                 signature: new Uint8Array(32).fill(42)
             })
 
-            assert.throws(jwt.assertValidForKeyBinding)
+            assert.rejects(jwt.assertValidForKeyBinding)
         })
 
         it('error when jwt the "iat" is not missing, but invalid type in the payload for keybinding', async () => {
@@ -152,7 +154,7 @@ describe('key binding', async () => {
                 signature: new Uint8Array(32).fill(42)
             })
 
-            assert.throws(jwt.assertValidForKeyBinding)
+            assert.rejects(jwt.assertValidForKeyBinding)
         })
     })
 })

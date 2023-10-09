@@ -124,7 +124,13 @@ describe('sd-jwt', async () => {
                             payload: { exp: 123, sub: 'a' },
                             signature: Uint8Array.from([1, 2, 3])
                         },
-                        { disclosureFrame: { sub: true } }
+                        {
+                            disclosureFrame: { sub: true },
+                            hasherAndAlgorithm: {
+                                hasher: () => 'hash',
+                                algorithm: HasherAlgorithm.Sha256
+                            }
+                        }
                     ).toCompact(),
                 new SdJwtError(
                     'Cannot create a disclosure without a salt generator. You can set it with this.withSaltGenerator()'
@@ -390,7 +396,7 @@ describe('sd-jwt', async () => {
                     payload: {
                         iss: 'https://example.org/issuer',
                         nested_field: {
-                            more_nested_field: { a: ['1', 2, 3, 4] }
+                            more_nested_field: { a: [1, 2, 3, 4] }
                         }
                     }
                 },
@@ -414,7 +420,7 @@ describe('sd-jwt', async () => {
 
             assert.strictEqual(
                 await sdJwt.toCompact(),
-                'eyJhbGciOiJFZERTQSJ9.eyJuZXN0ZWRfZmllbGQiOnsibW9yZV9uZXN0ZWRfZmllbGQiOnsiYSI6WyIxIiwyLDMsNF19fSwiX3NkX2FsZyI6InNoYS0yNTYiLCJfc2QiOlsiaGFzaCIsImhhc2giXX0.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwiaXNzIiwiaHR0cHM6Ly9leGFtcGxlLm9yZy9pc3N1ZXIiXQ~WyJzYWx0IiwibW9yZV9uZXN0ZWRfZmllbGQiLHsiYSI6WyIxIiwyLDMsNF19XQ~'
+                'eyJhbGciOiJFZERTQSJ9.eyJuZXN0ZWRfZmllbGQiOnsiX3NkIjpbImhhc2giLCJoYXNoIiwiaGFzaCIsImhhc2giLCJoYXNoIiwiaGFzaCJdfSwiX3NkX2FsZyI6InNoYS0yNTYiLCJfc2QiOlsiaGFzaCIsImhhc2giXX0.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwiaXNzIiwiaHR0cHM6Ly9leGFtcGxlLm9yZy9pc3N1ZXIiXQ~WyJzYWx0IiwibW9yZV9uZXN0ZWRfZmllbGQiLHsiYSI6WzEsMiwzLDRdfV0~'
             )
         })
 
