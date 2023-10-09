@@ -6,8 +6,8 @@ import { deleteByPath } from './util'
 import { SaltGenerator, createDecoys } from './decoys'
 import { createObjectDisclosure, encodeDisclosure } from './disclosures'
 import { HasherAndAlgorithm, hashDisclosure } from './hashDisclosure'
-import { SignatureAndEncryptionAlgorithm } from 'signatureAndEncryptionAlgorithm'
 import { Jwt } from './jwt'
+import { KeyBinding } from './keyBinding'
 
 type ReturnSdJwtWithHeaderAndPayload<T extends SdJwt> = MakePropertyRequired<
     T,
@@ -64,15 +64,6 @@ export type SdJwtToCompactOptions<
     disclosureFrame?: DisclosureFrame<DisclosablePayload>
 }
 
-export type KeyBinding<
-    H extends Record<string, unknown> = Record<string, unknown>,
-    P extends Record<string, unknown> = Record<string, unknown>
-> = {
-    header: { typ: 'kb+jwt'; alg: SignatureAndEncryptionAlgorithm } & H
-    payload: { iat: number; aud: string; nonce: string } & P
-    signature: Uint8Array
-}
-
 export type SdJwtOptions<
     Header extends Record<string, unknown>,
     Payload extends Record<string, unknown>
@@ -81,7 +72,7 @@ export type SdJwtOptions<
     payload?: Payload
     signature?: Uint8Array
 
-    keyBinding?: Jwt
+    keyBinding?: KeyBinding
 
     // TODO: we should not store the base64url encoded version
     disclosures?: Array<string>
@@ -116,7 +107,7 @@ export class SdJwt<
     public payload?: Payload & CommonSdJwtPayloadProperties
     public signature?: Uint8Array
     public disclosures?: Array<string>
-    public keyBinding?: Jwt
+    public keyBinding?: KeyBinding
 
     private saltGenerator?: SaltGenerator
     private signer?: Signer
@@ -162,9 +153,10 @@ export class SdJwt<
         const [sSignature, ...disclosures] = sSignatureAndDisclosures.split('~')
         const signature = Base64url.decode(sSignature)
 
-        let keyBinding: Jwt | undefined = undefined
+        let keyBinding: KeyBinding | undefined = undefined
         if (compact.includes('~') && !compact.endsWith('~')) {
-            keyBinding = JSON.parse(disclosures[disclosures.length - 1])
+            const jwt = Jwt.fromCompact(disclosures[disclosures.length - 1])
+            keyBinding = KeyBinding.fromJwt(jwt)
             disclosures.pop()
         }
 
@@ -214,14 +206,14 @@ export class SdJwt<
     }
 
     public withKeyBinding(
-        keyBinding: Jwt | string
+        keyBinding: Jwt | KeyBinding | string
     ): ReturnSdJwtWithKeyBinding<this> {
         const kb =
             typeof keyBinding === 'string'
                 ? Jwt.fromCompact(keyBinding)
                 : keyBinding
 
-        this.keyBinding = kb
+        this.keyBinding = KeyBinding.fromJwt(kb)
         return this as ReturnSdJwtWithKeyBinding<this>
     }
 
