@@ -1,1 +1,1 @@
-# Selective Disclosure JWT Draft 04 implementation
+# Selective Disclosure JWT Draft 05 implementation
