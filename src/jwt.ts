@@ -140,7 +140,9 @@ export class Jwt<
 
     public assertSigner() {
         if (!this.signer) {
-            throw new JwtError('Signer must be defined')
+            throw new JwtError(
+                'A signer must be provided to create a signature. You can set it with this.withSigner()'
+            )
         }
     }
 
@@ -151,11 +153,12 @@ export class Jwt<
         return `${this.compactHeader}.${this.compactPayload}`
     }
 
-    public async signAndAdd() {
+    public async signAndAdd(): Promise<ReturnJwtWithSignature<this>> {
         this.assertSigner()
-        this.assertHeader()
+        const signature = await this.signer!(this.signableInput, this.header!)
+        this.withSignature(signature)
 
-        this.signature = await this.signer!(this.signableInput, this.header!)
+        return this as ReturnJwtWithSignature<this>
     }
 
     private get compactHeader() {

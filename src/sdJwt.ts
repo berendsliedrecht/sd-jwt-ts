@@ -6,7 +6,7 @@ import { deleteByPath } from './util'
 import { SaltGenerator, createDecoys } from './decoys'
 import { createObjectDisclosure, encodeDisclosure } from './disclosures'
 import { HasherAndAlgorithm, hashDisclosure } from './hashDisclosure'
-import { Jwt } from './jwt'
+import { Jwt, JwtAdditionalOptions } from './jwt'
 import { KeyBinding } from './keyBinding'
 
 type ReturnSdJwtWithHeaderAndPayload<T extends SdJwt> = MakePropertyRequired<
@@ -78,46 +78,29 @@ export type SdJwtOptions<
     disclosures?: Array<string>
 }
 
-export type SdJwtAdditionalOptions<
-    H extends Record<string, unknown>,
-    DP extends Record<string, unknown>
-> = {
-    hasherAndAlgorithm?: HasherAndAlgorithm
-    saltGenerator?: SaltGenerator
-    signer?: Signer<H>
-    disclosureFrame?: DisclosureFrame<DP>
-}
-
-type CommonSdJwtPayloadProperties = {
-    _sd_alg?: string | HasherAlgorithm
-    _sd?: Array<string>
-}
-
-type CommonSdJwtHeaderProperties = {
-    alg?: string
-    jwk?: Record<string, unknown>
-    kid?: string
-}
+export type SdJwtAdditionalOptions<Payload extends Record<string, unknown>> =
+    JwtAdditionalOptions & {
+        hasherAndAlgorithm?: HasherAndAlgorithm
+        saltGenerator?: SaltGenerator
+        disclosureFrame?: DisclosureFrame<Payload>
+    }
 
 export class SdJwt<
     Header extends Record<string, unknown> = Record<string, unknown>,
     Payload extends Record<string, unknown> = Record<string, unknown>
-> {
-    public header?: Header & CommonSdJwtHeaderProperties
-    public payload?: Payload & CommonSdJwtPayloadProperties
-    public signature?: Uint8Array
+> extends Jwt<Header, Payload> {
     public disclosures?: Array<string>
     public keyBinding?: KeyBinding
 
     private saltGenerator?: SaltGenerator
-    private signer?: Signer
     private hasherAndAlgorithm?: HasherAndAlgorithm
     private disclosureFrame?: DisclosureFrame<Payload>
 
     public constructor(
         options?: SdJwtOptions<Header, Payload>,
-        additionalOptions?: SdJwtAdditionalOptions<Header, Payload>
+        additionalOptions?: SdJwtAdditionalOptions<Payload>
     ) {
+        super(options, additionalOptions)
         this.header = options?.header
         this.payload = options?.payload
         this.signature = options?.signature
@@ -141,7 +124,9 @@ export class SdJwt<
         }
     }
 
-    public static fromCompact<
+    // TODO: can this override `JWT.fromCompact` so the API is better.
+    //       There seems to be an issue with different return types
+    public static fromCompactSdJwt<
         Header extends Record<string, unknown> = Record<string, unknown>,
         Payload extends Record<string, unknown> = Record<string, unknown>
     >(compact: string) {
@@ -202,20 +187,6 @@ export class SdJwt<
         return this as ReturnSdJwtWithPayload<this>
     }
 
-    public withHeader(header: Header): ReturnSdJwtWithHeader<this> {
-        this.header = header
-        return this as ReturnSdJwtWithHeader<this>
-    }
-
-    public addHeaderClaim(
-        item: keyof Header,
-        value: Header[typeof item] | unknown
-    ): ReturnSdJwtWithHeader<this> {
-        this.header ??= {} as Header
-        this.header = { ...this.header, [item]: value }
-        return this as ReturnSdJwtWithHeader<this>
-    }
-
     public withKeyBinding(
         keyBinding: Jwt | KeyBinding | string
     ): ReturnSdJwtWithKeyBinding<this> {
@@ -228,30 +199,9 @@ export class SdJwt<
         return this as ReturnSdJwtWithKeyBinding<this>
     }
 
-    public withPayload(payload: Payload): ReturnSdJwtWithPayload<this> {
-        this.payload = payload
-        return this as ReturnSdJwtWithPayload<this>
-    }
-
     public withDisclosureFrame(disclosureFrame: DisclosureFrame<Payload>) {
         this.disclosureFrame = disclosureFrame
         return this
-    }
-
-    public addPayloadClaim(
-        item: keyof Payload,
-        value: Payload[typeof item] | unknown
-    ): ReturnSdJwtWithPayload<this> {
-        this.payload ??= {} as Payload
-        this.payload = { ...this.payload, [item]: value }
-        return this as ReturnSdJwtWithPayload<this>
-    }
-
-    public withSignature(
-        signature: Uint8Array
-    ): ReturnSdJwtWithSignature<this> {
-        this.signature = signature
-        return this as ReturnSdJwtWithSignature<this>
     }
 
     private async createDisclosure(
@@ -358,24 +308,6 @@ export class SdJwt<
         return payloadClone
     }
 
-    private assertHeader() {
-        if (!this.header) {
-            throw new SdJwtError('Header must be defined')
-        }
-    }
-
-    private assertPayload() {
-        if (!this.payload) {
-            throw new SdJwtError('Payload must be defined')
-        }
-    }
-
-    private assertSignature() {
-        if (!this.signature) {
-            throw new SdJwtError('Signature must be defined')
-        }
-    }
-
     private assertSaltGenerator() {
         if (!this.saltGenerator) {
             throw new SdJwtError(
@@ -390,36 +322,6 @@ export class SdJwt<
                 'A hasher and algorithm must be set in order to create a digest of a disclosure. You can set it with this.withHasherAndAlgorithm()'
             )
         }
-    }
-
-    private assertSigner() {
-        if (!this.signer) {
-            throw new SdJwtError(
-                'A signer must be provided to create a signature. You can set it with this.withSigner()'
-            )
-        }
-    }
-
-    public get signableInput() {
-        return `${this.compactHeader}.${this.compactPayload}`
-    }
-
-    public async signAndAdd(): Promise<ReturnSdJwtWithSignature<this>> {
-        this.assertSigner()
-        const signature = await this.signer!(this.signableInput, this.header!)
-        this.withSignature(signature)
-
-        return this as ReturnSdJwtWithSignature<this>
-    }
-
-    private get compactHeader() {
-        this.assertHeader()
-        return Base64url.encodeFromJson(this.header!)
-    }
-
-    private get compactPayload() {
-        this.assertPayload()
-        return Base64url.encodeFromJson(this.payload!)
     }
 
     public async verifySignature(cb: Verifier<Header>): Promise<boolean> {
