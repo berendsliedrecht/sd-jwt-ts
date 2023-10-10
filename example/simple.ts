@@ -1,4 +1,9 @@
-import { createHash, generateKeyPairSync, getRandomValues, sign } from 'crypto'
+import {
+    createHash,
+    generateKeyPairSync,
+    getRandomValues,
+    sign
+} from 'node:crypto'
 
 import {
     Signer,
@@ -56,7 +61,7 @@ void (async () => {
     console.log(sdJwtCompact)
     console.log('========================================================')
 
-    const sdJwtFromCompact = await SdJwt.fromCompact(sdJwtCompact)
+    const sdJwtFromCompact = SdJwt.fromCompact(sdJwtCompact)
 
     console.log('\n')
     console.log('==================== EXPANDED SD-JWT ====================')

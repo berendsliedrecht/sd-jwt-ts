@@ -1,4 +1,4 @@
-import { generateKeyPairSync, sign } from 'crypto'
+import { generateKeyPairSync, sign } from 'node:crypto'
 
 import { Signer, SdJwt, SignatureAndEncryptionAlgorithm } from '../src'
 
@@ -33,7 +33,7 @@ void (async () => {
     console.log(sdJwtCompact)
     console.log('========================================================')
 
-    const sdJwtFromCompact = await SdJwt.fromCompact(sdJwtCompact)
+    const sdJwtFromCompact = SdJwt.fromCompact(sdJwtCompact)
 
     console.log('\n')
     console.log('==================== EXPANDED JWT ====================')

@@ -76,10 +76,7 @@ describe('sd-jwt', async () => {
         })
 
         it('should create an instance of sdJwt from a compact sdJwt with disclosable', async () => {
-            const sdJwt = SdJwt.fromCompact<
-                { kid: string },
-                { exp: number }
-            >(
+            const sdJwt = SdJwt.fromCompact<{ kid: string }, { exp: number }>(
                 'eyJraWQiOiJhIn0.eyJleHAiOjEyM30.AQID~WyJDa0J1NE1NNklkX3RSUmRYMVptOC13IiwiZmlyc3RfbmFtZSIsIkJlcmVuZCBTbGllZHJlY2h0Il0~'
             )
 
