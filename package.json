@@ -4,6 +4,25 @@
     "description": "Implementation of sd-jwt Draft 05",
     "license": "(MIT OR Apache-2.0)",
     "author": "Berend Sliedrecht <blu3beri@proton.me>",
+    "keywords": [
+        "jwt",
+        "jwt-sd",
+        "sd-jwt",
+        "ssi",
+        "decentralized-identity",
+        "ssi",
+        "oauth",
+        "openid-connect"
+    ],
+    "repository": {
+        "url": "https://github.com/berendsliedrecht/sd-jwt-ts",
+        "type": "git"
+    },
+    "homepage": "https://github.com/berendsliedrecht/sd-jwt-ts",
+    "bugs": {
+        "url": "https://github.com/berendsliedrecht/sd-jwt-ts/issues",
+        "email": "blu3beri@proton.me"
+    },
     "main": "build/index.js",
     "files": [
         "build",
