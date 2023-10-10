@@ -1,5 +1,5 @@
-import { ClaimKeyTypeValue, assertClaimInObject } from './util'
-import { Jwt, JwtAdditionalOptions, JwtOptions } from './jwt'
+import { ClaimKeyTypeValue, assertClaimInObject } from '../util'
+import { Jwt, JwtAdditionalOptions, JwtOptions } from '../jwt'
 import { SignatureAndEncryptionAlgorithm } from './signatureAndEncryptionAlgorithm'
 
 export type KeyBindingHeader<
