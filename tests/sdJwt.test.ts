@@ -1,5 +1,8 @@
 import { before, describe, it } from 'node:test'
-import assert from 'node:assert'
+import assert, { deepStrictEqual, rejects, strictEqual } from 'node:assert'
+
+import { prelude } from './utils'
+
 import {
     SignatureAndEncryptionAlgorithm,
     HasherAlgorithm,
@@ -7,7 +10,6 @@ import {
     SdJwt,
     SdJwtError
 } from '../src'
-import { prelude } from './utils'
 
 describe('sd-jwt', async () => {
     before(prelude)
@@ -20,10 +22,7 @@ describe('sd-jwt', async () => {
                 signature: Uint8Array.from([1, 2, 3])
             }).toCompact()
 
-            assert.deepStrictEqual(
-                sdJwt,
-                'eyJraWQiOiAiYSJ9.eyJleHAiOiAxMjN9.AQID'
-            )
+            deepStrictEqual(sdJwt, 'eyJraWQiOiAiYSJ9.eyJleHAiOiAxMjN9.AQID')
         })
 
         it('should create a simple jwt with builder', async () => {
@@ -33,10 +32,7 @@ describe('sd-jwt', async () => {
                 .withSignature(Uint8Array.from([1, 2, 3]))
                 .toCompact()
 
-            assert.deepStrictEqual(
-                sdJwt,
-                'eyJraWQiOiAiYSJ9.eyJleHAiOiAxMjN9.AQID'
-            )
+            deepStrictEqual(sdJwt, 'eyJraWQiOiAiYSJ9.eyJleHAiOiAxMjN9.AQID')
         })
 
         it('should create a simple jwt with builder', async () => {
@@ -46,10 +42,7 @@ describe('sd-jwt', async () => {
                 .withSignature(Uint8Array.from([1, 2, 3]))
                 .toCompact()
 
-            assert.deepStrictEqual(
-                sdJwt,
-                'eyJraWQiOiAiYSJ9.eyJleHAiOiAxMjN9.AQID'
-            )
+            deepStrictEqual(sdJwt, 'eyJraWQiOiAiYSJ9.eyJleHAiOiAxMjN9.AQID')
         })
 
         it('should create a simple jwt with add builder', async () => {
@@ -59,10 +52,7 @@ describe('sd-jwt', async () => {
                 .withSignature(Uint8Array.from([1, 2, 3]))
                 .toCompact()
 
-            assert.deepStrictEqual(
-                sdJwt,
-                'eyJraWQiOiAiYSJ9.eyJleHAiOiAxMjN9.AQID'
-            )
+            deepStrictEqual(sdJwt, 'eyJraWQiOiAiYSJ9.eyJleHAiOiAxMjN9.AQID')
         })
 
         it('should create an instance of sdJwt from a compact sdJwt', async () => {
@@ -70,9 +60,9 @@ describe('sd-jwt', async () => {
                 'eyJraWQiOiJhIn0.eyJleHAiOjEyM30.AQID'
             )
 
-            assert.deepStrictEqual(sdJwt.header.kid, 'a')
-            assert.deepStrictEqual(sdJwt.payload.exp, 123)
-            assert.deepStrictEqual(sdJwt.signature, Uint8Array.from([1, 2, 3]))
+            deepStrictEqual(sdJwt.header.kid, 'a')
+            deepStrictEqual(sdJwt.payload.exp, 123)
+            deepStrictEqual(sdJwt.signature, Uint8Array.from([1, 2, 3]))
         })
 
         it('should create an instance of sdJwt from a compact sdJwt with disclosable', async () => {
@@ -80,15 +70,12 @@ describe('sd-jwt', async () => {
                 'eyJraWQiOiJhIn0.eyJleHAiOjEyM30.AQID~WyJDa0J1NE1NNklkX3RSUmRYMVptOC13IiwiZmlyc3RfbmFtZSIsIkJlcmVuZCBTbGllZHJlY2h0Il0~'
             )
 
-            assert.deepStrictEqual(sdJwt.header.kid, 'a')
-            assert.deepStrictEqual(sdJwt.payload.exp, 123)
-            assert.deepStrictEqual(sdJwt.signature, Uint8Array.from([1, 2, 3]))
-            assert.deepStrictEqual(
-                sdJwt.disclosures?.map((d) => d.toString()),
-                [
-                    'WyJDa0J1NE1NNklkX3RSUmRYMVptOC13IiwgImZpcnN0X25hbWUiLCAiQmVyZW5kIFNsaWVkcmVjaHQiXQ'
-                ]
-            )
+            deepStrictEqual(sdJwt.header.kid, 'a')
+            deepStrictEqual(sdJwt.payload.exp, 123)
+            deepStrictEqual(sdJwt.signature, Uint8Array.from([1, 2, 3]))
+            deepStrictEqual(sdJwt.disclosures?.map((d) => d.toString()), [
+                'WyJDa0J1NE1NNklkX3RSUmRYMVptOC13IiwgImZpcnN0X25hbWUiLCAiQmVyZW5kIFNsaWVkcmVjaHQiXQ'
+            ])
         })
     })
 
@@ -98,7 +85,7 @@ describe('sd-jwt', async () => {
                 .addPayloadClaim('exp', 123)
                 .withSignature(Uint8Array.from([1, 2, 3]))
 
-            assert.rejects(
+            rejects(
                 async () => await sdJwt.toCompact(),
                 new SdJwtError('Header must be defined')
             )
@@ -109,7 +96,7 @@ describe('sd-jwt', async () => {
                 .addHeaderClaim('kid', 'a')
                 .withSignature(Uint8Array.from([1, 2, 3]))
 
-            assert.rejects(
+            rejects(
                 async () => await sdJwt.toCompact(),
                 new SdJwtError('Payload must be defined')
             )
@@ -120,14 +107,14 @@ describe('sd-jwt', async () => {
                 .addHeaderClaim('kid', 'a')
                 .addPayloadClaim('some', 'claim')
 
-            assert.rejects(
+            rejects(
                 async () => await sdJwt.verifySignature(() => true),
                 new SdJwtError('Signature must be defined')
             )
         })
 
         it('should error when no salt method is provided', async () => {
-            assert.rejects(
+            rejects(
                 () =>
                     new SdJwt(
                         {
@@ -150,7 +137,7 @@ describe('sd-jwt', async () => {
         })
 
         it('should error when no hash method is provided', async () => {
-            assert.rejects(
+            rejects(
                 () =>
                     new SdJwt(
                         {
@@ -170,7 +157,7 @@ describe('sd-jwt', async () => {
         })
 
         it('should error when no signer method is provided', async () => {
-            assert.rejects(
+            rejects(
                 () =>
                     new SdJwt(
                         {
@@ -228,7 +215,7 @@ describe('sd-jwt', async () => {
 
             assert(!compactSdJwt.endsWith('~'))
 
-            assert.strictEqual(
+            strictEqual(
                 compactSdJwt,
                 'eyJhbGciOiAiRWREU0EifQ.eyJfc2RfYWxnIjogInNoYS0yNTYiLCAiX3NkIjogWyJoYXNoIiwgImhhc2giXX0.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwgImlzcyIsICJodHRwczovL2V4YW1wbGUub3JnL2lzc3VlciJd~eyJ0eXAiOiAia2Irand0IiwgImFsZyI6ICJFUzI1NiJ9.eyJpYXQiOiAxMjMsIm5vbmNlIjogInNlY3VyZS1ub25jZSIsICJhdWQiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZy9hdWRpZW5jZSJ9.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
             )
@@ -273,7 +260,7 @@ describe('sd-jwt', async () => {
 
             assert(!compactSdJwt.endsWith('~'))
 
-            assert.strictEqual(
+            strictEqual(
                 compactSdJwt,
                 'eyJhbGciOiAiRWREU0EifQ.eyJpc3MiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZy9pc3N1ZXIiLCAiX3NkX2FsZyI6ICJzaGEtMjU2In0.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~eyJ0eXAiOiAia2Irand0IiwgImFsZyI6ICJFUzI1NiJ9.eyJpYXQiOiAxMjMsIm5vbmNlIjogInNlY3VyZS1ub25jZSIsICJhdWQiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZy9hdWRpZW5jZSJ9.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
             )
@@ -315,7 +302,7 @@ describe('sd-jwt', async () => {
                 }
             )
 
-            assert.deepStrictEqual(sdJwt.keyBinding, keyBinding)
+            deepStrictEqual(sdJwt.keyBinding, keyBinding)
         })
 
         it('create sd-jwt with key binding from compact round trip', async () => {
@@ -358,7 +345,7 @@ describe('sd-jwt', async () => {
 
             assert(!compactSdJwt.endsWith('~'))
 
-            assert.strictEqual(
+            strictEqual(
                 compactSdJwt,
                 'eyJhbGciOiAiRWREU0EifQ.eyJfc2RfYWxnIjogInNoYS0yNTYiLCAiX3NkIjogWyJoYXNoIiwgImhhc2giXX0.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwgImlzcyIsICJodHRwczovL2V4YW1wbGUub3JnL2lzc3VlciJd~eyJ0eXAiOiAia2Irand0IiwgImFsZyI6ICJFUzI1NiJ9.eyJpYXQiOiAxMjMsIm5vbmNlIjogInNlY3VyZS1ub25jZSIsICJhdWQiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZy9hdWRpZW5jZSJ9.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
             )
@@ -369,7 +356,7 @@ describe('sd-jwt', async () => {
 
             const roundTrippedSdJwt = await fromCompactSdJwt.toCompact()
 
-            assert.deepStrictEqual(compactSdJwt, roundTrippedSdJwt)
+            deepStrictEqual(compactSdJwt, roundTrippedSdJwt)
         })
     })
 
@@ -394,7 +381,7 @@ describe('sd-jwt', async () => {
                 }
             )
 
-            assert.strictEqual(
+            strictEqual(
                 await sdJwt.toCompact(),
                 'eyJhbGciOiAiRWREU0EifQ.eyJfc2RfYWxnIjogInNoYS0yNTYiLCAiX3NkIjogWyJoYXNoIiwgImhhc2giXX0.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwgImlzcyIsICJodHRwczovL2V4YW1wbGUub3JnL2lzc3VlciJd~'
             )
@@ -429,7 +416,7 @@ describe('sd-jwt', async () => {
                 }
             )
 
-            assert.strictEqual(
+            strictEqual(
                 await sdJwt.toCompact(),
                 'eyJhbGciOiAiRWREU0EifQ.eyJuZXN0ZWRfZmllbGQiOiB7Il9zZCI6IFsiaGFzaCIsICJoYXNoIiwgImhhc2giLCAiaGFzaCIsICJoYXNoIiwgImhhc2giXX0sIl9zZF9hbGciOiAic2hhLTI1NiIsICJfc2QiOiBbImhhc2giLCAiaGFzaCJdfQ.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwgImlzcyIsICJodHRwczovL2V4YW1wbGUub3JnL2lzc3VlciJd~WyJzYWx0IiwgIm1vcmVfbmVzdGVkX2ZpZWxkIiwgeyJhIjogWzEsMiwzLDRdfV0~'
             )
@@ -447,7 +434,7 @@ describe('sd-jwt', async () => {
                 .withSigner(() => new Uint8Array(32).fill(41))
                 .withSaltGenerator(() => 'salt')
 
-            assert.strictEqual(await sdJwt.toCompact(), compact)
+            strictEqual(await sdJwt.toCompact(), compact)
         })
 
         it('Specification: A.4.  Example 4b - W3C Verifiable Credentials Data Model v2.0 - 01', async () => {
@@ -456,8 +443,8 @@ describe('sd-jwt', async () => {
 
             const sdJwt = SdJwt.fromCompact(compact)
 
-            assert.deepStrictEqual(sdJwt.header, { alg: 'ES256' })
-            assert.deepStrictEqual(sdJwt.payload, {
+            deepStrictEqual(sdJwt.header, { alg: 'ES256' })
+            deepStrictEqual(sdJwt.payload, {
                 iss: 'https://example.com/issuer',
                 iat: 1683000000,
                 exp: 1883000000,
@@ -503,25 +490,22 @@ describe('sd-jwt', async () => {
                 }
             })
 
-            assert.deepStrictEqual(
-                sdJwt.disclosures?.map((d) => d.toString()),
-                [
-                    'WyIyR0xDNDJzS1F2ZUNmR2ZyeU5STjl3IiwgImF0Y0NvZGUiLCAiSjA3QlgwMyJd',
-                    'WyJlbHVWNU9nM2dTTklJOEVZbnN4QV9BIiwgIm1lZGljaW5hbFByb2R1Y3ROYW1lIiwgIkNPVklELTE5IFZhY2NpbmUgTW9kZXJuYSJd',
-                    'WyI2SWo3dE0tYTVpVlBHYm9TNXRtdlZBIiwgIm1hcmtldGluZ0F1dGhvcml6YXRpb25Ib2xkZXIiLCAiTW9kZXJuYSBCaW90ZWNoIl0',
-                    'WyJlSThaV205UW5LUHBOUGVOZW5IZGhRIiwgIm5leHRWYWNjaW5hdGlvbkRhdGUiLCAiMjAyMS0wOC0xNlQxMzo0MDoxMloiXQ',
-                    'WyJRZ19PNjR6cUF4ZTQxMmExMDhpcm9BIiwgImNvdW50cnlPZlZhY2NpbmF0aW9uIiwgIkdFIl0',
-                    'WyJBSngtMDk1VlBycFR0TjRRTU9xUk9BIiwgImRhdGVPZlZhY2NpbmF0aW9uIiwgIjIwMjEtMDYtMjNUMTM6NDA6MTJaIl0',
-                    'WyJQYzMzSk0yTGNoY1VfbEhnZ3ZfdWZRIiwgIm9yZGVyIiwgIjMvMyJd',
-                    'WyJHMDJOU3JRZmpGWFE3SW8wOXN5YWpBIiwgImdlbmRlciIsICJGZW1hbGUiXQ',
-                    'WyJsa2x4RjVqTVlsR1RQVW92TU5JdkNBIiwgImJpcnRoRGF0ZSIsICIxOTYxLTA4LTE3Il0',
-                    'WyJuUHVvUW5rUkZxM0JJZUFtN0FuWEZBIiwgImdpdmVuTmFtZSIsICJNYXJpb24iXQ',
-                    'WyI1YlBzMUlxdVpOYTBoa2FGenp6Wk53IiwgImZhbWlseU5hbWUiLCAiTXVzdGVybWFubiJd',
-                    'WyI1YTJXMF9OcmxFWnpmcW1rXzdQcS13IiwgImFkbWluaXN0ZXJpbmdDZW50cmUiLCAiUHJheGlzIFNvbW1lcmdhcnRlbiJd',
-                    'WyJ5MXNWVTV3ZGZKYWhWZGd3UGdTN1JRIiwgImJhdGNoTnVtYmVyIiwgIjE2MjYzODI3MzYiXQ',
-                    'WyJIYlE0WDhzclZXM1FEeG5JSmRxeU9BIiwgImhlYWx0aFByb2Zlc3Npb25hbCIsICI4ODMxMTAwMDAwMTUzNzYiXQ'
-                ]
-            )
+            deepStrictEqual(sdJwt.disclosures?.map((d) => d.toString()), [
+                'WyIyR0xDNDJzS1F2ZUNmR2ZyeU5STjl3IiwgImF0Y0NvZGUiLCAiSjA3QlgwMyJd',
+                'WyJlbHVWNU9nM2dTTklJOEVZbnN4QV9BIiwgIm1lZGljaW5hbFByb2R1Y3ROYW1lIiwgIkNPVklELTE5IFZhY2NpbmUgTW9kZXJuYSJd',
+                'WyI2SWo3dE0tYTVpVlBHYm9TNXRtdlZBIiwgIm1hcmtldGluZ0F1dGhvcml6YXRpb25Ib2xkZXIiLCAiTW9kZXJuYSBCaW90ZWNoIl0',
+                'WyJlSThaV205UW5LUHBOUGVOZW5IZGhRIiwgIm5leHRWYWNjaW5hdGlvbkRhdGUiLCAiMjAyMS0wOC0xNlQxMzo0MDoxMloiXQ',
+                'WyJRZ19PNjR6cUF4ZTQxMmExMDhpcm9BIiwgImNvdW50cnlPZlZhY2NpbmF0aW9uIiwgIkdFIl0',
+                'WyJBSngtMDk1VlBycFR0TjRRTU9xUk9BIiwgImRhdGVPZlZhY2NpbmF0aW9uIiwgIjIwMjEtMDYtMjNUMTM6NDA6MTJaIl0',
+                'WyJQYzMzSk0yTGNoY1VfbEhnZ3ZfdWZRIiwgIm9yZGVyIiwgIjMvMyJd',
+                'WyJHMDJOU3JRZmpGWFE3SW8wOXN5YWpBIiwgImdlbmRlciIsICJGZW1hbGUiXQ',
+                'WyJsa2x4RjVqTVlsR1RQVW92TU5JdkNBIiwgImJpcnRoRGF0ZSIsICIxOTYxLTA4LTE3Il0',
+                'WyJuUHVvUW5rUkZxM0JJZUFtN0FuWEZBIiwgImdpdmVuTmFtZSIsICJNYXJpb24iXQ',
+                'WyI1YlBzMUlxdVpOYTBoa2FGenp6Wk53IiwgImZhbWlseU5hbWUiLCAiTXVzdGVybWFubiJd',
+                'WyI1YTJXMF9OcmxFWnpmcW1rXzdQcS13IiwgImFkbWluaXN0ZXJpbmdDZW50cmUiLCAiUHJheGlzIFNvbW1lcmdhcnRlbiJd',
+                'WyJ5MXNWVTV3ZGZKYWhWZGd3UGdTN1JRIiwgImJhdGNoTnVtYmVyIiwgIjE2MjYzODI3MzYiXQ',
+                'WyJIYlE0WDhzclZXM1FEeG5JSmRxeU9BIiwgImhlYWx0aFByb2Zlc3Npb25hbCIsICI4ODMxMTAwMDAwMTUzNzYiXQ'
+            ])
         })
 
         it('Specification: A.4.  Example 4b - W3C Verifiable Credentials Data Model v2.0 - 02', async () => {
@@ -530,9 +514,9 @@ describe('sd-jwt', async () => {
 
             const sdJwt = SdJwt.fromCompact(compact)
 
-            assert.deepStrictEqual(sdJwt.header, { alg: 'ES256' })
+            deepStrictEqual(sdJwt.header, { alg: 'ES256' })
 
-            assert.deepStrictEqual(sdJwt.payload, {
+            deepStrictEqual(sdJwt.payload, {
                 iss: 'https://example.com/issuer',
                 iat: 1683000000,
                 exp: 1883000000,
@@ -578,15 +562,12 @@ describe('sd-jwt', async () => {
                 _sd_alg: 'sha-256'
             })
 
-            assert.deepStrictEqual(
-                sdJwt.disclosures?.map((d) => d.toString()),
-                [
-                    'WyJQYzMzSk0yTGNoY1VfbEhnZ3ZfdWZRIiwgIm9yZGVyIiwgIjMvMyJd',
-                    'WyJBSngtMDk1VlBycFR0TjRRTU9xUk9BIiwgImRhdGVPZlZhY2NpbmF0aW9uIiwgIjIwMjEtMDYtMjNUMTM6NDA6MTJaIl0',
-                    'WyIyR0xDNDJzS1F2ZUNmR2ZyeU5STjl3IiwgImF0Y0NvZGUiLCAiSjA3QlgwMyJd',
-                    'WyJlbHVWNU9nM2dTTklJOEVZbnN4QV9BIiwgIm1lZGljaW5hbFByb2R1Y3ROYW1lIiwgIkNPVklELTE5IFZhY2NpbmUgTW9kZXJuYSJd'
-                ]
-            )
+            deepStrictEqual(sdJwt.disclosures?.map((d) => d.toString()), [
+                'WyJQYzMzSk0yTGNoY1VfbEhnZ3ZfdWZRIiwgIm9yZGVyIiwgIjMvMyJd',
+                'WyJBSngtMDk1VlBycFR0TjRRTU9xUk9BIiwgImRhdGVPZlZhY2NpbmF0aW9uIiwgIjIwMjEtMDYtMjNUMTM6NDA6MTJaIl0',
+                'WyIyR0xDNDJzS1F2ZUNmR2ZyeU5STjl3IiwgImF0Y0NvZGUiLCAiSjA3QlgwMyJd',
+                'WyJlbHVWNU9nM2dTTklJOEVZbnN4QV9BIiwgIm1lZGljaW5hbFByb2R1Y3ROYW1lIiwgIkNPVklELTE5IFZhY2NpbmUgTW9kZXJuYSJd'
+            ])
         })
     })
 })

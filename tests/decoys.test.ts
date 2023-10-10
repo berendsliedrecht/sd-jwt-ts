@@ -1,10 +1,14 @@
-import { describe, it } from 'node:test'
-import assert from 'node:assert'
+import { createHash, getRandomValues } from 'node:crypto'
+import { deepStrictEqual, strictEqual } from 'node:assert'
+import { before, describe, it } from 'node:test'
+
+import { prelude } from './utils'
 
 import { createDecoys } from '../src'
-import { createHash, getRandomValues } from 'node:crypto'
 
 describe('decoys', async () => {
+    before(prelude)
+
     it('Create correct amount of decoys', async () => {
         const decoys = await createDecoys(
             10,
@@ -12,7 +16,7 @@ describe('decoys', async () => {
             (input) => `hash=${input}`
         )
 
-        assert.deepStrictEqual(decoys, new Array(10).fill('hash=salt'))
+        deepStrictEqual(decoys, new Array(10).fill('hash=salt'))
     })
 
     it('Sha256 decoys have the correct length', async () => {
@@ -22,6 +26,6 @@ describe('decoys', async () => {
             (input) => createHash('sha256').update(input).digest('base64url')
         )
 
-        decoys.forEach((d) => assert.strictEqual(d.length, 43))
+        decoys.forEach((d) => strictEqual(d.length, 43))
     })
 })

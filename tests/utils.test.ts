@@ -1,12 +1,14 @@
-import { describe, it } from 'node:test'
-import assert from 'node:assert'
+import { before, describe, it } from 'node:test'
+import { deepStrictEqual, doesNotThrow, throws } from 'node:assert'
 
 import {
     ClaimKeyTypeValue,
     assertClaimInObject,
     deleteByPath
 } from '../src/util'
+
 import { JwtError } from '../src'
+import { prelude } from './utils'
 
 const deleteByPathTestGenerator = (
     title: string,
@@ -16,7 +18,7 @@ const deleteByPathTestGenerator = (
 ) => {
     it(title, () => {
         deleteByPath(obj, path)
-        assert.deepStrictEqual(obj, expected)
+        deepStrictEqual(obj, expected)
     })
 }
 
@@ -24,21 +26,18 @@ const assertClaimInObjectTestGenerator = (
     title: string,
     obj: Record<string, unknown>,
     requiredClaims: Array<ClaimKeyTypeValue>,
-    throws: boolean = true
+    shouldThrow: boolean = true
 ) => {
     it(title, () => {
-        throws
-            ? assert.throws(
-                  () => assertClaimInObject(obj, requiredClaims),
-                  JwtError
-              )
-            : assert.doesNotThrow(() =>
-                  assertClaimInObject(obj, requiredClaims)
-              )
+        shouldThrow
+            ? throws(() => assertClaimInObject(obj, requiredClaims), JwtError)
+            : doesNotThrow(() => assertClaimInObject(obj, requiredClaims))
     })
 }
 
 describe('utils', () => {
+    before(prelude)
+
     describe('delete by path', () => {
         deleteByPathTestGenerator('simple path', 'a', { a: 123 }, {})
 

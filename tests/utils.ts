@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
+import { strictEqual } from 'node:assert'
 
-import assert from 'node:assert'
 import { Disclosure, hashDisclosure } from '../src'
 
 /**
@@ -23,11 +23,11 @@ export const testCreateDisclosureObjectAndHash = async (
 ) => {
     const disclosure = new Disclosure(input[0], input[2], input[1])
 
-    assert.strictEqual(disclosure.encoded, expectedDisclosure)
+    strictEqual(disclosure.encoded, expectedDisclosure)
 
     const hash = await hashDisclosure(disclosure, hasher)
 
-    assert.strictEqual(hash, expectedHash)
+    strictEqual(hash, expectedHash)
 }
 
 export const testCreateDisclosureArrayAndHash = async (
@@ -37,9 +37,9 @@ export const testCreateDisclosureArrayAndHash = async (
 ) => {
     const disclosure = new Disclosure(input[0], input[1])
 
-    assert.strictEqual(disclosure.encoded, expectedDisclosure)
+    strictEqual(disclosure.encoded, expectedDisclosure)
 
     const hash = await hashDisclosure(disclosure, hasher)
 
-    assert.strictEqual(hash, expectedHash)
+    strictEqual(hash, expectedHash)
 }

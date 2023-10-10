@@ -1,8 +1,13 @@
-import { describe, it } from 'node:test'
+import { before, describe, it } from 'node:test'
 import { deepStrictEqual, throws } from 'node:assert'
+
+import { prelude } from './utils'
+
 import { JwtError, jwtFromCompact } from '../src'
 
 describe('jwt from compact', () => {
+    before(prelude)
+
     describe('succesful decoding of compact jwt', () => {
         it('simple jwt 01', () => {
             const compact =

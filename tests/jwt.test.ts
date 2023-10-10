@@ -1,9 +1,13 @@
-import { describe, it } from 'node:test'
-import assert from 'node:assert'
+import { before, describe, it } from 'node:test'
+import { deepStrictEqual, strictEqual } from 'node:assert'
+
+import { prelude } from './utils'
 
 import { Jwt } from '../src'
 
 describe('JWT', async () => {
+    before(prelude)
+
     describe('Creation', async () => {
         it('create basic JWT', async () => {
             const jwt = new Jwt({
@@ -14,9 +18,9 @@ describe('JWT', async () => {
 
             const compactJwt = await jwt.toCompact()
 
-            assert.strictEqual(
+            strictEqual(
                 compactJwt,
-                'eyJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJodHRwczovL2V4YW1wbGUub3JnIn0.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
+                'eyJhbGciOiAiRVMyNTYifQ.eyJpc3MiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZyJ9.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
             )
         })
 
@@ -28,9 +32,9 @@ describe('JWT', async () => {
 
             const compactJwt = await jwt.toCompact()
 
-            assert.strictEqual(
+            strictEqual(
                 compactJwt,
-                'eyJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJodHRwczovL2V4YW1wbGUub3JnIn0.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
+                'eyJhbGciOiAiRVMyNTYifQ.eyJpc3MiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZyJ9.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
             )
         })
 
@@ -42,9 +46,9 @@ describe('JWT', async () => {
 
             const compactJwt = await jwt.toCompact()
 
-            assert.strictEqual(
+            strictEqual(
                 compactJwt,
-                'eyJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJodHRwczovL2V4YW1wbGUub3JnIn0.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
+                'eyJhbGciOiAiRVMyNTYifQ.eyJpc3MiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZyJ9.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
             )
         })
 
@@ -58,9 +62,9 @@ describe('JWT', async () => {
 
             const compactJwt = await jwtWithNewAlg.toCompact()
 
-            assert.strictEqual(
+            strictEqual(
                 compactJwt,
-                'eyJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJodHRwczovL2V4YW1wbGUub3JnIn0.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
+                'eyJhbGciOiAiRVMyNTYifQ.eyJpc3MiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZyJ9.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
             )
         })
 
@@ -72,9 +76,9 @@ describe('JWT', async () => {
 
             const compactJwt = await jwt.toCompact()
 
-            assert.strictEqual(
+            strictEqual(
                 compactJwt,
-                'eyJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJodHRwczovL2V4YW1wbGUub3JnIn0.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
+                'eyJhbGciOiAiRVMyNTYifQ.eyJpc3MiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZyJ9.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
             )
         })
 
@@ -91,9 +95,9 @@ describe('JWT', async () => {
 
             const compactJwt = await jwt.toCompact()
 
-            assert.strictEqual(
+            strictEqual(
                 compactJwt,
-                'eyJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJodHRwczovL2V4YW1wbGUub3JnIn0.NjU3OTRhNjg2MjQ3NjM2OTRmNjk0YTQ2NTU3YTQ5MzE0ZTY5NGEzOTJlNjU3OTRhNzA2MzMzNGQ2OTRmNjk0YTZmNjQ0ODUyNzc2MzdhNmY3NjRjMzI1NjM0NTk1NzMxNzc2MjQ3NTU3NTYyMzM0YTZlNDk2ZTMw'
+                'eyJhbGciOiAiRVMyNTYifQ.eyJpc3MiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZyJ9.NjU3OTRhNjg2MjQ3NjM2OTRmNjk0MTY5NTI1NjRkNzk0ZTU0NTk2OTY2NTEyZTY1Nzk0YTcwNjMzMzRkNjk0ZjY5NDE2OTYxNDg1MjMwNjM0ODRkMzY0Yzc5Mzk2YzY1NDc0Njc0NjM0Nzc4NmM0YzZkMzk3OTVhNzk0YTM5'
             )
         })
 
@@ -116,9 +120,9 @@ describe('JWT', async () => {
 
             const compactJwt = await jwt.toCompact()
 
-            assert.strictEqual(
+            strictEqual(
                 compactJwt,
-                'eyJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJodHRwczovL2V4YW1wbGUub3JnIn0.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
+                'eyJhbGciOiAiRVMyNTYifQ.eyJpc3MiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZyJ9.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
             )
 
             const fromCompactJwt = Jwt.fromCompact<
@@ -126,9 +130,9 @@ describe('JWT', async () => {
                 typeof payload
             >(compactJwt)
 
-            assert.deepStrictEqual(fromCompactJwt.header, header)
-            assert.deepStrictEqual(fromCompactJwt.payload, payload)
-            assert.deepStrictEqual(fromCompactJwt.signature, signature)
+            deepStrictEqual(fromCompactJwt.header, header)
+            deepStrictEqual(fromCompactJwt.payload, payload)
+            deepStrictEqual(fromCompactJwt.signature, signature)
         })
     })
 })
