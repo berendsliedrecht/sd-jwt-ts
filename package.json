@@ -4,14 +4,15 @@
     "description": "Implementation of sd-jwt Draft 05",
     "license": "(MIT OR Apache-2.0)",
     "author": "Berend Sliedrecht <blu3beri@proton.me>",
+    "readme": "README.md",
     "keywords": [
         "jwt",
         "jwt-sd",
         "sd-jwt",
-        "ssi",
         "decentralized-identity",
         "ssi",
         "oauth",
+        "oauth2",
         "openid-connect"
     ],
     "repository": {
@@ -24,11 +25,7 @@
         "email": "blu3beri@proton.me"
     },
     "main": "build/index.js",
-    "files": [
-        "build",
-        "LICENSE-MIT",
-        "LICENSE-APACHE-2.0"
-    ],
+    "files": ["build", "LICENSE-MIT", "LICENSE-APACHE-2.0"],
     "scripts": {
         "clean": "rm -rf build",
         "clean:deps": "pnpm clean && rm -rf node_modules",
