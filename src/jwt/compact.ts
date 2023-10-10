@@ -28,6 +28,12 @@ export const jwtFromCompact = <
 
     const [compactHeader, compactPayload, encodedSignature] = compact.split('.')
 
+    if (!encodedSignature || encodedSignature.length === 0) {
+        throw new JwtError(
+            'A signature must be provided within the context of sd-jwt'
+        )
+    }
+
     const header = Base64url.decodeToJson<H>(compactHeader)
     const payload = Base64url.decodeToJson<P>(compactPayload)
     const signature = Base64url.decode(encodedSignature)
