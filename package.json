@@ -6,7 +6,9 @@
     "author": "Berend Sliedrecht <blu3beri@proton.me>",
     "main": "build/index.js",
     "files": [
-        "build"
+        "build",
+        "LICENSE-MIT",
+        "LICENSE-APACHE-2.0"
     ],
     "scripts": {
         "clean": "rm -rf build",
