@@ -23,7 +23,7 @@
         "buffer": "^6.0.3"
     },
     "devDependencies": {
-        "@types/node": "^18.16.16",
+        "@types/node": "^20.8.4",
         "prettier": "^3.0.3",
         "release-it": "16.2.1",
         "ts-node": "^10.9.1",
