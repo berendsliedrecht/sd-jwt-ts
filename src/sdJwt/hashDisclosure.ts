@@ -1,4 +1,6 @@
-import { OrPromise } from './types'
+import { OrPromise } from '../types'
+import { Disclosure } from './disclosures'
+
 import { HasherAlgorithm } from './hasherAlgorithm'
 
 /**
@@ -10,5 +12,5 @@ export type HasherAndAlgorithm = {
     algorithm: string | HasherAlgorithm
 }
 
-export const hashDisclosure = async (disclosure: string, hasher: Hasher) =>
-    hasher(disclosure)
+export const hashDisclosure = async (disclosure: Disclosure, hasher: Hasher) =>
+    hasher(disclosure.encoded)

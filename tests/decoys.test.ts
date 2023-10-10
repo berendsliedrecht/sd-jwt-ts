@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
 
-import { createDecoys } from '../src/decoys'
+import { createDecoys } from '../src'
 import { createHash, getRandomValues } from 'node:crypto'
 
 describe('decoys', async () => {

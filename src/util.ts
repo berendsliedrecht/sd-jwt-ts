@@ -1,4 +1,4 @@
-import { JwtError } from './error'
+import { JwtError } from './jwt'
 
 const simpleDeepEqual = (lhs: unknown, rhs: unknown): boolean => {
     if (lhs === rhs) return true

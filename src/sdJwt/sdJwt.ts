@@ -1,68 +1,21 @@
-import { MakePropertyRequired, OrPromise } from './types'
-import { Base64url } from './base64url'
+import { Base64url } from '../base64url'
 import { SdJwtError } from './error'
-import { HasherAlgorithm } from './hasherAlgorithm'
-import { deleteByPath } from './util'
+import { deleteByPath } from '../util'
 import { SaltGenerator, createDecoys } from './decoys'
-import { createObjectDisclosure, encodeDisclosure } from './disclosures'
 import { HasherAndAlgorithm, hashDisclosure } from './hashDisclosure'
-import { Jwt, JwtAdditionalOptions } from './jwt'
-import { KeyBinding } from './keyBinding'
-
-type ReturnSdJwtWithHeaderAndPayload<T extends SdJwt> = MakePropertyRequired<
-    T,
-    'header' | 'payload'
->
-
-type ReturnSdJwtWithHeader<T extends SdJwt> = MakePropertyRequired<T, 'header'>
-type ReturnSdJwtWithPayload<T extends SdJwt> = MakePropertyRequired<
-    T,
-    'payload'
->
-type ReturnSdJwtWithSignature<T extends SdJwt> = MakePropertyRequired<
-    T,
-    'signature'
->
-
-type ReturnSdJwtWithKeyBinding<T extends SdJwt> = MakePropertyRequired<
-    T,
-    'keyBinding'
->
-
-export type DisclosureFrame<T> = T extends Array<unknown>
-    ? {
-          [K in keyof T]?: T[K] extends Record<string | number, unknown>
-              ? DisclosureFrame<T[K]> | boolean
-              : boolean
-      }
-    : T extends Record<string, unknown>
-    ? {
-          [K in keyof T]?: T[K] extends Array<unknown>
-              ? DisclosureFrame<T[K]> | boolean
-              : T[K] extends Record<string, unknown>
-              ? ({ __decoyCount?: number } & DisclosureFrame<T[K]>) | boolean
-              : boolean
-      } & { __decoyCount?: number } & Record<string, unknown>
-    : boolean
-
-export type VerifyOptions<Header extends Record<string, unknown>> = {
-    message: string
-    signature: Uint8Array
-    header: Header
-}
-export type Verifier<Header extends Record<string, unknown>> = (
-    options: VerifyOptions<Header>
-) => OrPromise<boolean>
-
-export type Signer<
-    Header extends Record<string, unknown> = Record<string, unknown>
-> = (input: string, header: Header) => OrPromise<Uint8Array>
-
-export type SdJwtToCompactOptions<
-    DisclosablePayload extends Record<string, unknown>
-> = {
-    disclosureFrame?: DisclosureFrame<DisclosablePayload>
-}
+import { Jwt, JwtAdditionalOptions } from '../jwt/jwt'
+import { KeyBinding } from '../keyBinding'
+import {
+    DisclosureFrame,
+    ReturnSdJwtWithHeaderAndPayload,
+    ReturnSdJwtWithKeyBinding,
+    ReturnSdJwtWithPayload,
+    SdJwtToCompactOptions,
+    Signer,
+    Verifier
+} from './types'
+import { sdJwtFromCompact } from './compact'
+import { Disclosure } from './disclosures'
 
 export type SdJwtOptions<
     Header extends Record<string, unknown>,
@@ -74,8 +27,7 @@ export type SdJwtOptions<
 
     keyBinding?: KeyBinding
 
-    // TODO: we should not store the base64url encoded version
-    disclosures?: Array<string>
+    disclosures?: Array<Disclosure>
 }
 
 export type SdJwtAdditionalOptions<Payload extends Record<string, unknown>> =
@@ -89,7 +41,7 @@ export class SdJwt<
     Header extends Record<string, unknown> = Record<string, unknown>,
     Payload extends Record<string, unknown> = Record<string, unknown>
 > extends Jwt<Header, Payload> {
-    public disclosures?: Array<string>
+    public disclosures?: Array<Disclosure>
     public keyBinding?: KeyBinding
 
     private saltGenerator?: SaltGenerator
@@ -130,29 +82,32 @@ export class SdJwt<
         Header extends Record<string, unknown> = Record<string, unknown>,
         Payload extends Record<string, unknown> = Record<string, unknown>
     >(compact: string) {
-        const [sHeader, sPayload, ...sSignatureDisclosureAndKeyBinding] =
-            compact.split('.')
+        //  const [sHeader, sPayload, ...sSignatureDisclosureAndKeyBinding] =
+        //      compact.split('.')
 
-        const sdkb = sSignatureDisclosureAndKeyBinding.join('.')
+        //  const sdkb = sSignatureDisclosureAndKeyBinding.join('.')
 
-        const header = Base64url.decodeToJson<Header>(sHeader)
-        const payload = Base64url.decodeToJson<Payload>(sPayload)
+        //  const header = Base64url.decodeToJson<Header>(sHeader)
+        //  const payload = Base64url.decodeToJson<Payload>(sPayload)
 
-        const [sSignature, ...disclosures] = sdkb.split('~')
-        const signature = Base64url.decode(sSignature)
+        //  const [sSignature, ...disclosures] = sdkb.split('~')
+        //  const signature = Base64url.decode(sSignature)
 
-        let keyBinding: KeyBinding | undefined = undefined
-        if (compact.includes('~') && !compact.endsWith('~')) {
-            const jwt = Jwt.fromCompact(disclosures[disclosures.length - 1])
-            keyBinding = KeyBinding.fromJwt(jwt)
-            disclosures.pop()
-        }
+        //  let keyBinding: KeyBinding | undefined = undefined
+        //  if (compact.includes('~') && !compact.endsWith('~')) {
+        //      const jwt = Jwt.fromCompact(disclosures[disclosures.length - 1])
+        //      keyBinding = KeyBinding.fromJwt(jwt)
+        //      disclosures.pop()
+        //  }
+
+        const { disclosures, keyBinding, signature, payload, header } =
+            sdJwtFromCompact<Header, Payload>(compact)
 
         const sdJwt = new SdJwt<Header, Payload>({
             header,
             payload,
             signature,
-            disclosures: disclosures.filter((d) => d.length > 0),
+            disclosures,
             keyBinding
         })
 
@@ -204,20 +159,7 @@ export class SdJwt<
         return this
     }
 
-    private async createDisclosure(
-        key: string,
-        value: unknown
-    ): Promise<string> {
-        this.assertSaltGenerator()
-
-        const salt = await this.saltGenerator!()
-        const disclosure = createObjectDisclosure(salt, key, value)
-        const encodedDisclosure = encodeDisclosure(disclosure)
-
-        return encodedDisclosure
-    }
-
-    private async hashDisclosure(disclosure: string): Promise<string> {
+    private async hashDisclosure(disclosure: Disclosure): Promise<string> {
         this.assertHashAndAlgorithm()
 
         return await hashDisclosure(disclosure, this.hasherAndAlgorithm!.hasher)
@@ -242,6 +184,7 @@ export class SdJwt<
         keys: Array<string> = [],
         cleanup: Array<Array<string>> = []
     ): Promise<Record<string, unknown>> {
+        this.assertSaltGenerator()
         this.disclosures = this.disclosures ?? []
 
         for (const [key, frameValue] of Object.entries(frame)) {
@@ -267,11 +210,8 @@ export class SdJwt<
                         )
                     }
 
-                    const disclosure = await this.createDisclosure(
-                        key,
-                        object[key]
-                    )
-
+                    const salt = await this.saltGenerator!()
+                    const disclosure = new Disclosure(salt, object[key], key)
                     this.disclosures.push(disclosure)
 
                     const digest = await this.hashDisclosure(disclosure)

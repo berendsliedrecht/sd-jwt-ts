@@ -1,12 +1,7 @@
 import { createHash } from 'node:crypto'
 
 import assert from 'node:assert'
-import { hashDisclosure } from '../src/hashDisclosure'
-import {
-    createArrayDisclosure,
-    createObjectDisclosure,
-    encodeDisclosure
-} from '../src/disclosures'
+import { Disclosure, hashDisclosure } from '../src'
 
 /**
  * This swaps the default JSON serializer to one that is, more, compatible with Python `json.dumps`.
@@ -15,7 +10,7 @@ import {
 export const prelude = () => {
     const oldStringify = JSON.stringify
     global.JSON.stringify = (x: unknown) =>
-        oldStringify(x, null, 0).split(',').join(', ').split(':').join(': ')
+        oldStringify(x, null, 0).split('",').join('", ').split('":').join('": ')
 }
 
 export const hasher = (i: string) =>
@@ -26,13 +21,11 @@ export const testCreateDisclosureObjectAndHash = async (
     expectedDisclosure: string,
     expectedHash: string
 ) => {
-    const disclosure = createObjectDisclosure(...input)
+    const disclosure = new Disclosure(input[0], input[2], input[1])
 
-    const encodedDisclosure = encodeDisclosure(disclosure)
+    assert.strictEqual(disclosure.encoded, expectedDisclosure)
 
-    assert.strictEqual(encodedDisclosure, expectedDisclosure)
-
-    const hash = await hashDisclosure(encodedDisclosure, hasher)
+    const hash = await hashDisclosure(disclosure, hasher)
 
     assert.strictEqual(hash, expectedHash)
 }
@@ -42,13 +35,11 @@ export const testCreateDisclosureArrayAndHash = async (
     expectedDisclosure: string,
     expectedHash: string
 ) => {
-    const disclosure = createArrayDisclosure(...input)
+    const disclosure = new Disclosure(input[0], input[1])
 
-    const encodedDisclosure = encodeDisclosure(disclosure)
+    assert.strictEqual(disclosure.encoded, expectedDisclosure)
 
-    assert.strictEqual(encodedDisclosure, expectedDisclosure)
-
-    const hash = await hashDisclosure(encodedDisclosure, hasher)
+    const hash = await hashDisclosure(disclosure, hasher)
 
     assert.strictEqual(hash, expectedHash)
 }

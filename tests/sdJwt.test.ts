@@ -1,9 +1,17 @@
-import { describe, it } from 'node:test'
+import { before, describe, it } from 'node:test'
 import assert from 'node:assert'
-import { HasherAlgorithm, KeyBinding, SdJwt, SdJwtError } from '../src'
-import { SignatureAndEncryptionAlgorithm } from '../src/signatureAndEncryptionAlgorithm'
+import {
+    SignatureAndEncryptionAlgorithm,
+    HasherAlgorithm,
+    KeyBinding,
+    SdJwt,
+    SdJwtError
+} from '../src'
+import { prelude } from './utils'
 
 describe('sd-jwt', async () => {
+    before(prelude)
+
     describe('JWT without selective disclosure', async () => {
         it('should create a simple jwt', async () => {
             const sdJwt = await new SdJwt({
@@ -14,7 +22,7 @@ describe('sd-jwt', async () => {
 
             assert.deepStrictEqual(
                 sdJwt,
-                'eyJraWQiOiJhIn0.eyJleHAiOjEyM30.AQID'
+                'eyJraWQiOiAiYSJ9.eyJleHAiOiAxMjN9.AQID'
             )
         })
 
@@ -27,7 +35,7 @@ describe('sd-jwt', async () => {
 
             assert.deepStrictEqual(
                 sdJwt,
-                'eyJraWQiOiJhIn0.eyJleHAiOjEyM30.AQID'
+                'eyJraWQiOiAiYSJ9.eyJleHAiOiAxMjN9.AQID'
             )
         })
 
@@ -40,7 +48,7 @@ describe('sd-jwt', async () => {
 
             assert.deepStrictEqual(
                 sdJwt,
-                'eyJraWQiOiJhIn0.eyJleHAiOjEyM30.AQID'
+                'eyJraWQiOiAiYSJ9.eyJleHAiOiAxMjN9.AQID'
             )
         })
 
@@ -53,7 +61,7 @@ describe('sd-jwt', async () => {
 
             assert.deepStrictEqual(
                 sdJwt,
-                'eyJraWQiOiJhIn0.eyJleHAiOjEyM30.AQID'
+                'eyJraWQiOiAiYSJ9.eyJleHAiOiAxMjN9.AQID'
             )
         })
 
@@ -78,9 +86,12 @@ describe('sd-jwt', async () => {
             assert.deepStrictEqual(sdJwt.header.kid, 'a')
             assert.deepStrictEqual(sdJwt.payload.exp, 123)
             assert.deepStrictEqual(sdJwt.signature, Uint8Array.from([1, 2, 3]))
-            assert.deepStrictEqual(sdJwt.disclosures, [
-                'WyJDa0J1NE1NNklkX3RSUmRYMVptOC13IiwiZmlyc3RfbmFtZSIsIkJlcmVuZCBTbGllZHJlY2h0Il0'
-            ])
+            assert.deepStrictEqual(
+                sdJwt.disclosures?.map((d) => d.toString()),
+                [
+                    'WyJDa0J1NE1NNklkX3RSUmRYMVptOC13IiwgImZpcnN0X25hbWUiLCAiQmVyZW5kIFNsaWVkcmVjaHQiXQ'
+                ]
+            )
         })
     })
 
@@ -222,7 +233,7 @@ describe('sd-jwt', async () => {
 
             assert.strictEqual(
                 compactSdJwt,
-                'eyJhbGciOiJFZERTQSJ9.eyJfc2RfYWxnIjoic2hhLTI1NiIsIl9zZCI6WyJoYXNoIiwiaGFzaCJdfQ.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwiaXNzIiwiaHR0cHM6Ly9leGFtcGxlLm9yZy9pc3N1ZXIiXQ~eyJ0eXAiOiJrYitqd3QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOjEyMywibm9uY2UiOiJzZWN1cmUtbm9uY2UiLCJhdWQiOiJodHRwczovL2V4YW1wbGUub3JnL2F1ZGllbmNlIn0.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
+                'eyJhbGciOiAiRWREU0EifQ.eyJfc2RfYWxnIjogInNoYS0yNTYiLCAiX3NkIjogWyJoYXNoIiwgImhhc2giXX0.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwgImlzcyIsICJodHRwczovL2V4YW1wbGUub3JnL2lzc3VlciJd~eyJ0eXAiOiAia2Irand0IiwgImFsZyI6ICJFUzI1NiJ9.eyJpYXQiOiAxMjMsIm5vbmNlIjogInNlY3VyZS1ub25jZSIsICJhdWQiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZy9hdWRpZW5jZSJ9.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
             )
         })
 
@@ -267,7 +278,7 @@ describe('sd-jwt', async () => {
 
             assert.strictEqual(
                 compactSdJwt,
-                'eyJhbGciOiJFZERTQSJ9.eyJpc3MiOiJodHRwczovL2V4YW1wbGUub3JnL2lzc3VlciIsIl9zZF9hbGciOiJzaGEtMjU2In0.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~eyJ0eXAiOiJrYitqd3QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOjEyMywibm9uY2UiOiJzZWN1cmUtbm9uY2UiLCJhdWQiOiJodHRwczovL2V4YW1wbGUub3JnL2F1ZGllbmNlIn0.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
+                'eyJhbGciOiAiRWREU0EifQ.eyJpc3MiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZy9pc3N1ZXIiLCAiX3NkX2FsZyI6ICJzaGEtMjU2In0.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~eyJ0eXAiOiAia2Irand0IiwgImFsZyI6ICJFUzI1NiJ9.eyJpYXQiOiAxMjMsIm5vbmNlIjogInNlY3VyZS1ub25jZSIsICJhdWQiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZy9hdWRpZW5jZSJ9.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
             )
         })
 
@@ -352,7 +363,7 @@ describe('sd-jwt', async () => {
 
             assert.strictEqual(
                 compactSdJwt,
-                'eyJhbGciOiJFZERTQSJ9.eyJfc2RfYWxnIjoic2hhLTI1NiIsIl9zZCI6WyJoYXNoIiwiaGFzaCJdfQ.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwiaXNzIiwiaHR0cHM6Ly9leGFtcGxlLm9yZy9pc3N1ZXIiXQ~eyJ0eXAiOiJrYitqd3QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOjEyMywibm9uY2UiOiJzZWN1cmUtbm9uY2UiLCJhdWQiOiJodHRwczovL2V4YW1wbGUub3JnL2F1ZGllbmNlIn0.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
+                'eyJhbGciOiAiRWREU0EifQ.eyJfc2RfYWxnIjogInNoYS0yNTYiLCAiX3NkIjogWyJoYXNoIiwgImhhc2giXX0.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwgImlzcyIsICJodHRwczovL2V4YW1wbGUub3JnL2lzc3VlciJd~eyJ0eXAiOiAia2Irand0IiwgImFsZyI6ICJFUzI1NiJ9.eyJpYXQiOiAxMjMsIm5vbmNlIjogInNlY3VyZS1ub25jZSIsICJhdWQiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZy9hdWRpZW5jZSJ9.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
             )
 
             const fromCompactSdJwt = SdJwt.fromCompactSdJwt(
@@ -388,7 +399,7 @@ describe('sd-jwt', async () => {
 
             assert.strictEqual(
                 await sdJwt.toCompact(),
-                'eyJhbGciOiJFZERTQSJ9.eyJfc2RfYWxnIjoic2hhLTI1NiIsIl9zZCI6WyJoYXNoIiwiaGFzaCJdfQ.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwiaXNzIiwiaHR0cHM6Ly9leGFtcGxlLm9yZy9pc3N1ZXIiXQ~'
+                'eyJhbGciOiAiRWREU0EifQ.eyJfc2RfYWxnIjogInNoYS0yNTYiLCAiX3NkIjogWyJoYXNoIiwgImhhc2giXX0.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwgImlzcyIsICJodHRwczovL2V4YW1wbGUub3JnL2lzc3VlciJd~'
             )
         })
 
@@ -423,13 +434,13 @@ describe('sd-jwt', async () => {
 
             assert.strictEqual(
                 await sdJwt.toCompact(),
-                'eyJhbGciOiJFZERTQSJ9.eyJuZXN0ZWRfZmllbGQiOnsiX3NkIjpbImhhc2giLCJoYXNoIiwiaGFzaCIsImhhc2giLCJoYXNoIiwiaGFzaCJdfSwiX3NkX2FsZyI6InNoYS0yNTYiLCJfc2QiOlsiaGFzaCIsImhhc2giXX0.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwiaXNzIiwiaHR0cHM6Ly9leGFtcGxlLm9yZy9pc3N1ZXIiXQ~WyJzYWx0IiwibW9yZV9uZXN0ZWRfZmllbGQiLHsiYSI6WzEsMiwzLDRdfV0~'
+                'eyJhbGciOiAiRWREU0EifQ.eyJuZXN0ZWRfZmllbGQiOiB7Il9zZCI6IFsiaGFzaCIsICJoYXNoIiwgImhhc2giLCAiaGFzaCIsICJoYXNoIiwgImhhc2giXX0sIl9zZF9hbGciOiAic2hhLTI1NiIsICJfc2QiOiBbImhhc2giLCAiaGFzaCJdfQ.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwgImlzcyIsICJodHRwczovL2V4YW1wbGUub3JnL2lzc3VlciJd~WyJzYWx0IiwgIm1vcmVfbmVzdGVkX2ZpZWxkIiwgeyJhIjogWzEsMiwzLDRdfV0~'
             )
         })
 
         it('Roundtrip compact format sd-jwt', async () => {
             const compact =
-                'eyJhbGciOiJFZERTQSJ9.eyJfc2RfYWxnIjoic2hhLTI1NiIsIm5lc3RlZF9maWVsZCI6eyJtb3JlX25lc3RlZF9maWVsZCI6eyJhIjpbIjEiLDIsMyw0XX19LCJfc2QiOlsiaGFzaCIsImhhc2giXX0.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwiaXNzIiwiaHR0cHM6Ly9leGFtcGxlLm9yZy9pc3N1ZXIiXQ~WyJzYWx0IiwibW9yZV9uZXN0ZWRfZmllbGQiLHsiYSI6WyIxIiwyLDMsNF19XQ~'
+                'eyJhbGciOiAiRWREU0EifQ.eyJfc2RfYWxnIjogInNoYS0yNTYiLCAibmVzdGVkX2ZpZWxkIjogeyJtb3JlX25lc3RlZF9maWVsZCI6IHsiYSI6IFsiMSIsIDIsMyw0XX19LCJfc2QiOiBbImhhc2giLCAiaGFzaCJdfQ.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwgImlzcyIsICJodHRwczovL2V4YW1wbGUub3JnL2lzc3VlciJd~WyJzYWx0IiwgIm1vcmVfbmVzdGVkX2ZpZWxkIiwgeyJhIjogWyIxIiwgMiwzLDRdfV0~'
 
             const sdJwt = SdJwt.fromCompactSdJwt(compact)
                 .withHasher({
@@ -495,22 +506,25 @@ describe('sd-jwt', async () => {
                 }
             })
 
-            assert.deepStrictEqual(sdJwt.disclosures, [
-                'WyIyR0xDNDJzS1F2ZUNmR2ZyeU5STjl3IiwgImF0Y0NvZGUiLCAiSjA3QlgwMyJd',
-                'WyJlbHVWNU9nM2dTTklJOEVZbnN4QV9BIiwgIm1lZGljaW5hbFByb2R1Y3ROYW1lIiwgIkNPVklELTE5IFZhY2NpbmUgTW9kZXJuYSJd',
-                'WyI2SWo3dE0tYTVpVlBHYm9TNXRtdlZBIiwgIm1hcmtldGluZ0F1dGhvcml6YXRpb25Ib2xkZXIiLCAiTW9kZXJuYSBCaW90ZWNoIl0',
-                'WyJlSThaV205UW5LUHBOUGVOZW5IZGhRIiwgIm5leHRWYWNjaW5hdGlvbkRhdGUiLCAiMjAyMS0wOC0xNlQxMzo0MDoxMloiXQ',
-                'WyJRZ19PNjR6cUF4ZTQxMmExMDhpcm9BIiwgImNvdW50cnlPZlZhY2NpbmF0aW9uIiwgIkdFIl0',
-                'WyJBSngtMDk1VlBycFR0TjRRTU9xUk9BIiwgImRhdGVPZlZhY2NpbmF0aW9uIiwgIjIwMjEtMDYtMjNUMTM6NDA6MTJaIl0',
-                'WyJQYzMzSk0yTGNoY1VfbEhnZ3ZfdWZRIiwgIm9yZGVyIiwgIjMvMyJd',
-                'WyJHMDJOU3JRZmpGWFE3SW8wOXN5YWpBIiwgImdlbmRlciIsICJGZW1hbGUiXQ',
-                'WyJsa2x4RjVqTVlsR1RQVW92TU5JdkNBIiwgImJpcnRoRGF0ZSIsICIxOTYxLTA4LTE3Il0',
-                'WyJuUHVvUW5rUkZxM0JJZUFtN0FuWEZBIiwgImdpdmVuTmFtZSIsICJNYXJpb24iXQ',
-                'WyI1YlBzMUlxdVpOYTBoa2FGenp6Wk53IiwgImZhbWlseU5hbWUiLCAiTXVzdGVybWFubiJd',
-                'WyI1YTJXMF9OcmxFWnpmcW1rXzdQcS13IiwgImFkbWluaXN0ZXJpbmdDZW50cmUiLCAiUHJheGlzIFNvbW1lcmdhcnRlbiJd',
-                'WyJ5MXNWVTV3ZGZKYWhWZGd3UGdTN1JRIiwgImJhdGNoTnVtYmVyIiwgIjE2MjYzODI3MzYiXQ',
-                'WyJIYlE0WDhzclZXM1FEeG5JSmRxeU9BIiwgImhlYWx0aFByb2Zlc3Npb25hbCIsICI4ODMxMTAwMDAwMTUzNzYiXQ'
-            ])
+            assert.deepStrictEqual(
+                sdJwt.disclosures?.map((d) => d.toString()),
+                [
+                    'WyIyR0xDNDJzS1F2ZUNmR2ZyeU5STjl3IiwgImF0Y0NvZGUiLCAiSjA3QlgwMyJd',
+                    'WyJlbHVWNU9nM2dTTklJOEVZbnN4QV9BIiwgIm1lZGljaW5hbFByb2R1Y3ROYW1lIiwgIkNPVklELTE5IFZhY2NpbmUgTW9kZXJuYSJd',
+                    'WyI2SWo3dE0tYTVpVlBHYm9TNXRtdlZBIiwgIm1hcmtldGluZ0F1dGhvcml6YXRpb25Ib2xkZXIiLCAiTW9kZXJuYSBCaW90ZWNoIl0',
+                    'WyJlSThaV205UW5LUHBOUGVOZW5IZGhRIiwgIm5leHRWYWNjaW5hdGlvbkRhdGUiLCAiMjAyMS0wOC0xNlQxMzo0MDoxMloiXQ',
+                    'WyJRZ19PNjR6cUF4ZTQxMmExMDhpcm9BIiwgImNvdW50cnlPZlZhY2NpbmF0aW9uIiwgIkdFIl0',
+                    'WyJBSngtMDk1VlBycFR0TjRRTU9xUk9BIiwgImRhdGVPZlZhY2NpbmF0aW9uIiwgIjIwMjEtMDYtMjNUMTM6NDA6MTJaIl0',
+                    'WyJQYzMzSk0yTGNoY1VfbEhnZ3ZfdWZRIiwgIm9yZGVyIiwgIjMvMyJd',
+                    'WyJHMDJOU3JRZmpGWFE3SW8wOXN5YWpBIiwgImdlbmRlciIsICJGZW1hbGUiXQ',
+                    'WyJsa2x4RjVqTVlsR1RQVW92TU5JdkNBIiwgImJpcnRoRGF0ZSIsICIxOTYxLTA4LTE3Il0',
+                    'WyJuUHVvUW5rUkZxM0JJZUFtN0FuWEZBIiwgImdpdmVuTmFtZSIsICJNYXJpb24iXQ',
+                    'WyI1YlBzMUlxdVpOYTBoa2FGenp6Wk53IiwgImZhbWlseU5hbWUiLCAiTXVzdGVybWFubiJd',
+                    'WyI1YTJXMF9OcmxFWnpmcW1rXzdQcS13IiwgImFkbWluaXN0ZXJpbmdDZW50cmUiLCAiUHJheGlzIFNvbW1lcmdhcnRlbiJd',
+                    'WyJ5MXNWVTV3ZGZKYWhWZGd3UGdTN1JRIiwgImJhdGNoTnVtYmVyIiwgIjE2MjYzODI3MzYiXQ',
+                    'WyJIYlE0WDhzclZXM1FEeG5JSmRxeU9BIiwgImhlYWx0aFByb2Zlc3Npb25hbCIsICI4ODMxMTAwMDAwMTUzNzYiXQ'
+                ]
+            )
         })
 
         it('Specification: A.4.  Example 4b - W3C Verifiable Credentials Data Model v2.0 - 02', async () => {
@@ -567,12 +581,15 @@ describe('sd-jwt', async () => {
                 _sd_alg: 'sha-256'
             })
 
-            assert.deepStrictEqual(sdJwt.disclosures, [
-                'WyJQYzMzSk0yTGNoY1VfbEhnZ3ZfdWZRIiwgIm9yZGVyIiwgIjMvMyJd',
-                'WyJBSngtMDk1VlBycFR0TjRRTU9xUk9BIiwgImRhdGVPZlZhY2NpbmF0aW9uIiwgIjIwMjEtMDYtMjNUMTM6NDA6MTJaIl0',
-                'WyIyR0xDNDJzS1F2ZUNmR2ZyeU5STjl3IiwgImF0Y0NvZGUiLCAiSjA3QlgwMyJd',
-                'WyJlbHVWNU9nM2dTTklJOEVZbnN4QV9BIiwgIm1lZGljaW5hbFByb2R1Y3ROYW1lIiwgIkNPVklELTE5IFZhY2NpbmUgTW9kZXJuYSJd'
-            ])
+            assert.deepStrictEqual(
+                sdJwt.disclosures?.map((d) => d.toString()),
+                [
+                    'WyJQYzMzSk0yTGNoY1VfbEhnZ3ZfdWZRIiwgIm9yZGVyIiwgIjMvMyJd',
+                    'WyJBSngtMDk1VlBycFR0TjRRTU9xUk9BIiwgImRhdGVPZlZhY2NpbmF0aW9uIiwgIjIwMjEtMDYtMjNUMTM6NDA6MTJaIl0',
+                    'WyIyR0xDNDJzS1F2ZUNmR2ZyeU5STjl3IiwgImF0Y0NvZGUiLCAiSjA3QlgwMyJd',
+                    'WyJlbHVWNU9nM2dTTklJOEVZbnN4QV9BIiwgIm1lZGljaW5hbFByb2R1Y3ROYW1lIiwgIkNPVklELTE5IFZhY2NpbmUgTW9kZXJuYSJd'
+                ]
+            )
         })
     })
 })

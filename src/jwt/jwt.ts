@@ -1,6 +1,7 @@
-import { Base64url } from './base64url'
+import { Base64url } from '../base64url'
 import { JwtError } from './error'
-import { MakePropertyRequired, OrPromise } from './types'
+import { MakePropertyRequired, OrPromise } from '../types'
+import { jwtFromCompact } from './compact'
 
 type ReturnJwtWithHeaderAndPayload<T extends Jwt> = MakePropertyRequired<
     T,
@@ -58,20 +59,24 @@ export class Jwt<
         Header extends Record<string, unknown> = Record<string, unknown>,
         Payload extends Record<string, unknown> = Record<string, unknown>
     >(compact: string) {
-        const [compactHeader, compactPayload, encodedSignature] =
-            compact.split('.')
+        // const [compactHeader, compactPayload, encodedSignature] =
+        //     compact.split('.')
 
-        if (!compactHeader || !compactPayload) {
-            throw new JwtError(
-                'compact jwt does not contain a header and or payload'
-            )
-        }
+        // if (!compactHeader || !compactPayload) {
+        //     throw new JwtError(
+        //         'compact jwt does not contain a header and or payload'
+        //     )
+        // }
 
-        const header: Header = Base64url.decodeToJson(compactHeader)
-        const payload: Payload = Base64url.decodeToJson(compactPayload)
-        const signature = encodedSignature
-            ? Base64url.decode(encodedSignature)
-            : undefined
+        // const header: Header = Base64url.decodeToJson(compactHeader)
+        // const payload: Payload = Base64url.decodeToJson(compactPayload)
+        // const signature = encodedSignature
+        //     ? Base64url.decode(encodedSignature)
+        //     : undefined
+
+        const { header, payload, signature } = jwtFromCompact<Header, Payload>(
+            compact
+        )
 
         const jwt = new Jwt<Header, Payload>({
             header,

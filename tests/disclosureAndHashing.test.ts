@@ -11,7 +11,7 @@ describe('disclosures and hashing', () => {
 
     describe('Specification: 5.5', () => {
         it('Claim given_name', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['2GLC42sKQveCfGfryNRN9w', 'given_name', 'John'],
                 'WyIyR0xDNDJzS1F2ZUNmR2ZyeU5STjl3IiwgImdpdmVuX25hbWUiLCAiSm9obiJd',
                 'jsu9yVulwQQlhFlM_3JlzMaSFzglhQG0DpfayQwLUK4'
@@ -19,7 +19,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim family_name', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['eluV5Og3gSNII8EYnsxA_A', 'family_name', 'Doe'],
                 'WyJlbHVWNU9nM2dTTklJOEVZbnN4QV9BIiwgImZhbWlseV9uYW1lIiwgIkRvZSJd',
                 'TGf4oLbgwd5JQaHyKVQZU9UdGE0w5rtDsrZzfUaomLo'
@@ -27,7 +27,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim email', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['6Ij7tM-a5iVPGboS5tmvVA', 'email', 'johndoe@example.com'],
                 'WyI2SWo3dE0tYTVpVlBHYm9TNXRtdlZBIiwgImVtYWlsIiwgImpvaG5kb2VAZXhhbXBsZS5jb20iXQ',
                 'JzYjH4svliH0R3PyEMfeZu6Jt69u5qehZo7F7EPYlSE'
@@ -35,7 +35,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim phone_number', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['eI8ZWm9QnKPpNPeNenHdhQ', 'phone_number', '+1-202-555-0101'],
                 'WyJlSThaV205UW5LUHBOUGVOZW5IZGhRIiwgInBob25lX251bWJlciIsICIrMS0yMDItNTU1LTAxMDEiXQ',
                 'PorFbpKuVu6xymJagvkFsFXAbRoc2JGlAUA2BA4o7cI'
@@ -43,7 +43,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim phone_number_verified', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['Qg_O64zqAxe412a108iroA', 'phone_number_verified', true],
                 'WyJRZ19PNjR6cUF4ZTQxMmExMDhpcm9BIiwgInBob25lX251bWJlcl92ZXJpZmllZCIsIHRydWVd',
                 'XQ_3kPKt1XyX7KANkqVR6yZ2Va5NrPIvPYbyMvRKBMM'
@@ -51,7 +51,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim address', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 [
                     'AJx-095VPrpTtN4QMOqROA',
                     'address',
@@ -68,7 +68,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim birthdate', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['Pc33JM2LchcU_lHggv_ufQ', 'birthdate', '1940-01-01'],
                 'WyJQYzMzSk0yTGNoY1VfbEhnZ3ZfdWZRIiwgImJpcnRoZGF0ZSIsICIxOTQwLTAxLTAxIl0',
                 'gbOsI4Edq2x2Kw-w5wPEzakob9hV1cRD0ATN3oQL9JM'
@@ -76,7 +76,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim updated_at', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['G02NSrQfjFXQ7Io09syajA', 'updated_at', 1570000000],
                 'WyJHMDJOU3JRZmpGWFE3SW8wOXN5YWpBIiwgInVwZGF0ZWRfYXQiLCAxNTcwMDAwMDAwXQ',
                 'CrQe7S5kqBAHt-nMYXgc6bdt2SH5aTY1sU_M-PgkjPI'
@@ -84,7 +84,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Array Entry 01', async () => {
-            testCreateDisclosureArrayAndHash(
+            await testCreateDisclosureArrayAndHash(
                 ['lklxF5jMYlGTPUovMNIvCA', 'US'],
                 'WyJsa2x4RjVqTVlsR1RQVW92TU5JdkNBIiwgIlVTIl0',
                 'pFndjkZ_VCzmyTa6UjlZo3dh-ko8aIKQc9DlGzhaVYo'
@@ -92,7 +92,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Array Entry 02', async () => {
-            testCreateDisclosureArrayAndHash(
+            await testCreateDisclosureArrayAndHash(
                 ['nPuoQnkRFq3BIeAm7AnXFA', 'DE'],
                 'WyJuUHVvUW5rUkZxM0JJZUFtN0FuWEZBIiwgIkRFIl0',
                 '7Cf6JkPudry3lcbwHgeZ8khAv1U1OSlerP0VkBJrWZ0'
@@ -102,7 +102,7 @@ describe('disclosures and hashing', () => {
 
     describe('Specification: 5.7.1', () => {
         it('Claim address', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 [
                     '2GLC42sKQveCfGfryNRN9w',
                     'address',
@@ -121,7 +121,7 @@ describe('disclosures and hashing', () => {
 
     describe('Specification: 5.7.2', () => {
         it('Claim street_address', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['2GLC42sKQveCfGfryNRN9w', 'street_address', 'Schulstr. 12'],
                 'WyIyR0xDNDJzS1F2ZUNmR2ZyeU5STjl3IiwgInN0cmVldF9hZGRyZXNzIiwgIlNjaHVsc3RyLiAxMiJd',
                 '9gjVuXtdFROCgRrtNcGUXmF65rdezi_6Er_j76kmYyM'
@@ -129,7 +129,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim locality', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['eluV5Og3gSNII8EYnsxA_A', 'locality', 'Schulpforta'],
                 'WyJlbHVWNU9nM2dTTklJOEVZbnN4QV9BIiwgImxvY2FsaXR5IiwgIlNjaHVscGZvcnRhIl0',
                 '6vh9bq-zS4GKM_7GpggVbYzzu6oOGXrmNVGPHP75Ud0'
@@ -137,7 +137,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim region', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['6Ij7tM-a5iVPGboS5tmvVA', 'region', 'Sachsen-Anhalt'],
                 'WyI2SWo3dE0tYTVpVlBHYm9TNXRtdlZBIiwgInJlZ2lvbiIsICJTYWNoc2VuLUFuaGFsdCJd',
                 'KURDPh4ZC19-3tiz-Df39V8eidy1oV3a3H1Da2N0g88'
@@ -145,7 +145,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim country', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['eI8ZWm9QnKPpNPeNenHdhQ', 'country', 'DE'],
                 'WyJlSThaV205UW5LUHBOUGVOZW5IZGhRIiwgImNvdW50cnkiLCAiREUiXQ',
                 'WN9r9dCBJ8HTCsS2jKASxTjEyW5m5x65_Z_2ro2jfXM'
@@ -155,7 +155,7 @@ describe('disclosures and hashing', () => {
 
     describe('Specification: 5.7.3', async () => {
         it('Claim street_address', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['2GLC42sKQveCfGfryNRN9w', 'street_address', 'Schulstr. 12'],
                 'WyIyR0xDNDJzS1F2ZUNmR2ZyeU5STjl3IiwgInN0cmVldF9hZGRyZXNzIiwgIlNjaHVsc3RyLiAxMiJd',
                 '9gjVuXtdFROCgRrtNcGUXmF65rdezi_6Er_j76kmYyM'
@@ -163,7 +163,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim locality', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['eluV5Og3gSNII8EYnsxA_A', 'locality', 'Schulpforta'],
                 'WyJlbHVWNU9nM2dTTklJOEVZbnN4QV9BIiwgImxvY2FsaXR5IiwgIlNjaHVscGZvcnRhIl0',
                 '6vh9bq-zS4GKM_7GpggVbYzzu6oOGXrmNVGPHP75Ud0'
@@ -171,7 +171,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim region', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['6Ij7tM-a5iVPGboS5tmvVA', 'region', 'Sachsen-Anhalt'],
                 'WyI2SWo3dE0tYTVpVlBHYm9TNXRtdlZBIiwgInJlZ2lvbiIsICJTYWNoc2VuLUFuaGFsdCJd',
                 'KURDPh4ZC19-3tiz-Df39V8eidy1oV3a3H1Da2N0g88'
@@ -179,7 +179,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim country', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['eI8ZWm9QnKPpNPeNenHdhQ', 'country', 'DE'],
                 'WyJlSThaV205UW5LUHBOUGVOZW5IZGhRIiwgImNvdW50cnkiLCAiREUiXQ',
                 'WN9r9dCBJ8HTCsS2jKASxTjEyW5m5x65_Z_2ro2jfXM'
@@ -187,7 +187,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim address', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 [
                     'Qg_O64zqAxe412a108iroA',
                     'address',
@@ -208,7 +208,7 @@ describe('disclosures and hashing', () => {
 
     describe('Specification: A.1.  Example 2: Handling Structured Claims', async () => {
         it('Claim sub', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 [
                     '2GLC42sKQveCfGfryNRN9w',
                     'sub',
@@ -220,7 +220,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim email', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 [
                     'eI8ZWm9QnKPpNPeNenHdhQ',
                     'email',
@@ -232,7 +232,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim phone_number', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['Qg_O64zqAxe412a108iroA', 'phone_number', '+81-80-1234-5678'],
                 'WyJRZ19PNjR6cUF4ZTQxMmExMDhpcm9BIiwgInBob25lX251bWJlciIsICIrODEtODAtMTIzNC01Njc4Il0',
                 's0BKYsLWxQQeU8tVlltM7MKsIRTrEIa1PkJmqxBBf5U'
@@ -240,7 +240,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim country', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['lklxF5jMYlGTPUovMNIvCA', 'country', 'JP'],
                 'WyJsa2x4RjVqTVlsR1RQVW92TU5JdkNBIiwgImNvdW50cnkiLCAiSlAiXQ',
                 'uNHoWYhXsZhVJCNE2Dqy-zqt7t69gJKy5QaFv7GrMX4'
@@ -248,7 +248,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim birthdate', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['yytVbdAPGcgl2rI4C9GSog', 'birthdate', '1940-01-01'],
                 'WyJ5eXRWYmRBUEdjZ2wyckk0QzlHU29nIiwgImJpcnRoZGF0ZSIsICIxOTQwLTAxLTAxIl0',
                 'MMldOFFzB2d0umlmpTIaGerhWdU_PpYfLvKhh_f_9aY'
@@ -258,7 +258,7 @@ describe('disclosures and hashing', () => {
 
     describe('Specification: A.2.  Example 3 - Complex Structured SD-JWT', async () => {
         it('Claim verification_process', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 [
                     'eluV5Og3gSNII8EYnsxA_A',
                     'verification_process',
@@ -270,7 +270,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim type', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['6Ij7tM-a5iVPGboS5tmvVA', 'type', 'document'],
                 'WyI2SWo3dE0tYTVpVlBHYm9TNXRtdlZBIiwgInR5cGUiLCAiZG9jdW1lbnQiXQ',
                 'G5EnhOAOoU9X_6QMNvzFXjpEA_Rc-AEtm1bG_wcaKIk'
@@ -278,7 +278,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim method', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['eI8ZWm9QnKPpNPeNenHdhQ', 'method', 'pipp'],
                 'WyJlSThaV205UW5LUHBOUGVOZW5IZGhRIiwgIm1ldGhvZCIsICJwaXBwIl0',
                 'WpxQ4HSoEtcTmCCKOeDslB_emucYLz2oO8oHNr1bEVQ'
@@ -286,7 +286,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim document', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 [
                     'AJx-095VPrpTtN4QMOqROA',
                     'document',
@@ -298,13 +298,13 @@ describe('disclosures and hashing', () => {
                         date_of_expiry: '2020-03-22'
                     }
                 ],
-                'WyJBSngtMDk1VlBycFR0TjRRTU9xUk9BIiwgImRvY3VtZW50IiwgeyJ0eXBlIjogImlkY2FyZCIsICJpc3N1ZXIiOiB7Im5hbWUiOiAiU3RhZHQgQXVnc2J1cmciLCAiY291bnRyeSI6ICJERSJ9LCAibnVtYmVyIjogIjUzNTU0NTU0IiwgImRhdGVfb2ZfaXNzdWFuY2UiOiAiMjAxMC0wMy0yMyIsICJkYXRlX29mX2V4cGlyeSI6ICIyMDIwLTAzLTIyIn1d',
-                'IhwFrWUB63RcZq9yvgZ0XPc7Gowh3O2kqXeBIswg1B4'
+                'WyJBSngtMDk1VlBycFR0TjRRTU9xUk9BIiwgImRvY3VtZW50IiwgeyJ0eXBlIjogImlkY2FyZCIsICJpc3N1ZXIiOiB7Im5hbWUiOiAiU3RhZHQgQXVnc2J1cmciLCAiY291bnRyeSI6ICJERSJ9LCJudW1iZXIiOiAiNTM1NTQ1NTQiLCAiZGF0ZV9vZl9pc3N1YW5jZSI6ICIyMDEwLTAzLTIzIiwgImRhdGVfb2ZfZXhwaXJ5IjogIjIwMjAtMDMtMjIifV0',
+                '1WDNBjpMzqU1RWWrnbQ0Dk5SXNRWboFHJHSHNHOwh38'
             )
         })
 
         it('Array entry', async () => {
-            testCreateDisclosureArrayAndHash(
+            await testCreateDisclosureArrayAndHash(
                 [
                     'Pc33JM2LchcU_lHggv_ufQ',
                     {
@@ -322,7 +322,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim given_name', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['G02NSrQfjFXQ7Io09syajA', 'given_name', 'Max'],
                 'WyJHMDJOU3JRZmpGWFE3SW8wOXN5YWpBIiwgImdpdmVuX25hbWUiLCAiTWF4Il0',
                 'S_498bbpKzB6Eanftss0xc7cOaoneRr3pKr7NdRmsMo'
@@ -330,7 +330,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim nationalities', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['nPuoQnkRFq3BIeAm7AnXFA', 'nationalities', ['DE']],
                 'WyJuUHVvUW5rUkZxM0JJZUFtN0FuWEZBIiwgIm5hdGlvbmFsaXRpZXMiLCBbIkRFIl1d',
                 'hvDXhwmGcJQsBCA2OtjuLAcwAMpDsaU0nkovcKOqWNE'
@@ -338,7 +338,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim birthdate', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['5bPs1IquZNa0hkaFzzzZNw', 'birthdate', '1956-01-28'],
                 'WyI1YlBzMUlxdVpOYTBoa2FGenp6Wk53IiwgImJpcnRoZGF0ZSIsICIxOTU2LTAxLTI4Il0',
                 'WNA-UNK7F_zhsAb9syWO6IIQ1uHlTmOU8r8CvJ0cIMk'
@@ -346,7 +346,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim birth_middle_name', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['HbQ4X8srVW3QDxnIJdqyOA', 'birth_middle_name', 'Timotheus'],
                 'WyJIYlE0WDhzclZXM1FEeG5JSmRxeU9BIiwgImJpcnRoX21pZGRsZV9uYW1lIiwgIlRpbW90aGV1cyJd',
                 'otkxuT14nBiwzNJ3MPaOitOl9pVnXOaEHal_xkyNfKI'
@@ -354,7 +354,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim salutation', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['C9GSoujviJquEgYfojCb1A', 'salutation', 'Dr.'],
                 'WyJDOUdTb3VqdmlKcXVFZ1lmb2pDYjFBIiwgInNhbHV0YXRpb24iLCAiRHIuIl0',
                 '-aSznId9mWM8ocuQolCllsxVggq1-vHW4OtnhUtVmWw'
@@ -362,7 +362,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim msisdn', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['kx5kF17V-x0JmwUx9vgvtw', 'msisdn', '49123456789'],
                 'WyJreDVrRjE3Vi14MEptd1V4OXZndnR3IiwgIm1zaXNkbiIsICI0OTEyMzQ1Njc4OSJd',
                 'IKbrYNn3vA7WEFrysvbdBJjDDU_EvQIr0W18vTRpUSg'
@@ -372,7 +372,7 @@ describe('disclosures and hashing', () => {
 
     describe('Specification: A.3.  Example 4a - SD-JWT-based Verifiable Credentials (SD-JWT VC)', async () => {
         it('Claim first_name', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['2GLC42sKQveCfGfryNRN9w', 'first_name', 'Erika'],
                 'WyIyR0xDNDJzS1F2ZUNmR2ZyeU5STjl3IiwgImZpcnN0X25hbWUiLCAiRXJpa2EiXQ',
                 'Ch-DBcL3kb4VbHIwtknnZdNUHthEq9MZjoFdg6idiho'
@@ -380,7 +380,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim family_name', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['eluV5Og3gSNII8EYnsxA_A', 'family_name', 'Mustermann'],
                 'WyJlbHVWNU9nM2dTTklJOEVZbnN4QV9BIiwgImZhbWlseV9uYW1lIiwgIk11c3Rlcm1hbm4iXQ',
                 'I00fcFUoDXCucp5yy2ujqPssDVGaWNiUliNz_awD0gc'
@@ -388,7 +388,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Array Entry', async () => {
-            testCreateDisclosureArrayAndHash(
+            await testCreateDisclosureArrayAndHash(
                 ['6Ij7tM-a5iVPGboS5tmvVA', 'DE'],
                 'WyI2SWo3dE0tYTVpVlBHYm9TNXRtdlZBIiwgIkRFIl0',
                 'JuL32QXDzizl-L6CLrfxfjpZsX3O6vsfpCVd1jkwJYg'
@@ -396,7 +396,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim nationalities', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 [
                     'eI8ZWm9QnKPpNPeNenHdhQ',
                     'nationalities',
@@ -408,7 +408,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim birth_family_name', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['Qg_O64zqAxe412a108iroA', 'birth_family_name', 'Schmidt'],
                 'WyJRZ19PNjR6cUF4ZTQxMmExMDhpcm9BIiwgImJpcnRoX2ZhbWlseV9uYW1lIiwgIlNjaG1pZHQiXQ',
                 'X9MaPaFWmQYpfHEdytRdaclnYoEru8EztBEUQuWOe44'
@@ -416,7 +416,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim birthdate', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['AJx-095VPrpTtN4QMOqROA', 'birthdate', '1973-01-01'],
                 'WyJBSngtMDk1VlBycFR0TjRRTU9xUk9BIiwgImJpcnRoZGF0ZSIsICIxOTczLTAxLTAxIl0',
                 '0n9yzFSWvK_BUHiaMhm12ghrCtVahrGJ6_-kZP-ySq4'
@@ -424,7 +424,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim address', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 [
                     '-6hCeREWrcEh4CbsCdcU5Q',
                     'address',
@@ -440,13 +440,13 @@ describe('disclosures and hashing', () => {
                         country_code: 'DE'
                     }
                 ],
-                'WyItNmhDZVJFV3JjRWg0Q2JzQ2RjVTVRIiwgImFkZHJlc3MiLCB7Il9zZCI6IFsiOHo4ejlYOWpVdGI5OWdqZWpDd0ZBR3o0YXFsSGYtc0NxUTZlTV9xbXBVUSIsICJDeHE0ODcyVVhYbmdHVUxUX2tsOGZkd1ZGa3lLNkFKZlBaTHk3TDVfMGtJIiwgImxjMk8weER4WXdiZ2M4cjJERXc3eWhfSURXZXhXOENiZ3R6WVBRRlJpNGMiXSwgInBvc3RhbF9jb2RlIjogIjEyMzQ1IiwgImxvY2FsaXR5IjogIklyZ2VuZHdvIiwgInN0cmVldF9hZGRyZXNzIjogIlNvbm5lbnN0cmFzc2UgMjMiLCAiY291bnRyeV9jb2RlIjogIkRFIn1d',
-                'Y1urWJV_-HBGnSf9tFOwvH4cICRBCiKwEHfkXFSfjpo'
+                'WyItNmhDZVJFV3JjRWg0Q2JzQ2RjVTVRIiwgImFkZHJlc3MiLCB7Il9zZCI6IFsiOHo4ejlYOWpVdGI5OWdqZWpDd0ZBR3o0YXFsSGYtc0NxUTZlTV9xbXBVUSIsICJDeHE0ODcyVVhYbmdHVUxUX2tsOGZkd1ZGa3lLNkFKZlBaTHk3TDVfMGtJIiwgImxjMk8weER4WXdiZ2M4cjJERXc3eWhfSURXZXhXOENiZ3R6WVBRRlJpNGMiXSwicG9zdGFsX2NvZGUiOiAiMTIzNDUiLCAibG9jYWxpdHkiOiAiSXJnZW5kd28iLCAic3RyZWV0X2FkZHJlc3MiOiAiU29ubmVuc3RyYXNzZSAyMyIsICJjb3VudHJ5X2NvZGUiOiAiREUifV0',
+                'nG9HpcnMppd0BODRJV6jv4KzrxsDOW_0uzC2wRhf28w'
             )
         })
 
         it('Claim is_over_18', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['s-zUiq5k1rSGRoXPPNk35Q', 'is_over_18', true],
                 'WyJzLXpVaXE1azFyU0dSb1hQUE5rMzVRIiwgImlzX292ZXJfMTgiLCB0cnVlXQ',
                 'rNhKoraaq--x7BWWIVhbGXu1XXXLM8ivZXD3m2FZMgs'
@@ -454,7 +454,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim is_over_21', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['rZbT82uURnN-qaT_s-r7yw', 'is_over_21', true],
                 'WyJyWmJUODJ1VVJuTi1xYVRfcy1yN3l3IiwgImlzX292ZXJfMjEiLCB0cnVlXQ',
                 '09TbSuo12i2CqZbg31AFgbGy_UnMIXIHoMjsELpukqg'
@@ -462,7 +462,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim is_over_65', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['WxVTnB18lqFV2DA-BLtFHQ', 'is_over_65', false],
                 'WyJXeFZUbkIxOGxxRlYyREEtQkx0RkhRIiwgImlzX292ZXJfNjUiLCBmYWxzZV0',
                 '910byr3UVRqRzQoPzBsc20m-eMgpZAhLN6z8NoGF5mc'
@@ -472,7 +472,7 @@ describe('disclosures and hashing', () => {
 
     describe('Specification: A.4.  Example 4b - W3C Verifiable Credentials Data Model v2.0', async () => {
         it('Claim atcCode', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['2GLC42sKQveCfGfryNRN9w', 'atcCode', 'J07BX03'],
                 'WyIyR0xDNDJzS1F2ZUNmR2ZyeU5STjl3IiwgImF0Y0NvZGUiLCAiSjA3QlgwMyJd',
                 '1cF5hLwkhMNIaqfWJrXI7NMWedL-9f6Y2PA52yPjSZI'
@@ -480,7 +480,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim medicinalProductName', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 [
                     'eluV5Og3gSNII8EYnsxA_A',
                     'medicinalProductName',
@@ -492,7 +492,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim medicinalProductName', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 [
                     '6Ij7tM-a5iVPGboS5tmvVA',
                     'marketingAuthorizationHolder',
@@ -504,7 +504,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim countryOfVaccination', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['Qg_O64zqAxe412a108iroA', 'countryOfVaccination', 'GE'],
                 'WyJRZ19PNjR6cUF4ZTQxMmExMDhpcm9BIiwgImNvdW50cnlPZlZhY2NpbmF0aW9uIiwgIkdFIl0',
                 'JzjLgtP29dP-B3td12P674gFmK2zy81HMtBgf6CJNWg'
@@ -512,7 +512,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim order', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['Pc33JM2LchcU_lHggv_ufQ', 'order', '3/3'],
                 'WyJQYzMzSk0yTGNoY1VfbEhnZ3ZfdWZRIiwgIm9yZGVyIiwgIjMvMyJd',
                 'b0eUsvGP-ODDdFoY4NlzlXc3tDslWJtCJF75Nw8Oj_g'
@@ -520,7 +520,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim gender', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['G02NSrQfjFXQ7Io09syajA', 'gender', 'Female'],
                 'WyJHMDJOU3JRZmpGWFE3SW8wOXN5YWpBIiwgImdlbmRlciIsICJGZW1hbGUiXQ',
                 '3nzLq81M2oN06wdv1shHvOEJVxZ5KLmdDkHEDJABWEI'
@@ -528,7 +528,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim birthDate', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['lklxF5jMYlGTPUovMNIvCA', 'birthDate', '1961-08-17'],
                 'WyJsa2x4RjVqTVlsR1RQVW92TU5JdkNBIiwgImJpcnRoRGF0ZSIsICIxOTYxLTA4LTE3Il0',
                 'Pn1sWi06G4LJrnn-_RT0RbM_HTdxnPJQuX2fzWv_JOU'
@@ -536,7 +536,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim givenName', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['nPuoQnkRFq3BIeAm7AnXFA', 'givenName', 'Marion'],
                 'WyJuUHVvUW5rUkZxM0JJZUFtN0FuWEZBIiwgImdpdmVuTmFtZSIsICJNYXJpb24iXQ',
                 'lF9uzdsw7HplGLc714Tr4WO7MGJza7tt7QFleCX4Itw'
@@ -544,7 +544,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim familyName', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['5bPs1IquZNa0hkaFzzzZNw', 'familyName', 'Mustermann'],
                 'WyI1YlBzMUlxdVpOYTBoa2FGenp6Wk53IiwgImZhbWlseU5hbWUiLCAiTXVzdGVybWFubiJd',
                 '1lSQBNY24q0Th6OGzthq-7-4l6cAaxrYXOGZpeW_lnA'
@@ -552,7 +552,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim administeringCentre', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 [
                     '5a2W0_NrlEZzfqmk_7Pq-w',
                     'administeringCentre',
@@ -564,7 +564,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim batchNumber', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 ['y1sVU5wdfJahVdgwPgS7RQ', 'batchNumber', '1626382736'],
                 'WyJ5MXNWVTV3ZGZKYWhWZGd3UGdTN1JRIiwgImJhdGNoTnVtYmVyIiwgIjE2MjYzODI3MzYiXQ',
                 'V7kJBLK78TmVDOmrfJ7ZuUPHuK_2cc7yZRa4qV1txwM'
@@ -572,7 +572,7 @@ describe('disclosures and hashing', () => {
         })
 
         it('Claim healthProfessional', async () => {
-            testCreateDisclosureObjectAndHash(
+            await testCreateDisclosureObjectAndHash(
                 [
                     'HbQ4X8srVW3QDxnIJdqyOA',
                     'healthProfessional',
