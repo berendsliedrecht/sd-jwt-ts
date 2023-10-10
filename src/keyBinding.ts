@@ -54,12 +54,11 @@ export class KeyBinding<
         return keyBinding
     }
 
-    public static fromCompactJwt<
+    public static override fromCompact<
         H extends Record<string, unknown> = Record<string, unknown>,
         P extends Record<string, unknown> = Record<string, unknown>
     >(compact: string) {
         const jwt = Jwt.fromCompact<H, P>(compact)
-
         return KeyBinding.fromJwt<H, P>(jwt)
     }
 

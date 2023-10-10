@@ -76,30 +76,10 @@ export class SdJwt<
         }
     }
 
-    // TODO: can this override `JWT.fromCompact` so the API is better.
-    //       There seems to be an issue with different return types
-    public static fromCompactSdJwt<
+    public static override fromCompact<
         Header extends Record<string, unknown> = Record<string, unknown>,
         Payload extends Record<string, unknown> = Record<string, unknown>
     >(compact: string) {
-        //  const [sHeader, sPayload, ...sSignatureDisclosureAndKeyBinding] =
-        //      compact.split('.')
-
-        //  const sdkb = sSignatureDisclosureAndKeyBinding.join('.')
-
-        //  const header = Base64url.decodeToJson<Header>(sHeader)
-        //  const payload = Base64url.decodeToJson<Payload>(sPayload)
-
-        //  const [sSignature, ...disclosures] = sdkb.split('~')
-        //  const signature = Base64url.decode(sSignature)
-
-        //  let keyBinding: KeyBinding | undefined = undefined
-        //  if (compact.includes('~') && !compact.endsWith('~')) {
-        //      const jwt = Jwt.fromCompact(disclosures[disclosures.length - 1])
-        //      keyBinding = KeyBinding.fromJwt(jwt)
-        //      disclosures.pop()
-        //  }
-
         const { disclosures, keyBinding, signature, payload, header } =
             sdJwtFromCompact<Header, Payload>(compact)
 
@@ -147,10 +127,10 @@ export class SdJwt<
     ): ReturnSdJwtWithKeyBinding<this> {
         const kb =
             typeof keyBinding === 'string'
-                ? Jwt.fromCompact(keyBinding)
-                : keyBinding
+                ? KeyBinding.fromCompact(keyBinding)
+                : KeyBinding.fromJwt(keyBinding)
 
-        this.keyBinding = KeyBinding.fromJwt(kb)
+        this.keyBinding = kb
         return this as ReturnSdJwtWithKeyBinding<this>
     }
 

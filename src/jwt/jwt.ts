@@ -58,22 +58,7 @@ export class Jwt<
     public static fromCompact<
         Header extends Record<string, unknown> = Record<string, unknown>,
         Payload extends Record<string, unknown> = Record<string, unknown>
-    >(compact: string) {
-        // const [compactHeader, compactPayload, encodedSignature] =
-        //     compact.split('.')
-
-        // if (!compactHeader || !compactPayload) {
-        //     throw new JwtError(
-        //         'compact jwt does not contain a header and or payload'
-        //     )
-        // }
-
-        // const header: Header = Base64url.decodeToJson(compactHeader)
-        // const payload: Payload = Base64url.decodeToJson(compactPayload)
-        // const signature = encodedSignature
-        //     ? Base64url.decode(encodedSignature)
-        //     : undefined
-
+    >(compact: string): Jwt {
         const { header, payload, signature } = jwtFromCompact<Header, Payload>(
             compact
         )

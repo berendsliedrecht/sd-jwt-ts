@@ -42,7 +42,7 @@ export const sdJwtFromCompact = <
         : undefined
 
     const keyBinding = compactKeyBinding
-        ? KeyBinding.fromCompactJwt(compactKeyBinding)
+        ? KeyBinding.fromCompact(compactKeyBinding)
         : undefined
 
     const disclosures = encodedDisclosures.map(Disclosure.fromString)
