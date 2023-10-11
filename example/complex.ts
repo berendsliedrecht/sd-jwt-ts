@@ -59,7 +59,10 @@ void (async () => {
             credentialSubject: string
             credential: { name: string; lastName: string; dateOfBirth: string }
         }
-    >({}, { saltGenerator, signer, hasherAndAlgorithm })
+    >()
+        .withSigner(signer)
+        .withSaltGenerator(saltGenerator)
+        .withHasher(hasherAndAlgorithm)
         .withKeyBinding(keyBinding)
         .withHeader({
             alg: SignatureAndEncryptionAlgorithm.EdDSA,
