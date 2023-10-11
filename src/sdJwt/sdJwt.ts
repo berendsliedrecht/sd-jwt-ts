@@ -1,21 +1,25 @@
 import { Base64url } from '../base64url'
 import { SdJwtError } from './error'
-import { deleteByPath } from '../util'
-import { SaltGenerator, createDecoys } from './decoys'
-import { HasherAndAlgorithm, hashDisclosure } from './hashDisclosure'
+import { SaltGenerator } from './decoys'
+import { HasherAndAlgorithm } from './hashDisclosure'
 import { Jwt, JwtAdditionalOptions } from '../jwt/jwt'
 import { KeyBinding } from '../keyBinding'
 import {
-    DisclosureFrame,
     ReturnSdJwtWithHeaderAndPayload,
     ReturnSdJwtWithKeyBinding,
     ReturnSdJwtWithPayload,
-    SdJwtToCompactOptions,
     Signer,
     Verifier
 } from './types'
 import { sdJwtFromCompact } from './compact'
 import { Disclosure } from './disclosures'
+import { DisclosureFrame, applyDisclosureFrame } from './disclosureFrame'
+
+export type SdJwtToCompactOptions<
+    DisclosablePayload extends Record<string, unknown>
+> = {
+    disclosureFrame?: DisclosureFrame<DisclosablePayload>
+}
 
 export type SdJwtOptions<
     Header extends Record<string, unknown>,
@@ -139,93 +143,24 @@ export class SdJwt<
         return this
     }
 
-    private async hashDisclosure(disclosure: Disclosure): Promise<string> {
-        this.assertHashAndAlgorithm()
-
-        return await hashDisclosure(disclosure, this.hasherAndAlgorithm!.hasher)
-    }
-
-    private async createDecoys(count: number): Promise<Array<string>> {
-        this.assertSaltGenerator()
-        this.assertHashAndAlgorithm()
-
-        const decoys = await createDecoys(
-            count,
-            this.saltGenerator!,
-            this.hasherAndAlgorithm!.hasher
-        )
-
-        return decoys
-    }
-
     private async applyDisclosureFrame(
         object: Payload,
-        frame: DisclosureFrame<Payload>,
-        keys: Array<string> = [],
-        cleanup: Array<Array<string>> = []
+        frame: DisclosureFrame<Payload>
     ): Promise<Record<string, unknown>> {
         this.assertSaltGenerator()
-        this.disclosures = this.disclosures ?? []
+        this.assertHashAndAlgorithm()
 
-        for (const [key, frameValue] of Object.entries(frame)) {
-            const newKeys = [...keys, key]
+        const { payload: framedPayload, disclosures } =
+            await applyDisclosureFrame(
+                this.saltGenerator!,
+                this.hasherAndAlgorithm!.hasher,
+                object,
+                frame
+            )
 
-            if (key === '__decoyCount' && typeof frameValue === 'number') {
-                const sd: Array<string> = Array.from(
-                    (object._sd as string[]) ?? []
-                )
+        this.disclosures = disclosures
 
-                const decoys = await this.createDecoys(frameValue)
-                decoys.forEach((digest) => sd.push(digest))
-
-                // @ts-ignore
-                object._sd = sd.sort()
-            } else if (typeof frameValue === 'boolean') {
-                if (frameValue === true) {
-                    if (!(key in object)) {
-                        throw new SdJwtError(
-                            `key, ${key}, is not inside the payload (${JSON.stringify(
-                                object
-                            )}), but it was supplied inside the frame.`
-                        )
-                    }
-
-                    const salt = await this.saltGenerator!()
-                    const disclosure = new Disclosure(salt, object[key], key)
-                    this.disclosures.push(disclosure)
-
-                    const digest = await this.hashDisclosure(disclosure)
-                    const sd: Array<string> = Array.from(
-                        (object._sd as string[]) ?? []
-                    )
-                    sd.push(digest)
-
-                    //@ts-ignore
-                    object._sd = sd.sort()
-
-                    cleanup.push(newKeys)
-                }
-            } else if (
-                typeof frameValue === 'object' &&
-                !Array.isArray(frameValue)
-            ) {
-                await this.applyDisclosureFrame(
-                    object[key] as Payload,
-                    frameValue as DisclosureFrame<Payload>,
-                    newKeys,
-                    cleanup
-                )
-            } else {
-                throw new SdJwtError(
-                    `Invalid type in frame with key '${key}' and type '${typeof frameValue}'. Only Record<string, unknown> and boolean are allowed.`
-                )
-            }
-        }
-
-        const payloadClone = { ...object }
-        cleanup.forEach((path) => deleteByPath(payloadClone, path.join('.')))
-
-        return payloadClone
+        return framedPayload
     }
 
     private assertSaltGenerator() {
