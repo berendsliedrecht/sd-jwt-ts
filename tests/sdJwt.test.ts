@@ -1,7 +1,7 @@
 import { before, describe, it } from 'node:test'
 import assert, { deepStrictEqual, rejects, strictEqual } from 'node:assert'
 
-import { hasher, prelude } from './utils'
+import { hasherAndAlgorithm, prelude, signer, verifier } from './utils'
 
 import {
     SignatureAndEncryptionAlgorithm,
@@ -246,10 +246,7 @@ describe('sd-jwt', async () => {
                         birthdate: true,
                         updated_at: true
                     },
-                    hasherAndAlgorithm: {
-                        hasher,
-                        algorithm: HasherAlgorithm.Sha256
-                    }
+                    hasherAndAlgorithm
                 }
             )
 
@@ -698,6 +695,25 @@ describe('sd-jwt', async () => {
                 'WyIyR0xDNDJzS1F2ZUNmR2ZyeU5STjl3IiwgImF0Y0NvZGUiLCAiSjA3QlgwMyJd',
                 'WyJlbHVWNU9nM2dTTklJOEVZbnN4QV9BIiwgIm1lZGljaW5hbFByb2R1Y3ROYW1lIiwgIkNPVklELTE5IFZhY2NpbmUgTW9kZXJuYSJd'
             ])
+        })
+    })
+
+    describe('sd-jwt verification', async () => {
+        it('should verify simple jwt', async () => {
+            const jwt = new SdJwt()
+                .withHeader({ alg: SignatureAndEncryptionAlgorithm.EdDSA })
+                .withPayload({ sign: 'me!' })
+                .withSigner(signer)
+
+            const compact = await jwt.toCompact()
+
+            strictEqual(typeof compact, 'string')
+
+            const fromCompact = SdJwt.fromCompact(compact)
+
+            const isVerified = await fromCompact.verifySignature(verifier)
+
+            assert(isVerified)
         })
     })
 })

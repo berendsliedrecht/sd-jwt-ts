@@ -2,6 +2,7 @@ import { Base64url } from '../base64url'
 import { JwtError } from './error'
 import { MakePropertyRequired, OrPromise } from '../types'
 import { jwtFromCompact } from './compact'
+import { Verifier } from '../sdJwt/types'
 
 type ReturnJwtWithHeaderAndPayload<T extends Jwt> = MakePropertyRequired<
     T,
@@ -32,6 +33,14 @@ export type JwtAdditionalOptions<
 export type Signer<
     Header extends Record<string, unknown> = Record<string, unknown>
 > = (input: string, header: Header) => OrPromise<Uint8Array>
+
+export type JwtVerificationResult = {
+    isValid: boolean
+    isSignatureValid: boolean
+    isNotBeforeValid?: boolean
+    isExpiryTimeValid?: boolean
+    areRequiredClaimsIncluded?: boolean
+}
 
 export class Jwt<
     Header extends Record<string, unknown> = Record<string, unknown>,
@@ -172,5 +181,46 @@ export class Jwt<
         const encodedSignature = Base64url.encode(this.signature!)
 
         return `${this.compactHeader}.${this.compactPayload}.${encodedSignature}`
+    }
+
+    public async verify(
+        verifySignature: Verifier<Header>,
+        requiredClaims?: Array<keyof Payload | string>
+    ): Promise<JwtVerificationResult> {
+        this.assertHeader()
+        this.assertPayload()
+        this.assertSignature()
+
+        const ret: Partial<JwtVerificationResult> = {}
+
+        ret.isSignatureValid = await verifySignature({
+            header: this.header!,
+            signature: this.signature!,
+            message: this.signableInput
+        })
+
+        if ('nbf' in this.payload!) {
+            const now = new Date()
+            const notBefore = new Date((this.payload!.nbf as number) * 1000)
+
+            ret.isNotBeforeValid = notBefore < now
+        }
+
+        if ('exp' in this.payload!) {
+            const now = new Date()
+            const expiryTime = new Date((this.payload!.exp as number) * 1000)
+
+            ret.isExpiryTimeValid = expiryTime > now
+        }
+
+        ret.areRequiredClaimsIncluded = requiredClaims?.every(
+            (claim) => claim in this.payload!
+        )
+
+        ret.isValid = Object.values(ret)
+            .filter((i) => typeof i === 'boolean')
+            .every((i) => !!i)
+
+        return ret as JwtVerificationResult
     }
 }

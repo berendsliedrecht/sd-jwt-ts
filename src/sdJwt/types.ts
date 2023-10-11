@@ -19,9 +19,9 @@ export type VerifyOptions<Header extends Record<string, unknown>> = {
     signature: Uint8Array
     header: Header
 }
-export type Verifier<Header extends Record<string, unknown>> = (
-    options: VerifyOptions<Header>
-) => OrPromise<boolean>
+export type Verifier<
+    Header extends Record<string, unknown> = Record<string, unknown>
+> = (options: VerifyOptions<Header>) => OrPromise<boolean>
 
 export type Signer<
     Header extends Record<string, unknown> = Record<string, unknown>

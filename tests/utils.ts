@@ -1,8 +1,22 @@
-import { createHash } from 'node:crypto'
+import {
+    createHash,
+    generateKeyPairSync,
+    getRandomValues,
+    sign,
+    verify
+} from 'node:crypto'
 import { strictEqual } from 'node:assert'
 
-import { Disclosure } from '../src'
-import { hashDisclosure } from '../src/sdJwt'
+import { Disclosure, SignatureAndEncryptionAlgorithm, Signer } from '../src'
+import {
+    HasherAlgorithm,
+    HasherAndAlgorithm,
+    SaltGenerator,
+    hashDisclosure
+} from '../src/sdJwt'
+import { Verifier } from '../src/sdJwt/types'
+
+const { publicKey, privateKey } = generateKeyPairSync('ed25519')
 
 /**
  * This swaps the default JSON serializer to one that is, more, compatible with Python `json.dumps`.
@@ -14,8 +28,30 @@ export const prelude = () => {
         oldStringify(x, null, 0).split('",').join('", ').split('":').join('": ')
 }
 
-export const hasher = (i: string) =>
-    createHash('sha256').update(i).digest('base64url')
+export const hasherAndAlgorithm: HasherAndAlgorithm = {
+    hasher: (input: string) =>
+        createHash('sha256').update(input).digest().toString('base64url'),
+
+    algorithm: HasherAlgorithm.Sha256
+}
+
+export const signer: Signer = (input, header) => {
+    if (header.alg !== SignatureAndEncryptionAlgorithm.EdDSA) {
+        throw new Error('only EdDSA is supported')
+    }
+    return sign(null, Buffer.from(input), privateKey)
+}
+
+export const verifier: Verifier = ({ header, message, signature }) => {
+    if (header.alg !== SignatureAndEncryptionAlgorithm.EdDSA) {
+        throw new Error('only EdDSA is supported')
+    }
+
+    return verify(null, Buffer.from(message), publicKey, signature)
+}
+
+export const saltGenerator: SaltGenerator = () =>
+    getRandomValues(Buffer.alloc(16)).toString('base64url')
 
 export const testCreateDisclosureObjectAndHash = async (
     input: [string, string, unknown],
@@ -26,7 +62,7 @@ export const testCreateDisclosureObjectAndHash = async (
 
     strictEqual(disclosure.encoded, expectedDisclosure)
 
-    const hash = await hashDisclosure(disclosure, hasher)
+    const hash = await hashDisclosure(disclosure, hasherAndAlgorithm.hasher)
 
     strictEqual(hash, expectedHash)
 }
@@ -40,7 +76,7 @@ export const testCreateDisclosureArrayAndHash = async (
 
     strictEqual(disclosure.encoded, expectedDisclosure)
 
-    const hash = await hashDisclosure(disclosure, hasher)
+    const hash = await hashDisclosure(disclosure, hasherAndAlgorithm.hasher)
 
     strictEqual(hash, expectedHash)
 }

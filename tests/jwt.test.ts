@@ -1,9 +1,9 @@
 import { before, describe, it } from 'node:test'
-import { deepStrictEqual, strictEqual } from 'node:assert'
+import assert, { deepStrictEqual, strictEqual } from 'node:assert'
 
-import { prelude } from './utils'
+import { prelude, signer, verifier } from './utils'
 
-import { Jwt } from '../src'
+import { Jwt, SignatureAndEncryptionAlgorithm } from '../src'
 
 describe('JWT', async () => {
     before(prelude)
@@ -133,6 +133,242 @@ describe('JWT', async () => {
             deepStrictEqual(fromCompactJwt.header, header)
             deepStrictEqual(fromCompactJwt.payload, payload)
             deepStrictEqual(fromCompactJwt.signature, signature)
+        })
+    })
+
+    describe('jwt verification', async () => {
+        it('should verify simple jwt', async () => {
+            const jwt = new Jwt()
+                .withHeader({ alg: SignatureAndEncryptionAlgorithm.EdDSA })
+                .withPayload({ sign: 'me!' })
+                .withSigner(signer)
+
+            const compact = await jwt.toCompact()
+
+            strictEqual(typeof compact, 'string')
+
+            const fromCompact = Jwt.fromCompact(compact)
+
+            const { isSignatureValid, isValid } =
+                await fromCompact.verify(verifier)
+
+            assert(isSignatureValid)
+            assert(isValid)
+        })
+
+        it('should verify simple jwt with exp', async () => {
+            const nextMonth = new Date()
+            nextMonth.setMonth(new Date().getMonth() + 1)
+
+            const jwt = new Jwt()
+                .withHeader({ alg: SignatureAndEncryptionAlgorithm.EdDSA })
+                .withPayload({
+                    sign: 'me!',
+                    exp: nextMonth.getTime() / 1000
+                })
+                .withSigner(signer)
+
+            const compact = await jwt.toCompact()
+
+            strictEqual(typeof compact, 'string')
+
+            const fromCompact = Jwt.fromCompact(compact)
+
+            const { isSignatureValid, isValid, isExpiryTimeValid } =
+                await fromCompact.verify(verifier)
+
+            assert(isSignatureValid)
+            assert(isExpiryTimeValid)
+            assert(isValid)
+        })
+
+        it('should verify simple jwt with nbf', async () => {
+            const lastMonth = new Date()
+            lastMonth.setMonth(new Date().getMonth() - 1)
+
+            const jwt = new Jwt()
+                .withHeader({ alg: SignatureAndEncryptionAlgorithm.EdDSA })
+                .withPayload({
+                    sign: 'me!',
+                    nbf: lastMonth.getTime() / 1000
+                })
+                .withSigner(signer)
+
+            const compact = await jwt.toCompact()
+
+            strictEqual(typeof compact, 'string')
+
+            const fromCompact = Jwt.fromCompact(compact)
+
+            const { isSignatureValid, isValid, isNotBeforeValid } =
+                await fromCompact.verify(verifier)
+
+            assert(isSignatureValid)
+            assert(isNotBeforeValid)
+            assert(isValid)
+        })
+
+        it('should verify simple jwt with required claims', async () => {
+            const lastMonth = new Date()
+            lastMonth.setMonth(new Date().getMonth() - 1)
+
+            const jwt = new Jwt()
+                .withHeader({ alg: SignatureAndEncryptionAlgorithm.EdDSA })
+                .withPayload({
+                    sign: 'me!',
+                    nbf: lastMonth.getTime() / 1000
+                })
+                .withSigner(signer)
+
+            const compact = await jwt.toCompact()
+
+            strictEqual(typeof compact, 'string')
+
+            const fromCompact = Jwt.fromCompact<{}, { sign: string }>(compact)
+
+            const { isSignatureValid, isValid, areRequiredClaimsIncluded } =
+                await fromCompact.verify(verifier, ['sign'])
+
+            assert(isSignatureValid)
+            assert(areRequiredClaimsIncluded)
+            assert(isValid)
+        })
+
+        it('should verify simple jwt with all fields', async () => {
+            const lastMonth = new Date()
+            lastMonth.setMonth(new Date().getMonth() - 1)
+
+            const nextMonth = new Date()
+            nextMonth.setMonth(new Date().getMonth() + 1)
+
+            const jwt = new Jwt()
+                .withHeader({ alg: SignatureAndEncryptionAlgorithm.EdDSA })
+                .withPayload({
+                    sign: 'me!',
+                    nbf: lastMonth.getTime() / 1000,
+                    exp: nextMonth.getTime() / 1000
+                })
+                .withSigner(signer)
+
+            const compact = await jwt.toCompact()
+
+            strictEqual(typeof compact, 'string')
+
+            const fromCompact = Jwt.fromCompact<{}, { sign: string }>(compact)
+
+            const {
+                isSignatureValid,
+                isValid,
+                areRequiredClaimsIncluded,
+                isNotBeforeValid,
+                isExpiryTimeValid
+            } = await fromCompact.verify(verifier, ['sign'])
+
+            assert(isSignatureValid)
+            assert(isExpiryTimeValid)
+            assert(isNotBeforeValid)
+            assert(areRequiredClaimsIncluded)
+            assert(isValid)
+        })
+
+        it('should not verify simple jwt with invalid signature', async () => {
+            const jwt = new Jwt()
+                .withHeader({ alg: SignatureAndEncryptionAlgorithm.EdDSA })
+                .withPayload({
+                    sign: 'me!'
+                })
+                .withSignature(new Uint8Array(32).fill(42))
+
+            const compact = await jwt.toCompact()
+
+            strictEqual(typeof compact, 'string')
+
+            const fromCompact = Jwt.fromCompact<{}, { sign: string }>(compact)
+
+            const { isSignatureValid, isValid } =
+                await fromCompact.verify(verifier)
+
+            assert(!isSignatureValid)
+            assert(!isValid)
+        })
+
+        it('should not verify simple jwt with invalid exp', async () => {
+            const lastMonth = new Date()
+            lastMonth.setMonth(new Date().getMonth() - 1)
+
+            const jwt = new Jwt()
+                .withHeader({ alg: SignatureAndEncryptionAlgorithm.EdDSA })
+                .withPayload({
+                    sign: 'me!',
+                    exp: lastMonth.getTime() / 1000
+                })
+                .withSigner(signer)
+
+            const compact = await jwt.toCompact()
+
+            strictEqual(typeof compact, 'string')
+
+            const fromCompact = Jwt.fromCompact<{}, { sign: string }>(compact)
+
+            const { isSignatureValid, isValid, isExpiryTimeValid } =
+                await fromCompact.verify(verifier)
+
+            assert(isSignatureValid)
+            assert(!isExpiryTimeValid)
+            assert(!isValid)
+        })
+
+        it('should not verify simple jwt with invalid nbf', async () => {
+            const nextMonth = new Date()
+            nextMonth.setMonth(new Date().getMonth() + 1)
+
+            const jwt = new Jwt()
+                .withHeader({ alg: SignatureAndEncryptionAlgorithm.EdDSA })
+                .withPayload({
+                    sign: 'me!',
+                    nbf: nextMonth.getTime() / 1000
+                })
+                .withSigner(signer)
+
+            const compact = await jwt.toCompact()
+
+            strictEqual(typeof compact, 'string')
+
+            const fromCompact = Jwt.fromCompact<{}, { sign: string }>(compact)
+
+            const { isSignatureValid, isValid, isNotBeforeValid } =
+                await fromCompact.verify(verifier)
+
+            assert(isSignatureValid)
+            assert(!isNotBeforeValid)
+            assert(!isValid)
+        })
+
+        it('should not verify simple jwt with invalid required claims', async () => {
+            const jwt = new Jwt()
+                .withHeader({ alg: SignatureAndEncryptionAlgorithm.EdDSA })
+                .withPayload({
+                    sign: 'me!'
+                })
+                .withSigner(signer)
+
+            const compact = await jwt.toCompact()
+
+            strictEqual(typeof compact, 'string')
+
+            const fromCompact = Jwt.fromCompact<{}, { sign: string }>(compact)
+
+            const { isSignatureValid, isValid, areRequiredClaimsIncluded } =
+                await fromCompact.verify(verifier, [
+                    'claim_a',
+                    'claim_b',
+                    'nbf',
+                    'iss'
+                ])
+
+            assert(isSignatureValid)
+            assert(!isValid)
+            assert(!areRequiredClaimsIncluded)
         })
     })
 })
