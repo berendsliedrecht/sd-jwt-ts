@@ -19,6 +19,7 @@ export type SdJwtToCompactOptions<
     DisclosablePayload extends Record<string, unknown>
 > = {
     disclosureFrame?: DisclosureFrame<DisclosablePayload>
+    shouldApplyFrame?: boolean
 }
 
 export type SdJwtOptions<
@@ -150,14 +151,30 @@ export class SdJwt<
         this.assertSaltGenerator()
         this.assertHashAndAlgorithm()
         this.assertPayload()
-        this.assertDisclosureFrame()
+
+        if (!this.disclosureFrame) {
+            throw new SdJwtError(
+                'To apply a disclosure frame, either inlude one in the API, supply it via the constructor or call `this.withDisclosureFrame()`.'
+            )
+        }
+
+        if (
+            this.disclosures &&
+            this.disclosures.length > 0 &&
+            this.signature &&
+            !this.signer
+        ) {
+            throw new SdJwtError(
+                'Signature is already set by the user when selectively disclosable items still have to be removed. This will invalidate the signature. Try to provide a signer on SdJwt.withSigner and SdJwt.toCompact will call it at the correct time.'
+            )
+        }
 
         const { payload: framedPayload, disclosures } =
             await applyDisclosureFrame(
                 this.saltGenerator!,
                 this.hasherAndAlgorithm!.hasher,
                 this.payload!,
-                this.disclosureFrame!
+                this.disclosureFrame
             )
 
         this.disclosures = disclosures
@@ -168,14 +185,6 @@ export class SdJwt<
         if (!this.saltGenerator) {
             throw new SdJwtError(
                 'Cannot create a disclosure without a salt generator. You can set it with this.withSaltGenerator()'
-            )
-        }
-    }
-
-    private assertDisclosureFrame() {
-        if (!this.disclosureFrame) {
-            throw new SdJwtError(
-                'Cannot apply disclosure frame when the disclosure frame is not defined. You can set it with this.withDisclosureFrame()'
             )
         }
     }
@@ -197,6 +206,80 @@ export class SdJwt<
             header: this.header as Header,
             signature: this.signature!
         })
+    }
+
+    /**
+     * @todo: using the indices of the disclosures that should be added is not the best API.
+     *
+     * Either support for PEX should be added and we can just take a `PresentationDefinition`, but for now this is the best we can do.
+     *
+     * This function includes disclosures optimisitcally. This means that is `undefined` is supplied, it includes all disclosures. To include nothing, supply an empty array.
+     */
+    public async present(includedDisclosureIndices?: Array<number>) {
+        await this.applyDisclosureFrame()
+
+        if (
+            includedDisclosureIndices &&
+            includedDisclosureIndices.length > 0 &&
+            !this.disclosures
+        ) {
+            throw new SdJwtError(
+                'Cannot create a presentation with disclosures while no disclosures are on the sd-jwt'
+            )
+        }
+
+        if (
+            includedDisclosureIndices &&
+            includedDisclosureIndices.length > this.disclosures!.length
+        ) {
+            throw new SdJwtError(
+                `List of included indices (${
+                    includedDisclosureIndices.length
+                }) is longer than the list of disclosures (${
+                    this.disclosures!.length
+                }).`
+            )
+        }
+
+        const maxIndex = Math.max(...(includedDisclosureIndices ?? []))
+        const minIndex = Math.min(...(includedDisclosureIndices ?? []))
+
+        if (minIndex < 0) {
+            throw new SdJwtError('Only positive indices are allowed')
+        }
+
+        if (
+            (includedDisclosureIndices ?? []).some(
+                (i) => isNaN(i) || !isFinite(i)
+            )
+        ) {
+            throw new SdJwtError('NaN and infinity are not allowed as indices')
+        }
+
+        if (maxIndex > this.disclosures!.length - 1) {
+            throw new SdJwtError(
+                `Max index supplied was ${maxIndex}, but there are ${
+                    this.disclosures!.length
+                } items available. Note that it is 0-indexed`
+            )
+        }
+
+        if (
+            new Set(includedDisclosureIndices ?? []).size !==
+            (includedDisclosureIndices ?? []).length
+        ) {
+            throw new SdJwtError(
+                `It is not allowed to include multiple of same index`
+            )
+        }
+
+        const includedDisclosures = includedDisclosureIndices
+            ? this.disclosures!.filter(
+                  (_, index) => includedDisclosureIndices?.includes(index)
+              )
+            : this.disclosures
+
+        return await this.__toCompact(includedDisclosures, false)
     }
 
     public async verify(
@@ -251,33 +334,22 @@ export class SdJwt<
         }
     }
 
-    public async toCompact(
-        options?: SdJwtToCompactOptions<Payload>
+    public async toCompact(): Promise<string> {
+        return this.__toCompact()
+    }
+
+    private async __toCompact(
+        disclosures: undefined | Array<Disclosure> = this.disclosures,
+        shouldApplyFrame: boolean = true
     ): Promise<string> {
         this.assertHeader()
         this.assertPayload()
 
         await this.keyBinding?.assertValidForKeyBinding()
 
-        const frame = options?.disclosureFrame ?? this.disclosureFrame
-        const shouldApplyFrame = !!frame
-
-        if (shouldApplyFrame) {
-            if (
-                this.disclosures &&
-                this.disclosures.length > 0 &&
-                this.signature &&
-                !this.signer
-            ) {
-                throw new SdJwtError(
-                    'Signature is already set by the user when selectively disclosable items still have to be removed. This will invalidate the signature. Try to provide a signer on SdJwt.withSigner and SdJwt.toCompact will call it at the correct time.'
-                )
-            }
-
-            this.addHasherAlgorithmToPayload()
-        }
-
-        if (shouldApplyFrame) await this.applyDisclosureFrame()
+        if (this.disclosureFrame && shouldApplyFrame)
+            await this.applyDisclosureFrame()
+        disclosures ??= this.disclosures
 
         const compactHeader = Base64url.encode(JSON.stringify(this.header))
         const compactPayload = Base64url.encode(JSON.stringify(this.payload))
@@ -287,8 +359,8 @@ export class SdJwt<
             : Base64url.encode((await this.signAndAdd()).signature!)
 
         const sDisclosures =
-            this.disclosures && this.disclosures.length > 0
-                ? `~${this.disclosures?.join('~')}~`
+            disclosures && disclosures.length > 0
+                ? `~${disclosures.join('~')}~`
                 : ''
 
         const kb = await this.keyBinding?.toCompact()

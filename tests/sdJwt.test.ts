@@ -1022,4 +1022,138 @@ describe('sd-jwt', async () => {
         assert(!containsRequiredDisclosedItems)
         assert(!isValid)
     })
+
+    describe('present', async () => {
+        it('create a presentation of all selectively disclosable items', async () => {
+            const sdJwt = new SdJwt({
+                header: { alg: SignatureAndEncryptionAlgorithm.EdDSA },
+                payload: { sign: 'me!!', discloseMe: 'please' }
+            })
+                .withDisclosureFrame({ sign: true, discloseMe: true })
+                .withSigner(() => new Uint8Array(32).fill(42))
+                .withSaltGenerator(() => 'salt')
+                .withHasher(hasherAndAlgorithm)
+
+            const presentation = await sdJwt.present()
+
+            strictEqual(
+                presentation,
+                'eyJhbGciOiAiRWREU0EifQ.eyJfc2RfYWxnIjogInNoYS0yNTYiLCAiX3NkIjogWyJJVlVxckNOcGl4SGxyYlo2S2JrNUxtcTFIdUcxS2Z2UXVZSkNONk9sTjNNIiwgIm9jTDJOTXhwVTBWR240clptbVFaUFZObU1RNTVsZlFTMlBmMkh1Y2s5amMiXX0.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio~WyJzYWx0IiwgInNpZ24iLCAibWUhISJd~WyJzYWx0IiwgImRpc2Nsb3NlTWUiLCAicGxlYXNlIl0~'
+            )
+        })
+
+        it('create a presentation with some of the selectively disclosable items', async () => {
+            const sdJwt = new SdJwt({
+                header: { alg: SignatureAndEncryptionAlgorithm.EdDSA },
+                payload: { sign: 'me!!', discloseMe: 'please' }
+            })
+                .withDisclosureFrame({ sign: true, discloseMe: true })
+                .withSigner(() => new Uint8Array(32).fill(42))
+                .withSaltGenerator(() => 'salt')
+                .withHasher(hasherAndAlgorithm)
+
+            const presentation = await sdJwt.present([0])
+
+            strictEqual(
+                presentation,
+                'eyJhbGciOiAiRWREU0EifQ.eyJfc2RfYWxnIjogInNoYS0yNTYiLCAiX3NkIjogWyJJVlVxckNOcGl4SGxyYlo2S2JrNUxtcTFIdUcxS2Z2UXVZSkNONk9sTjNNIiwgIm9jTDJOTXhwVTBWR240clptbVFaUFZObU1RNTVsZlFTMlBmMkh1Y2s5amMiXX0.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio~WyJzYWx0IiwgInNpZ24iLCAibWUhISJd~'
+            )
+        })
+
+        it('create a presentation with none of the selectively disclosable items', async () => {
+            const sdJwt = new SdJwt({
+                header: { alg: SignatureAndEncryptionAlgorithm.EdDSA },
+                payload: { sign: 'me!!', discloseMe: 'please' }
+            })
+                .withDisclosureFrame({ sign: true, discloseMe: true })
+                .withSigner(() => new Uint8Array(32).fill(42))
+                .withSaltGenerator(() => 'salt')
+                .withHasher(hasherAndAlgorithm)
+
+            const presentation = await sdJwt.present([])
+
+            strictEqual(
+                presentation,
+                'eyJhbGciOiAiRWREU0EifQ.eyJfc2RfYWxnIjogInNoYS0yNTYiLCAiX3NkIjogWyJJVlVxckNOcGl4SGxyYlo2S2JrNUxtcTFIdUcxS2Z2UXVZSkNONk9sTjNNIiwgIm9jTDJOTXhwVTBWR240clptbVFaUFZObU1RNTVsZlFTMlBmMkh1Y2s5amMiXX0.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
+            )
+        })
+
+        it('error when the highest index is above the length of the disclosure array', async () => {
+            const sdJwt = new SdJwt({
+                header: { alg: SignatureAndEncryptionAlgorithm.EdDSA },
+                payload: { sign: 'me!!', discloseMe: 'please' }
+            })
+                .withDisclosureFrame({ sign: true, discloseMe: true })
+                .withSigner(() => new Uint8Array(32).fill(42))
+                .withSaltGenerator(() => 'salt')
+                .withHasher(hasherAndAlgorithm)
+
+            rejects(async () => await sdJwt.present([1000]), SdJwtError)
+        })
+
+        it('error when the same index is supplied twice', async () => {
+            const sdJwt = new SdJwt({
+                header: { alg: SignatureAndEncryptionAlgorithm.EdDSA },
+                payload: { sign: 'me!!', discloseMe: 'please' }
+            })
+                .withDisclosureFrame({ sign: true, discloseMe: true })
+                .withSigner(() => new Uint8Array(32).fill(42))
+                .withSaltGenerator(() => 'salt')
+                .withHasher(hasherAndAlgorithm)
+
+            rejects(async () => await sdJwt.present([0, 0]), SdJwtError)
+        })
+
+        it('error when there are more indices than disclosable items', async () => {
+            const sdJwt = new SdJwt({
+                header: { alg: SignatureAndEncryptionAlgorithm.EdDSA },
+                payload: { sign: 'me!!', discloseMe: 'please' }
+            })
+                .withDisclosureFrame({ sign: true, discloseMe: true })
+                .withSigner(() => new Uint8Array(32).fill(42))
+                .withSaltGenerator(() => 'salt')
+                .withHasher(hasherAndAlgorithm)
+
+            rejects(async () => await sdJwt.present([0, 1, 2, 4]), SdJwtError)
+        })
+
+        it('error when a negative number is used', async () => {
+            const sdJwt = new SdJwt({
+                header: { alg: SignatureAndEncryptionAlgorithm.EdDSA },
+                payload: { sign: 'me!!', discloseMe: 'please' }
+            })
+                .withDisclosureFrame({ sign: true, discloseMe: true })
+                .withSigner(() => new Uint8Array(32).fill(42))
+                .withSaltGenerator(() => 'salt')
+                .withHasher(hasherAndAlgorithm)
+
+            rejects(async () => await sdJwt.present([-1]), SdJwtError)
+        })
+
+        it('error when NaN is used', async () => {
+            const sdJwt = new SdJwt({
+                header: { alg: SignatureAndEncryptionAlgorithm.EdDSA },
+                payload: { sign: 'me!!', discloseMe: 'please' }
+            })
+                .withDisclosureFrame({ sign: true, discloseMe: true })
+                .withSigner(() => new Uint8Array(32).fill(42))
+                .withSaltGenerator(() => 'salt')
+                .withHasher(hasherAndAlgorithm)
+
+            rejects(async () => await sdJwt.present([NaN]), SdJwtError)
+        })
+
+        it('error when infinity is used', async () => {
+            const sdJwt = new SdJwt({
+                header: { alg: SignatureAndEncryptionAlgorithm.EdDSA },
+                payload: { sign: 'me!!', discloseMe: 'please' }
+            })
+                .withDisclosureFrame({ sign: true, discloseMe: true })
+                .withSigner(() => new Uint8Array(32).fill(42))
+                .withSaltGenerator(() => 'salt')
+                .withHasher(hasherAndAlgorithm)
+
+            rejects(async () => await sdJwt.present([Infinity]), SdJwtError)
+        })
+    })
 })
