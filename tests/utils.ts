@@ -1,7 +1,8 @@
 import { createHash } from 'node:crypto'
 import { strictEqual } from 'node:assert'
 
-import { Disclosure, hashDisclosure } from '../src'
+import { Disclosure } from '../src'
+import { hashDisclosure } from '../src/sdJwt'
 
 /**
  * This swaps the default JSON serializer to one that is, more, compatible with Python `json.dumps`.

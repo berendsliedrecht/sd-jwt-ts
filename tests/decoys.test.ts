@@ -4,7 +4,7 @@ import { before, describe, it } from 'node:test'
 
 import { prelude } from './utils'
 
-import { createDecoys } from '../src'
+import { createDecoys } from '../src/sdJwt'
 
 describe('decoys', async () => {
     before(prelude)

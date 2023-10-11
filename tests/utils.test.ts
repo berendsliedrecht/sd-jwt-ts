@@ -5,7 +5,7 @@ import {
     ClaimKeyTypeValue,
     assertClaimInObject,
     deleteByPath
-} from '../src/util'
+} from '../src/utils'
 
 import { JwtError } from '../src'
 import { prelude } from './utils'

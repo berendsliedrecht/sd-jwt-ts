@@ -25,7 +25,11 @@
         "email": "blu3beri@proton.me"
     },
     "main": "build/index.js",
-    "files": ["build", "LICENSE-MIT", "LICENSE-APACHE-2.0"],
+    "files": [
+        "build",
+        "LICENSE-MIT",
+        "LICENSE-APACHE-2.0"
+    ],
     "scripts": {
         "clean": "rm -rf build",
         "clean:deps": "pnpm clean && rm -rf node_modules",

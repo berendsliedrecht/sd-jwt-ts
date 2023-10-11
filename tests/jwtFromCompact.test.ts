@@ -3,7 +3,8 @@ import { deepStrictEqual, throws } from 'node:assert'
 
 import { prelude } from './utils'
 
-import { JwtError, jwtFromCompact } from '../src'
+import { JwtError } from '../src'
+import { jwtFromCompact } from '../src/jwt'
 
 describe('jwt from compact', () => {
     before(prelude)

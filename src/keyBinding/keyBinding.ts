@@ -1,4 +1,4 @@
-import { ClaimKeyTypeValue, assertClaimInObject } from '../util'
+import { ClaimKeyTypeValue, assertClaimInObject } from '../utils'
 import { Jwt, JwtAdditionalOptions, JwtOptions } from '../jwt'
 import { SignatureAndEncryptionAlgorithm } from './signatureAndEncryptionAlgorithm'
 

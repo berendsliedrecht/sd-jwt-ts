@@ -1,4 +1,4 @@
-import { deleteByPath } from '../util'
+import { deleteByPath } from '../utils'
 import { SaltGenerator, createDecoys } from './decoys'
 import { Disclosure } from './disclosures'
 import { SdJwtError } from './error'

@@ -1,7 +1,7 @@
 import { before, describe, it } from 'node:test'
 import assert, { deepStrictEqual, rejects, strictEqual } from 'node:assert'
 
-import { prelude } from './utils'
+import { hasher, prelude } from './utils'
 
 import {
     SignatureAndEncryptionAlgorithm,
@@ -171,6 +171,136 @@ describe('sd-jwt', async () => {
                     'A signer must be provided to create a signature. You can set it with this.withSigner()'
                 )
             )
+        })
+    })
+
+    describe('SD-JWT with array disclosures', async () => {
+        it('should create an sd-jwt with selectively disclosed array items', async () => {
+            const sdJwt = new SdJwt<{ alg: string }, { arr: Array<string> }>(
+                {
+                    header: { alg: 'EdDSA' },
+                    payload: { arr: ['DE', 'FR'] }
+                },
+                {
+                    signer: () => new Uint8Array(32).fill(41),
+                    saltGenerator: () => 'salt',
+                    disclosureFrame: { arr: [true, false] },
+                    hasherAndAlgorithm: {
+                        hasher: () => 'hash',
+                        algorithm: HasherAlgorithm.Sha256
+                    }
+                }
+            )
+            const compact = await sdJwt.toCompact()
+
+            strictEqual(
+                compact,
+                'eyJhbGciOiAiRWREU0EifQ.eyJhcnIiOiBbeyIuLi4iOiAiaGFzaCJ9LCJGUiJdLCJfc2RfYWxnIjogInNoYS0yNTYifQ.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwgIkRFIl0~'
+            )
+        })
+
+        it('Specification: 5.5.  Example 1: SD-JWT', async () => {
+            const sdJwt = new SdJwt(
+                {
+                    header: { alg: 'EdDSA' },
+                    payload: {
+                        iss: 'https://example.com/issuer',
+                        iat: 1683000000,
+                        exp: 1883000000,
+                        cnf: {
+                            jwk: {
+                                kty: 'EC',
+                                crv: 'P-256',
+                                x: 'TCAER19Zvu3OHF4j4W4vfSVoHIP1ILilDls7vCeGemc',
+                                y: 'ZxjiWWbZMQGHVWKVQ4hbSIirsVfuecCE6t4jT9F2HZQ'
+                            }
+                        },
+                        sub: 'user_42',
+                        given_name: 'John',
+                        family_name: 'Doe',
+                        email: 'johndoe@example.com',
+                        phone_number: '+1-202-555-0101',
+                        phone_number_verified: true,
+                        address: {
+                            street_address: '123 Main St',
+                            locality: 'Anytown',
+                            region: 'Anystate',
+                            country: 'US'
+                        },
+                        birthdate: '1940-01-01',
+                        updated_at: 1570000000,
+                        nationalities: ['US', 'DE']
+                    }
+                },
+                {
+                    signer: () => new Uint8Array(32).fill(41),
+                    saltGenerator: () => 'salt',
+                    disclosureFrame: {
+                        nationalities: [true, true],
+                        given_name: true,
+                        family_name: true,
+                        email: true,
+                        phone_number: true,
+                        phone_number_verified: true,
+                        address: true,
+                        birthdate: true,
+                        updated_at: true
+                    },
+                    hasherAndAlgorithm: {
+                        hasher,
+                        algorithm: HasherAlgorithm.Sha256
+                    }
+                }
+            )
+
+            await sdJwt.applyDisclosureFrame()
+
+            deepStrictEqual(sdJwt.payload, {
+                _sd: [
+                    'GDNAhA1KJ4uGhYYoU0JJcnp3gtsDGztuxJ0IFAC58SU',
+                    'Lb_UqAXpB-C8zg5qlvUFqVwrwZHb7WQpjqXhVak4b9o',
+                    'LrPmlqrzFganLlJ1fxoMdXAem6yh0jqL6CkqZBR0pf8',
+                    'RieY25BMU1fcc9cohBgrgg-IwgTCLwzJAKrMjhSwBnE',
+                    'Xvnk2NazKhhvwzjUYluAERKn94VbeWUvMTBicqhoh1s',
+                    'gJj4j5kQkJ2cNXUtOslg8FVmko0ZxNRWQvA2c0DNfqI',
+                    'rcLAcaR4sE41DT7kDdVWlfPgZJ7NFoyQT9QPvfMwsWI',
+                    'vZFVynA4mLOmYXABeMt5wwbPa7BRnPvQiMRyz9N-bvc'
+                ],
+                iss: 'https://example.com/issuer',
+                iat: 1683000000,
+                exp: 1883000000,
+                sub: 'user_42',
+                nationalities: [
+                    {
+                        '...': 'idZBqJ4r38ap8caNNWJu1TWdsYBj6YmZn2Zg8L-kuoM'
+                    },
+                    {
+                        '...': 's5SKqapSBhyudPUpDAThlL9aIYUvHzB_mCPjzBtZLzw'
+                    }
+                ],
+                _sd_alg: 'sha-256',
+                cnf: {
+                    jwk: {
+                        kty: 'EC',
+                        crv: 'P-256',
+                        x: 'TCAER19Zvu3OHF4j4W4vfSVoHIP1ILilDls7vCeGemc',
+                        y: 'ZxjiWWbZMQGHVWKVQ4hbSIirsVfuecCE6t4jT9F2HZQ'
+                    }
+                }
+            })
+
+            deepStrictEqual(sdJwt.disclosures?.map((d) => d.toString()), [
+                'WyJzYWx0IiwgIlVTIl0',
+                'WyJzYWx0IiwgIkRFIl0',
+                'WyJzYWx0IiwgImdpdmVuX25hbWUiLCAiSm9obiJd',
+                'WyJzYWx0IiwgImZhbWlseV9uYW1lIiwgIkRvZSJd',
+                'WyJzYWx0IiwgImVtYWlsIiwgImpvaG5kb2VAZXhhbXBsZS5jb20iXQ',
+                'WyJzYWx0IiwgInBob25lX251bWJlciIsICIrMS0yMDItNTU1LTAxMDEiXQ',
+                'WyJzYWx0IiwgInBob25lX251bWJlcl92ZXJpZmllZCIsIHRydWVd',
+                'WyJzYWx0IiwgImFkZHJlc3MiLCB7InN0cmVldF9hZGRyZXNzIjogIjEyMyBNYWluIFN0IiwgImxvY2FsaXR5IjogIkFueXRvd24iLCAicmVnaW9uIjogIkFueXN0YXRlIiwgImNvdW50cnkiOiAiVVMifV0',
+                'WyJzYWx0IiwgImJpcnRoZGF0ZSIsICIxOTQwLTAxLTAxIl0',
+                'WyJzYWx0IiwgInVwZGF0ZWRfYXQiLCAxNTcwMDAwMDAwXQ'
+            ])
         })
     })
 
