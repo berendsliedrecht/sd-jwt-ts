@@ -85,9 +85,57 @@ export const applyDisclosureFrame = async <
                 cleanup,
                 disclosures
             )
+        } else if (
+            typeof frameValue === 'object' &&
+            Array.isArray(frameValue)
+        ) {
+            const payloadArray = payload[key] as Array<unknown>
+            const frameValueArray = frameValue as Array<boolean>
+
+            if (!Array.isArray(payloadArray)) {
+                throw new SdJwtError(
+                    `Frame expected array, but received ${typeof payload[
+                        key
+                    ]} for key '${key}'.`
+                )
+            }
+
+            if (frameValueArray.length > payloadArray.length) {
+                throw new SdJwtError(
+                    `Frame array is longer than the payload array for ${key}`
+                )
+            }
+
+            // Fill the frame with `false` if the payloadArray is longer than the frame value array
+            if (payloadArray.length > frameValueArray.length) {
+                payloadArray.forEach(
+                    (_, index) => (frameValueArray[index] ??= false)
+                )
+            }
+
+            const newPayloadArray: Array<{ '...': string } | unknown> = []
+
+            for (let i = 0; i < payloadArray.length; i++) {
+                const payloadValue = payloadArray[i]
+                const frameValue = frameValueArray[i]
+
+                if (frameValue) {
+                    const salt = await saltGenerator()
+                    const disclosure = new Disclosure(salt, payloadValue)
+                    disclosures.push(disclosure)
+
+                    const digest = await hashDisclosure(disclosure, hasher)
+                    newPayloadArray.push({ '...': digest })
+                } else {
+                    newPayloadArray.push(payloadValue)
+                }
+            }
+
+            // @ts-ignore
+            payload[key] = newPayloadArray
         } else {
             throw new SdJwtError(
-                `Invalid type in frame with key '${key}' and type '${typeof frameValue}'. Only Record<string, unknown> and boolean are allowed.`
+                `Invalid type in frame with key '${key}' and type '${typeof frameValue}'. Only Record<string, unknown>, arrays<boolean> and boolean are allowed.`
             )
         }
     }

@@ -143,30 +143,36 @@ export class SdJwt<
         return this
     }
 
-    private async applyDisclosureFrame(
-        object: Payload,
-        frame: DisclosureFrame<Payload>
-    ): Promise<Record<string, unknown>> {
+    public async applyDisclosureFrame() {
         this.assertSaltGenerator()
         this.assertHashAndAlgorithm()
+        this.assertPayload()
+        this.assertDisclosureFrame()
 
         const { payload: framedPayload, disclosures } =
             await applyDisclosureFrame(
                 this.saltGenerator!,
                 this.hasherAndAlgorithm!.hasher,
-                object,
-                frame
+                this.payload!,
+                this.disclosureFrame!
             )
 
         this.disclosures = disclosures
-
-        return framedPayload
+        this.payload = framedPayload as Payload
     }
 
     private assertSaltGenerator() {
         if (!this.saltGenerator) {
             throw new SdJwtError(
                 'Cannot create a disclosure without a salt generator. You can set it with this.withSaltGenerator()'
+            )
+        }
+    }
+
+    private assertDisclosureFrame() {
+        if (!this.disclosureFrame) {
+            throw new SdJwtError(
+                'Cannot apply disclosure frame when the disclosure frame is not defined. You can set it with this.withDisclosureFrame()'
             )
         }
     }
@@ -216,15 +222,10 @@ export class SdJwt<
             this.addHasherAlgorithmToPayload()
         }
 
-        const payload = shouldApplyFrame
-            ? await this.applyDisclosureFrame(
-                  { ...this.payload } as Payload,
-                  frame as DisclosureFrame<Payload>
-              )
-            : this.payload
+        if (shouldApplyFrame) await this.applyDisclosureFrame()
 
         const compactHeader = Base64url.encode(JSON.stringify(this.header))
-        const compactPayload = Base64url.encode(JSON.stringify(payload))
+        const compactPayload = Base64url.encode(JSON.stringify(this.payload))
 
         const sSignature = this.signature
             ? Base64url.encode(this.signature)
