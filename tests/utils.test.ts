@@ -126,7 +126,7 @@ describe('utils', () => {
         )
 
         assertClaimInObjectTestGenerator(
-            'assert claims as in keybinding is required for the payloadj',
+            'assert claims as in keybinding is required for the payload',
             {
                 iat: new Date().getTime(),
                 aud: 'https://example.org/audience',

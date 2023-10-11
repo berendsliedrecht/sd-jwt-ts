@@ -2,8 +2,8 @@ import { Base64url } from '../base64url'
 import { SdJwtError } from './error'
 import { SaltGenerator } from './decoys'
 import { HasherAndAlgorithm } from './hashDisclosure'
-import { Jwt, JwtAdditionalOptions } from '../jwt/jwt'
-import { KeyBinding } from '../keyBinding'
+import { Jwt, JwtAdditionalOptions, JwtVerificationResult } from '../jwt/jwt'
+import { KeyBinding, KeyBindingHeader } from '../keyBinding'
 import {
     ReturnSdJwtWithHeaderAndPayload,
     ReturnSdJwtWithKeyBinding,
@@ -28,9 +28,7 @@ export type SdJwtOptions<
     header?: Header
     payload?: Payload
     signature?: Uint8Array
-
     keyBinding?: KeyBinding
-
     disclosures?: Array<Disclosure>
 }
 
@@ -40,6 +38,11 @@ export type SdJwtAdditionalOptions<Payload extends Record<string, unknown>> =
         saltGenerator?: SaltGenerator
         disclosureFrame?: DisclosureFrame<Payload>
     }
+
+export type SdJwtVerificationResult = JwtVerificationResult & {
+    containsRequiredDisclosedItems?: boolean
+    isKeyBindingValid?: JwtVerificationResult
+}
 
 export class SdJwt<
     Header extends Record<string, unknown> = Record<string, unknown>,
@@ -194,6 +197,58 @@ export class SdJwt<
             header: this.header as Header,
             signature: this.signature!
         })
+    }
+
+    public async verify(
+        verifier: Verifier<Header>,
+        requiredClaims?: Array<keyof Payload>,
+        requiredIncludedDisclosureKeys?: Array<string>
+    ): Promise<SdJwtVerificationResult> {
+        this.assertHeader()
+        this.assertPayload()
+        this.assertSignature()
+
+        const jwt = new Jwt<Header, Payload>({
+            header: this.header!,
+            payload: this.payload!,
+            signature: this.signature!
+        })
+
+        const ret = (await jwt.verify(
+            verifier,
+            requiredClaims
+        )) as SdJwtVerificationResult
+
+        if (this.keyBinding) {
+            ret.isKeyBindingValid = await this.keyBinding.verify(
+                verifier as Verifier<KeyBindingHeader>
+            )
+        }
+
+        if (
+            requiredIncludedDisclosureKeys &&
+            requiredIncludedDisclosureKeys.length > 0
+        ) {
+            if (!this.disclosures) {
+                ret.containsRequiredDisclosedItems = false
+            } else {
+                const disclosureKeys = this.disclosures.map((disclosure) => {
+                    const [_, key] = disclosure.decoded
+                    return key
+                })
+                ret.containsRequiredDisclosedItems =
+                    requiredIncludedDisclosureKeys.every((item) =>
+                        disclosureKeys.includes(item)
+                    )
+            }
+        }
+
+        return {
+            ...ret,
+            isValid: Object.values(ret)
+                .filter((i) => typeof i === 'boolean')
+                .every((i) => !!i)
+        }
     }
 
     public async toCompact(

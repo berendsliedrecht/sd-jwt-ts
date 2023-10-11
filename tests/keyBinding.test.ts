@@ -15,7 +15,7 @@ describe('key binding', async () => {
                 payload: {
                     aud: 'https://example.org/aud',
                     nonce: 'abcd',
-                    iat: new Date().getTime()
+                    iat: new Date().getTime() / 1000
                 },
                 signature: new Uint8Array(32).fill(42)
             })
@@ -28,7 +28,7 @@ describe('key binding', async () => {
                 payload: {
                     aud: 'https://example.org/aud',
                     nonce: 'abcd',
-                    iat: new Date().getTime()
+                    iat: new Date().getTime() / 1000
                 },
                 signature: new Uint8Array(32).fill(42)
             })
@@ -51,7 +51,7 @@ describe('key binding', async () => {
                 payload: {
                     aud: 'https://example.org/aud',
                     nonce: 'abcd',
-                    iat: new Date().getTime()
+                    iat: new Date().getTime() / 1000
                 }
             })
 
@@ -65,7 +65,7 @@ describe('key binding', async () => {
                 payload: {
                     aud: 'https://example.org/aud',
                     nonce: 'abcd',
-                    iat: new Date().getTime()
+                    iat: new Date().getTime() / 1000
                 },
                 signature: new Uint8Array(32).fill(42)
             })
@@ -80,7 +80,7 @@ describe('key binding', async () => {
                 payload: {
                     aud: 'https://example.org/aud',
                     nonce: 'abcd',
-                    iat: new Date().getTime()
+                    iat: new Date().getTime() / 1000
                 },
                 signature: new Uint8Array(32).fill(42)
             })
@@ -95,7 +95,7 @@ describe('key binding', async () => {
                 payload: {
                     aud: 'https://example.org/aud',
                     nonce: 'abcd',
-                    iat: new Date().getTime()
+                    iat: new Date().getTime() / 1000
                 },
                 signature: new Uint8Array(32).fill(42)
             })
@@ -109,7 +109,7 @@ describe('key binding', async () => {
                 // @ts-ignore
                 payload: {
                     nonce: 'abcd',
-                    iat: new Date().getTime()
+                    iat: new Date().getTime() / 1000
                 },
                 signature: new Uint8Array(32).fill(42)
             })
@@ -137,7 +137,7 @@ describe('key binding', async () => {
                 // @ts-ignore
                 payload: {
                     aud: 'https://example.org/aud',
-                    iat: new Date().getTime()
+                    iat: new Date().getTime() / 1000
                 },
                 signature: new Uint8Array(32).fill(42)
             })

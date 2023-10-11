@@ -38,7 +38,7 @@ export class Disclosure {
         return Base64url.encodeFromJson(this.decoded)
     }
 
-    public get decoded() {
+    public get decoded(): DisclosureItem {
         return this.key
             ? [this.salt, this.key, this.value]
             : [this.salt, this.value]
