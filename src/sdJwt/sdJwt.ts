@@ -217,7 +217,9 @@ export class SdJwt<
      * This function includes disclosures optimisitcally. This means that is `undefined` is supplied, it includes all disclosures. To include nothing, supply an empty array.
      */
     public async present(includedDisclosureIndices?: Array<number>) {
-        await this.applyDisclosureFrame()
+        if (!this.disclosures) {
+            await this.applyDisclosureFrame()
+        }
 
         if (
             includedDisclosureIndices &&

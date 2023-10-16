@@ -6,7 +6,8 @@
     "scripts": {
         "complex": "ts-node complex.ts",
         "simple": "ts-node simple.ts",
-        "no-disclosures": "ts-node noDisclosures.ts"
+        "no-disclosures": "ts-node noDisclosures.ts",
+        "triangle": "ts-node issuerHolderVerifier.ts"
     },
     "keywords": [],
     "author": "",
