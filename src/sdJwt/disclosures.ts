@@ -30,9 +30,9 @@ export class Disclosure {
     public static fromString(s: string) {
         const item = Base64url.decodeToJson<DisclosureItem>(s)
 
-        return item[2]
-            ? new Disclosure(item[0], item[2], item[1] as string)
-            : new Disclosure(item[0], item[1])
+        return item[2] === undefined
+            ? new Disclosure(item[0], item[1])
+            : new Disclosure(item[0], item[2], item[1] as string)
     }
 
     public get encoded() {

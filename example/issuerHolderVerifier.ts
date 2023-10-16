@@ -52,8 +52,8 @@ const issuer = async () => {
             iss: 'https://issuer.org/issuer-123',
             sub: 'https://holder.org/holder-321',
             aud: 'https://verifier.org/verifier-987',
-            nbf: new Date().getTime() / 1000 - 1000,
-            exp: new Date().getTime() / 1000 + 1000,
+            nbf: Math.floor(new Date().getTime() / 1000 - 1000),
+            exp: Math.floor(new Date().getTime() / 1000 + 1000),
             age_over_21: true,
             age_over_24: true,
             age_over_65: false,
@@ -73,7 +73,10 @@ const issuer = async () => {
             age_over_21: true,
             age_over_24: true,
             age_over_65: true,
-            address: { locality: true, __decoyCount: 3 }
+            address: {
+                __decoyCount: 3,
+                locality: true
+            }
         })
 
     const compact = await sdJwt.toCompact()
@@ -89,9 +92,15 @@ const issuer = async () => {
 const holder = async (compact: string) => {
     console.log('====== HOLDER ======')
 
-    const sdJwt = SdJwt.fromCompact(compact)
+    const sdJwt = SdJwt.fromCompact(compact).withHasher(hasherAndAlgorithm)
 
-    const presentation = await sdJwt.present([0, 1, 3])
+    console.log('Claims: ')
+    console.log('========')
+    console.log(await sdJwt.getPrettyClaims())
+    console.log('========')
+    console.log()
+
+    const presentation = await sdJwt.present([1])
 
     console.log('Presenting: ')
     console.log('============')
@@ -102,13 +111,20 @@ const holder = async (compact: string) => {
 }
 
 const verifier = async (presentation: string) => {
-    const sdJwt = SdJwt.fromCompact(presentation)
+    const sdJwt = SdJwt.fromCompact(presentation).withHasher(hasherAndAlgorithm)
 
-    const verificationResult = await sdJwt.verify(
-        verifyCb,
-        ['iss', 'aud', 'sub', 'address'],
-        ['age_over_24', 'locality']
-    )
+    const verificationResult = await sdJwt.verify(verifyCb, [
+        'iss',
+        'aud',
+        'sub',
+        'address',
+        'age_over_24'
+    ])
+
+    console.log('Claims: ')
+    console.log('========')
+    console.log(await sdJwt.getPrettyClaims())
+    console.log('========')
 
     console.log('Verification: ')
     console.log('==============')

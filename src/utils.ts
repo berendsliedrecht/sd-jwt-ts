@@ -1,5 +1,29 @@
 import { JwtError } from './jwt'
 
+export const getAllKeys = (
+    object: unknown,
+    keys: Array<string> = []
+): Array<string> => {
+    if (typeof object !== 'object' || typeof object === null) return keys
+    const record = object as Record<string, unknown>
+
+    const objectKeys = Object.keys(record)
+    const objectValues = Object.values(record)
+    keys.push(...objectKeys)
+
+    for (const objectValue of objectValues) {
+        if (
+            typeof objectValue === 'object' &&
+            objectValue !== null &&
+            !Array.isArray(objectValue)
+        ) {
+            getAllKeys(objectValue, keys)
+        }
+    }
+
+    return keys
+}
+
 const simpleDeepEqual = (lhs: unknown, rhs: unknown): boolean => {
     if (lhs === rhs) return true
 

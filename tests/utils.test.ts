@@ -1,10 +1,11 @@
 import { before, describe, it } from 'node:test'
-import { deepStrictEqual, doesNotThrow, throws } from 'node:assert'
+import { deepEqual, deepStrictEqual, doesNotThrow, throws } from 'node:assert'
 
 import {
     ClaimKeyTypeValue,
     assertClaimInObject,
-    deleteByPath
+    deleteByPath,
+    getAllKeys
 } from '../src/utils'
 
 import { JwtError } from '../src'
@@ -135,5 +136,54 @@ describe('utils', () => {
             [['iat'], ['aud'], ['nonce']],
             false
         )
+    })
+
+    describe('get all keys', () => {
+        it('get all non-nested keys', () => {
+            const obj = {
+                a: 'b',
+                c: ['a', 'b']
+            }
+
+            const keys = getAllKeys(obj)
+
+            deepStrictEqual(keys, ['a', 'c'])
+        })
+
+        it('get all nested keys', () => {
+            const obj = {
+                a: 'b',
+                c: ['a', 'b'],
+                d: {
+                    q: 'e',
+                    p: 'zz',
+                    z: {
+                        test: 'abba'
+                    }
+                }
+            }
+
+            const keys = getAllKeys(obj)
+
+            deepStrictEqual(keys, ['a', 'c', 'd', 'q', 'p', 'z', 'test'])
+        })
+
+        it('get all nested keys', () => {
+            const obj = {
+                a: 'b',
+                c: ['a', 'b'],
+                d: {
+                    q: 'e',
+                    p: 'zz',
+                    z: {
+                        test: 'abba'
+                    }
+                }
+            }
+
+            const keys = getAllKeys(obj)
+
+            deepStrictEqual(keys, ['a', 'c', 'd', 'q', 'p', 'z', 'test'])
+        })
     })
 })

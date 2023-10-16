@@ -15,6 +15,7 @@ import { sdJwtFromCompact } from './compact'
 import { Disclosure } from './disclosures'
 import { DisclosureFrame, applyDisclosureFrame } from './disclosureFrame'
 import { swapClaims } from './swapClaim'
+import { getAllKeys } from '../utils'
 
 export type SdJwtToCompactOptions<
     DisclosablePayload extends Record<string, unknown>
@@ -42,7 +43,6 @@ export type SdJwtAdditionalOptions<Payload extends Record<string, unknown>> =
     }
 
 export type SdJwtVerificationResult = JwtVerificationResult & {
-    containsRequiredDisclosedItems?: boolean
     isKeyBindingValid?: JwtVerificationResult
 }
 
@@ -287,8 +287,7 @@ export class SdJwt<
 
     public async verify(
         verifier: Verifier<Header>,
-        requiredClaims?: Array<keyof Payload>,
-        requiredIncludedDisclosureKeys?: Array<string>
+        requiredClaimKeys?: Array<keyof Payload | string>
     ): Promise<SdJwtVerificationResult> {
         this.assertHeader()
         this.assertPayload()
@@ -302,7 +301,7 @@ export class SdJwt<
 
         const ret = (await jwt.verify(
             verifier,
-            requiredClaims
+            requiredClaimKeys
         )) as SdJwtVerificationResult
 
         if (this.keyBinding) {
@@ -311,29 +310,24 @@ export class SdJwt<
             )
         }
 
-        if (
-            requiredIncludedDisclosureKeys &&
-            requiredIncludedDisclosureKeys.length > 0
-        ) {
-            if (!this.disclosures) {
-                ret.containsRequiredDisclosedItems = false
-            } else {
-                const disclosureKeys = this.disclosures.map((disclosure) => {
-                    const [_, key] = disclosure.decoded
-                    return key
-                })
-                ret.containsRequiredDisclosedItems =
-                    requiredIncludedDisclosureKeys.every((item) =>
-                        disclosureKeys.includes(item)
-                    )
-            }
+        const claimKeys = getAllKeys(this.payload!).concat(
+            (this.disclosures ?? []).map((d) => d.decoded[1] as string)
+        )
+
+        if (requiredClaimKeys) {
+            ret.areRequiredClaimsIncluded = requiredClaimKeys.every((key) =>
+                claimKeys.includes(key as string)
+            )
         }
 
         return {
             ...ret,
-            isValid: Object.values(ret)
-                .filter((i) => typeof i === 'boolean')
-                .every((i) => !!i)
+            isValid: Object.entries(ret)
+                .filter(
+                    ([key, value]) =>
+                        typeof value === 'boolean' && key !== 'isValid'
+                )
+                .every(([, value]) => !!value)
         }
     }
 

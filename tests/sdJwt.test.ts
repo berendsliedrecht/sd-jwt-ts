@@ -1,10 +1,5 @@
 import { before, describe, it } from 'node:test'
-import assert, {
-    deepEqual,
-    deepStrictEqual,
-    rejects,
-    strictEqual
-} from 'node:assert'
+import assert, { deepStrictEqual, rejects, strictEqual } from 'node:assert'
 
 import {
     hasherAndAlgorithm,
@@ -892,20 +887,11 @@ describe('sd-jwt', async () => {
 
             const sdJwtFromCompact = SdJwt.fromCompact(compact)
 
-            const {
-                isValid,
-                isSignatureValid,
-                areRequiredClaimsIncluded,
-                containsRequiredDisclosedItems
-            } = await sdJwtFromCompact.verify(
-                verifier,
-                ['sign'],
-                ['discloseMe']
-            )
+            const { isValid, isSignatureValid, areRequiredClaimsIncluded } =
+                await sdJwtFromCompact.verify(verifier, ['sign', 'discloseMe'])
 
             assert(isSignatureValid)
             assert(areRequiredClaimsIncluded)
-            assert(containsRequiredDisclosedItems)
             assert(isValid)
         })
 
@@ -925,20 +911,15 @@ describe('sd-jwt', async () => {
 
             const sdJwtFromCompact = SdJwt.fromCompact(compact)
 
-            const {
-                isValid,
-                isSignatureValid,
-                areRequiredClaimsIncluded,
-                containsRequiredDisclosedItems
-            } = await sdJwtFromCompact.verify(
-                verifier,
-                ['sign'],
-                ['discloseMe', 'b']
-            )
+            const { isValid, isSignatureValid, areRequiredClaimsIncluded } =
+                await sdJwtFromCompact.verify(verifier, [
+                    'sign',
+                    'discloseMe',
+                    'b'
+                ])
 
             assert(isSignatureValid)
             assert(areRequiredClaimsIncluded)
-            assert(containsRequiredDisclosedItems)
             assert(isValid)
         })
 
@@ -958,20 +939,11 @@ describe('sd-jwt', async () => {
 
             const sdJwtFromCompact = SdJwt.fromCompact(compact)
 
-            const {
-                isValid,
-                isSignatureValid,
-                areRequiredClaimsIncluded,
-                containsRequiredDisclosedItems
-            } = await sdJwtFromCompact.verify(
-                verifier,
-                ['sign'],
-                ['discloseMe']
-            )
+            const { isValid, isSignatureValid, areRequiredClaimsIncluded } =
+                await sdJwtFromCompact.verify(verifier, ['sign', 'discloseMe'])
 
             assert(isSignatureValid)
             assert(areRequiredClaimsIncluded)
-            assert(containsRequiredDisclosedItems)
             assert(isValid)
         })
 
@@ -991,20 +963,15 @@ describe('sd-jwt', async () => {
 
             const sdJwtFromCompact = SdJwt.fromCompact(compact)
 
-            const {
-                isValid,
-                isSignatureValid,
-                areRequiredClaimsIncluded,
-                containsRequiredDisclosedItems
-            } = await sdJwtFromCompact.verify(
-                verifier,
-                ['sign'],
-                ['discloseMe', 'notIncludedItem']
-            )
+            const { isValid, isSignatureValid, areRequiredClaimsIncluded } =
+                await sdJwtFromCompact.verify(verifier, [
+                    'sign',
+                    'discloseMe',
+                    'notIncludedItem'
+                ])
 
             assert(isSignatureValid)
-            assert(areRequiredClaimsIncluded)
-            assert(!containsRequiredDisclosedItems)
+            assert(!areRequiredClaimsIncluded)
             assert(!isValid)
         })
 
@@ -1024,20 +991,15 @@ describe('sd-jwt', async () => {
 
             const sdJwtFromCompact = SdJwt.fromCompact(compact)
 
-            const {
-                isValid,
-                isSignatureValid,
-                areRequiredClaimsIncluded,
-                containsRequiredDisclosedItems
-            } = await sdJwtFromCompact.verify(
-                verifier,
-                ['sign', 'notIncludedInClearTextKey'],
-                ['discloseMe']
-            )
+            const { isValid, isSignatureValid, areRequiredClaimsIncluded } =
+                await sdJwtFromCompact.verify(verifier, [
+                    'sign',
+                    'notIncludedInClearTextKey',
+                    'discloseMe'
+                ])
 
             assert(isSignatureValid)
             assert(!areRequiredClaimsIncluded)
-            assert(containsRequiredDisclosedItems)
             assert(!isValid)
         })
 
@@ -1057,56 +1019,41 @@ describe('sd-jwt', async () => {
 
             const sdJwtFromCompact = SdJwt.fromCompact(compact)
 
-            const {
-                isValid,
-                isSignatureValid,
-                areRequiredClaimsIncluded,
-                containsRequiredDisclosedItems
-            } = await sdJwtFromCompact.verify(
-                verifier,
-                ['sign', 'notIncludedInClearTextKey'],
-                ['discloseMe', 'notIncludedDisclosure']
-            )
+            const { isValid, isSignatureValid, areRequiredClaimsIncluded } =
+                await sdJwtFromCompact.verify(verifier, [
+                    'sign',
+                    'notIncludedInClearTextKey',
+                    'discloseMe',
+                    'notIncludedDisclosure'
+                ])
 
             assert(!isSignatureValid)
             assert(!areRequiredClaimsIncluded)
-            assert(!containsRequiredDisclosedItems)
             assert(!isValid)
         })
-    })
 
-    /*
-     * @todo: this should work.
-     *
-     * `SdJwt.verify` should take a single array for required items.
-     * Whether the item is selectively disclosable or included in the cleartext claim, does not matter.
-     */
-    it('decline simple sd-jwt where disclosure is required but none included', async () => {
-        const sdJwt = new SdJwt({
-            header: { alg: SignatureAndEncryptionAlgorithm.EdDSA },
-            payload: { sign: 'me!!', discloseMe: 'please' }
+        it('accept simple sd-jwt where required key can be a disclosure or payload', async () => {
+            const sdJwt = new SdJwt({
+                header: { alg: SignatureAndEncryptionAlgorithm.EdDSA },
+                payload: { sign: 'me!!', discloseMe: 'please' }
+            })
+                .withSigner(signer)
+                .withSaltGenerator(saltGenerator)
+                .withHasher(hasherAndAlgorithm)
+
+            const compact = await sdJwt.toCompact()
+
+            strictEqual(typeof compact, 'string')
+
+            const sdJwtFromCompact = SdJwt.fromCompact(compact)
+
+            const { isValid, isSignatureValid, areRequiredClaimsIncluded } =
+                await sdJwtFromCompact.verify(verifier, ['sign', 'discloseMe'])
+
+            assert(isSignatureValid)
+            assert(areRequiredClaimsIncluded)
+            assert(isValid)
         })
-            .withSigner(signer)
-            .withSaltGenerator(saltGenerator)
-            .withHasher(hasherAndAlgorithm)
-
-        const compact = await sdJwt.toCompact()
-
-        strictEqual(typeof compact, 'string')
-
-        const sdJwtFromCompact = SdJwt.fromCompact(compact)
-
-        const {
-            isValid,
-            isSignatureValid,
-            areRequiredClaimsIncluded,
-            containsRequiredDisclosedItems
-        } = await sdJwtFromCompact.verify(verifier, ['sign'], ['discloseMe'])
-
-        assert(isSignatureValid)
-        assert(areRequiredClaimsIncluded)
-        assert(!containsRequiredDisclosedItems)
-        assert(!isValid)
     })
 
     describe('present', async () => {
