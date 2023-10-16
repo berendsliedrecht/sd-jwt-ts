@@ -91,7 +91,9 @@ export class Jwt<
         value: Header[typeof item] | unknown
     ): ReturnJwtWithHeader<this> {
         this.header ??= {} as Header
-        this.header = { ...this.header, [item]: value }
+        if (value !== undefined && item !== null) {
+            this.header = { ...this.header, [item]: value }
+        }
         return this as ReturnJwtWithHeader<this>
     }
 
@@ -105,7 +107,9 @@ export class Jwt<
         value: Payload[typeof item] | unknown
     ): ReturnJwtWithPayload<this> {
         this.payload ??= {} as Payload
-        this.payload = { ...this.payload, [item]: value }
+        if (value !== undefined && item !== null) {
+            this.payload = { ...this.payload, [item]: value }
+        }
         return this as ReturnJwtWithPayload<this>
     }
 

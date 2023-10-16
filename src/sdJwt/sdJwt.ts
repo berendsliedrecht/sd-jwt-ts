@@ -118,8 +118,6 @@ export class SdJwt<
     ): ReturnSdJwtWithPayload<this> {
         this.hasherAndAlgorithm = hasherAndAlgorithm
 
-        this.addHasherAlgorithmToPayload()
-
         return this as ReturnSdJwtWithPayload<this>
     }
 
@@ -174,7 +172,7 @@ export class SdJwt<
             await applyDisclosureFrame(
                 this.saltGenerator!,
                 this.hasherAndAlgorithm!.hasher,
-                this.payload!,
+                this.addHasherAlgorithmToPayload().payload!,
                 this.disclosureFrame
             )
 
@@ -359,8 +357,10 @@ export class SdJwt<
 
         await this.keyBinding?.assertValidForKeyBinding()
 
-        if (this.disclosureFrame && shouldApplyFrame)
+        if (this.disclosureFrame && shouldApplyFrame) {
             await this.applyDisclosureFrame()
+        }
+
         disclosures ??= this.disclosures
 
         const compactHeader = Base64url.encode(JSON.stringify(this.header))
