@@ -11,8 +11,7 @@ import { Disclosure, SignatureAndEncryptionAlgorithm, Signer } from '../src'
 import {
     HasherAlgorithm,
     HasherAndAlgorithm,
-    SaltGenerator,
-    hashDisclosure
+    SaltGenerator
 } from '../src/sdJwt'
 import { Verifier } from '../src/sdJwt/types'
 
@@ -62,7 +61,7 @@ export const testCreateDisclosureObjectAndHash = async (
 
     strictEqual(disclosure.encoded, expectedDisclosure)
 
-    const hash = await hashDisclosure(disclosure, hasherAndAlgorithm.hasher)
+    const hash = await disclosure.digest(hasherAndAlgorithm.hasher)
 
     strictEqual(hash, expectedHash)
 }
@@ -76,7 +75,7 @@ export const testCreateDisclosureArrayAndHash = async (
 
     strictEqual(disclosure.encoded, expectedDisclosure)
 
-    const hash = await hashDisclosure(disclosure, hasherAndAlgorithm.hasher)
+    const hash = await disclosure.digest(hasherAndAlgorithm.hasher)
 
     strictEqual(hash, expectedHash)
 }

@@ -2,7 +2,7 @@ import { deleteByPath } from '../utils'
 import { SaltGenerator, createDecoys } from './decoys'
 import { Disclosure } from './disclosures'
 import { SdJwtError } from './error'
-import { Hasher, hashDisclosure } from './hashDisclosure'
+import { Hasher } from './hasher'
 
 export type DisclosureFrame<T> = T extends Array<unknown>
     ? {
@@ -61,7 +61,7 @@ export const applyDisclosureFrame = async <
                 const disclosure = new Disclosure(salt, payload[key], key)
                 disclosures.push(disclosure)
 
-                const digest = await hashDisclosure(disclosure, hasher)
+                const digest = await disclosure.digest(hasher)
                 const sd: Array<string> = Array.from(
                     (payload._sd as string[]) ?? []
                 )
@@ -124,7 +124,7 @@ export const applyDisclosureFrame = async <
                     const disclosure = new Disclosure(salt, payloadValue)
                     disclosures.push(disclosure)
 
-                    const digest = await hashDisclosure(disclosure, hasher)
+                    const digest = await disclosure.digest(hasher)
                     newPayloadArray.push({ '...': digest })
                 } else {
                     newPayloadArray.push(payloadValue)

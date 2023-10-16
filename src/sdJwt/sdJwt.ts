@@ -1,7 +1,7 @@
 import { Base64url } from '../base64url'
 import { SdJwtError } from './error'
 import { SaltGenerator } from './decoys'
-import { HasherAndAlgorithm } from './hashDisclosure'
+import { HasherAndAlgorithm } from './hasher'
 import { Jwt, JwtAdditionalOptions, JwtVerificationResult } from '../jwt/jwt'
 import { KeyBinding, KeyBindingHeader } from '../keyBinding'
 import {
@@ -14,6 +14,7 @@ import {
 import { sdJwtFromCompact } from './compact'
 import { Disclosure } from './disclosures'
 import { DisclosureFrame, applyDisclosureFrame } from './disclosureFrame'
+import { swapClaims } from './swapClaim'
 
 export type SdJwtToCompactOptions<
     DisclosablePayload extends Record<string, unknown>
@@ -332,6 +333,21 @@ export class SdJwt<
                 .filter((i) => typeof i === 'boolean')
                 .every((i) => !!i)
         }
+    }
+
+    public async getPrettyClaims<
+        Claims extends Record<string, unknown> = Payload
+    >(): Promise<Claims> {
+        this.assertPayload()
+        this.assertHashAndAlgorithm()
+
+        const newPayload = await swapClaims(
+            this.hasherAndAlgorithm!.hasher,
+            this.payload!,
+            this.disclosures ?? []
+        )
+
+        return newPayload as Claims
     }
 
     public async toCompact(): Promise<string> {

@@ -1,5 +1,10 @@
 import { before, describe, it } from 'node:test'
-import assert, { deepStrictEqual, rejects, strictEqual } from 'node:assert'
+import assert, {
+    deepEqual,
+    deepStrictEqual,
+    rejects,
+    strictEqual
+} from 'node:assert'
 
 import {
     hasherAndAlgorithm,
@@ -701,6 +706,87 @@ describe('sd-jwt', async () => {
                 'WyIyR0xDNDJzS1F2ZUNmR2ZyeU5STjl3IiwgImF0Y0NvZGUiLCAiSjA3QlgwMyJd',
                 'WyJlbHVWNU9nM2dTTklJOEVZbnN4QV9BIiwgIm1lZGljaW5hbFByb2R1Y3ROYW1lIiwgIkNPVklELTE5IFZhY2NpbmUgTW9kZXJuYSJd'
             ])
+        })
+    })
+
+    describe('pretty claims', async () => {
+        it('extract the pretty claims from a sd-jwt', async () => {
+            const sdJwt = new SdJwt(
+                {
+                    header: { alg: 'EdDSA' },
+                    payload: {
+                        iss: 'https://example.org/issuer',
+                        aud: 'https://example.org/audience',
+                        sub: 'https://example.org/subject',
+                        age_over_21: true,
+                        age_over_24: true,
+                        age_over_65: false
+                    }
+                },
+                {
+                    hasherAndAlgorithm,
+                    signer,
+                    saltGenerator,
+                    disclosureFrame: {
+                        age_over_65: true,
+                        age_over_24: true,
+                        age_over_21: true,
+                        __decoyCount: 2
+                    }
+                }
+            )
+
+            await sdJwt.applyDisclosureFrame()
+            const prettyClaims = await sdJwt.getPrettyClaims()
+
+            deepStrictEqual(prettyClaims, {
+                iss: 'https://example.org/issuer',
+                aud: 'https://example.org/audience',
+                sub: 'https://example.org/subject',
+                age_over_21: true,
+                age_over_24: true,
+                age_over_65: false
+            })
+        })
+
+        it('extract the pretty claims from a sd-jwt after presentation', async () => {
+            const sdJwt = new SdJwt(
+                {
+                    header: { alg: 'EdDSA' },
+                    payload: {
+                        iss: 'https://example.org/issuer',
+                        aud: 'https://example.org/audience',
+                        sub: 'https://example.org/subject',
+                        age_over_21: true,
+                        age_over_24: true,
+                        age_over_65: false
+                    }
+                },
+                {
+                    hasherAndAlgorithm,
+                    signer,
+                    saltGenerator,
+                    disclosureFrame: {
+                        age_over_65: true,
+                        age_over_24: true,
+                        age_over_21: true,
+                        __decoyCount: 2
+                    }
+                }
+            )
+            const presentation = await sdJwt.present([1])
+
+            const sdJwtFromCompact =
+                SdJwt.fromCompact(presentation).withHasher(hasherAndAlgorithm)
+
+            const prettyClaims = await sdJwtFromCompact.getPrettyClaims()
+
+            deepStrictEqual(prettyClaims, {
+                iss: 'https://example.org/issuer',
+                aud: 'https://example.org/audience',
+                sub: 'https://example.org/subject',
+                age_over_24: true
+            })
         })
     })
 

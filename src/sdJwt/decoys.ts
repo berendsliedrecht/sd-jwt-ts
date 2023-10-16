@@ -1,4 +1,4 @@
-import { Hasher } from './hashDisclosure'
+import { Hasher } from './hasher'
 import { OrPromise } from '../types'
 import { SdJwtError } from './error'
 
