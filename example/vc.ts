@@ -111,6 +111,23 @@ const issuer = async () => {
     console.log('=========')
     console.log(compact)
     console.log('=========')
+    console.log('Selectively disclosable claims: ')
+    console.log('================================')
+    console.log({
+        credentialSubject: {
+            image: true,
+            gender: true,
+            birthDate: true,
+            lprNumber: true,
+            givenName: true,
+            lprCategory: true,
+            birthCountry: true,
+            residentSince: true,
+            commuterClassification: true,
+            familyName: true
+        }
+    })
+    console.log('================================')
 
     return compact
 }
@@ -139,7 +156,7 @@ const holder = async (compact: string) => {
 const verifier = async (presentation: string) => {
     const sdJwt = SdJwt.fromCompact(presentation).withHasher(hasherAndAlgorithm)
 
-    const verificationResult = await sdJwt.verify(verifyCb, [
+    const requiredClaims = [
         '@context',
         'id',
         'type',
@@ -147,12 +164,21 @@ const verifier = async (presentation: string) => {
         'gender',
         'image',
         'birthCountry'
-    ])
+    ]
+
+    const verificationResult = await sdJwt.verify(verifyCb, requiredClaims)
 
     console.log('Claims: ')
     console.log('========')
     console.log(await sdJwt.getPrettyClaims())
     console.log('========')
+
+    console.log('Required claims: ')
+    console.log('=================')
+
+    requiredClaims.forEach((i) => console.log(`  - ${i}`))
+
+    console.log('=================')
 
     console.log('Verification: ')
     console.log('==============')
