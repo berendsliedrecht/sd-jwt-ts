@@ -7,7 +7,8 @@
         "complex": "ts-node complex.ts",
         "simple": "ts-node simple.ts",
         "no-disclosures": "ts-node noDisclosures.ts",
-        "triangle": "ts-node issuerHolderVerifier.ts"
+        "triangle": "ts-node issuerHolderVerifier.ts",
+        "vc": "ts-node vc.ts"
     },
     "keywords": [],
     "author": "",
