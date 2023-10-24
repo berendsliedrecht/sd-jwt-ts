@@ -1,6 +1,12 @@
 import { ClaimKeyTypeValue, assertClaimInObject } from '../utils'
-import { Jwt, JwtAdditionalOptions, JwtOptions } from '../jwt'
+import {
+    Jwt,
+    JwtAdditionalOptions,
+    JwtOptions,
+    JwtVerificationResult
+} from '../jwt'
 import { SignatureAndEncryptionAlgorithm } from './signatureAndEncryptionAlgorithm'
+import { Verifier } from '../sdJwt'
 
 export type KeyBindingHeader<
     H extends Record<string, unknown> = Record<string, unknown>
@@ -27,31 +33,49 @@ export type KeyBindingOptions<
 
 export type KeyBindingAdditionalOptions = JwtAdditionalOptions
 
+export type KeyBindingVerificationResult = JwtVerificationResult
+
 export class KeyBinding<
-    H extends Record<string, unknown> = Record<string, unknown>,
-    P extends Record<string, unknown> = Record<string, unknown>
-> extends Jwt<KeyBindingHeader<H>, KeyBindingPayload<P>> {
+    Header extends Record<string, unknown> = Record<string, unknown>,
+    Payload extends Record<string, unknown> = Record<string, unknown>
+> extends Jwt<KeyBindingHeader<Header>, KeyBindingPayload<Payload>> {
     public constructor(
-        options?: KeyBindingOptions<H, P>,
+        options?: KeyBindingOptions<Header, Payload>,
         additionalOptions?: KeyBindingAdditionalOptions
     ) {
         super(options, additionalOptions)
     }
 
     public static fromJwt<
-        H extends Record<string, unknown> = Record<string, unknown>,
-        P extends Record<string, unknown> = Record<string, unknown>
+        Header extends Record<string, unknown> = Record<string, unknown>,
+        Payload extends Record<string, unknown> = Record<string, unknown>
     >(jwt: Jwt) {
-        const keyBinding = new KeyBinding<H, P>(
+        const keyBinding = new KeyBinding<Header, Payload>(
             {
-                header: jwt.header as KeyBindingHeader<H>,
-                payload: jwt.payload as KeyBindingPayload<P>,
+                header: jwt.header as KeyBindingHeader<Header>,
+                payload: jwt.payload as KeyBindingPayload<Payload>,
                 signature: jwt.signature
             },
             { signer: jwt.signer }
         )
 
         return keyBinding
+    }
+
+    public override async verify(
+        verifySignature: Verifier<KeyBindingHeader<Header>>,
+        requiredClaims?: Array<keyof Payload | string>,
+        publicKeyJwk?: Record<string, unknown>
+    ): Promise<KeyBindingVerificationResult> {
+        this.assertValidForKeyBinding()
+
+        const jwtVerificationResult = await super.verify(
+            verifySignature,
+            requiredClaims,
+            publicKeyJwk
+        )
+
+        return jwtVerificationResult
     }
 
     public static override fromCompact<

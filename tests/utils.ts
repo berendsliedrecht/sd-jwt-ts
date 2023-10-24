@@ -1,5 +1,6 @@
 import {
     createHash,
+    createPrivateKey,
     generateKeyPairSync,
     getRandomValues,
     sign,
@@ -16,6 +17,23 @@ import {
 import { Verifier } from '../src/sdJwt/types'
 
 const { publicKey, privateKey } = generateKeyPairSync('ed25519')
+
+export const privateHolderKeyJwk = {
+    jwk: {
+        crv: 'Ed25519',
+        d: 'H9Q5w7zcWkv4-N7vdsDSwKKkYtgxuZvseuMiBc40PQc',
+        x: 'CirZn-V9n_KRh8c2IyWqOtrVm9wlzaVDDS8Y4zGmQso',
+        kty: 'OKP'
+    }
+}
+
+export const publicHolderKeyJwk = {
+    jwk: {
+        crv: privateHolderKeyJwk.jwk.crv,
+        kty: privateHolderKeyJwk.jwk.kty,
+        x: privateHolderKeyJwk.jwk.x
+    }
+}
 
 /**
  * This swaps the default JSON serializer to one that is, more, compatible with Python `json.dumps`.
@@ -39,6 +57,19 @@ export const signer: Signer = (input, header) => {
         throw new Error('only EdDSA is supported')
     }
     return sign(null, Buffer.from(input), privateKey)
+}
+
+export const keyBindingSigner: Signer = (input, header) => {
+    if (header.alg !== SignatureAndEncryptionAlgorithm.EdDSA) {
+        throw new Error('only EdDSA is supported')
+    }
+
+    const keyBindingPrivateKey = createPrivateKey({
+        key: privateHolderKeyJwk.jwk,
+        format: 'jwk'
+    })
+
+    return sign(null, Buffer.from(input), keyBindingPrivateKey)
 }
 
 export const verifier: Verifier = ({ header, message, signature }) => {

@@ -22,3 +22,5 @@ export {
 } from './keyBinding'
 
 export { Jwt, Signer, JwtError, JwtOptions, JwtAdditionalOptions } from './jwt'
+
+export { SdJwtVc } from './sdJwtVc'

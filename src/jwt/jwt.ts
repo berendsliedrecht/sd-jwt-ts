@@ -124,29 +124,29 @@ export class Jwt<
     }
 
     public assertHeader() {
-        if (!this.header) {
-            throw new JwtError('Header must be defined')
-        }
+        if (this.header) return
+
+        throw new JwtError('Header must be defined')
     }
 
     public assertPayload() {
-        if (!this.payload) {
-            throw new JwtError('Payload must be defined')
-        }
+        if (this.payload) return
+
+        throw new JwtError('Payload must be defined')
     }
 
     public assertSignature() {
-        if (!this.signature) {
-            throw new JwtError('Signature must be defined')
-        }
+        if (this.signature) return
+
+        throw new JwtError('Signature must be defined')
     }
 
     public assertSigner() {
-        if (!this.signer) {
-            throw new JwtError(
-                'A signer must be provided to create a signature. You can set it with this.withSigner()'
-            )
-        }
+        if (this.signer) return
+
+        throw new JwtError(
+            'A signer must be provided to create a signature. You can set it with this.withSigner()'
+        )
     }
 
     public get signableInput() {
@@ -189,7 +189,8 @@ export class Jwt<
 
     public async verify(
         verifySignature: Verifier<Header>,
-        requiredClaims?: Array<keyof Payload | string>
+        requiredClaims?: Array<keyof Payload | string>,
+        publicKeyJwk?: Record<string, unknown>
     ): Promise<JwtVerificationResult> {
         this.assertHeader()
         this.assertPayload()
@@ -200,7 +201,8 @@ export class Jwt<
         ret.isSignatureValid = await verifySignature({
             header: this.header!,
             signature: this.signature!,
-            message: this.signableInput
+            message: this.signableInput,
+            publicKeyJwk
         })
 
         if ('nbf' in this.payload!) {
@@ -217,9 +219,11 @@ export class Jwt<
             ret.isExpiryTimeValid = expiryTime > now
         }
 
-        ret.areRequiredClaimsIncluded = requiredClaims?.every(
-            (claim) => claim in this.payload!
-        )
+        if (requiredClaims) {
+            ret.areRequiredClaimsIncluded = requiredClaims.every(
+                (claim) => claim in this.payload!
+            )
+        }
 
         ret.isValid = Object.values(ret)
             .filter((i) => typeof i === 'boolean')

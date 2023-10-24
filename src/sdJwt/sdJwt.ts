@@ -43,7 +43,7 @@ export type SdJwtAdditionalOptions<Payload extends Record<string, unknown>> =
     }
 
 export type SdJwtVerificationResult = JwtVerificationResult & {
-    isKeyBindingValid?: JwtVerificationResult
+    isKeyBindingValid?: boolean
 }
 
 export class SdJwt<
@@ -55,7 +55,7 @@ export class SdJwt<
 
     private saltGenerator?: SaltGenerator
     private hasherAndAlgorithm?: HasherAndAlgorithm
-    private disclosureFrame?: DisclosureFrame<Payload>
+    public disclosureFrame?: DisclosureFrame<Payload>
 
     public constructor(
         options?: SdJwtOptions<Header, Payload>,
@@ -198,6 +198,7 @@ export class SdJwt<
 
     public async verifySignature(cb: Verifier<Header>): Promise<boolean> {
         this.assertSignature()
+
         const message = this.signableInput
 
         return await cb({
@@ -285,27 +286,26 @@ export class SdJwt<
 
     public async verify(
         verifier: Verifier<Header>,
-        requiredClaimKeys?: Array<keyof Payload | string>
+        requiredClaimKeys?: Array<keyof Payload | string>,
+        publicKeyJwk?: Record<string, unknown>
     ): Promise<SdJwtVerificationResult> {
         this.assertHeader()
         this.assertPayload()
         this.assertSignature()
 
-        const jwt = new Jwt<Header, Payload>({
-            header: this.header!,
-            payload: this.payload!,
-            signature: this.signature!
-        })
-
-        const ret = (await jwt.verify(
+        const jwtVerificationResult = (await super.verify(
             verifier,
             requiredClaimKeys
         )) as SdJwtVerificationResult
 
         if (this.keyBinding) {
-            ret.isKeyBindingValid = await this.keyBinding.verify(
-                verifier as Verifier<KeyBindingHeader>
+            const { isValid } = await this.keyBinding.verify(
+                verifier as Verifier<KeyBindingHeader>,
+                [],
+                publicKeyJwk
             )
+
+            jwtVerificationResult.isKeyBindingValid = isValid
         }
 
         const claimKeys = getAllKeys(this.payload!).concat(
@@ -313,14 +313,15 @@ export class SdJwt<
         )
 
         if (requiredClaimKeys) {
-            ret.areRequiredClaimsIncluded = requiredClaimKeys.every((key) =>
-                claimKeys.includes(key as string)
-            )
+            jwtVerificationResult.areRequiredClaimsIncluded =
+                requiredClaimKeys.every((key) =>
+                    claimKeys.includes(key as string)
+                )
         }
 
         return {
-            ...ret,
-            isValid: Object.entries(ret)
+            ...jwtVerificationResult,
+            isValid: Object.entries(jwtVerificationResult)
                 .filter(
                     ([key, value]) =>
                         typeof value === 'boolean' && key !== 'isValid'
