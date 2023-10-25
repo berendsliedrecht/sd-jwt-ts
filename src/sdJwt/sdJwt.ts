@@ -216,7 +216,7 @@ export class SdJwt<
      * This function includes disclosures optimisitcally. This means that is `undefined` is supplied, it includes all disclosures. To include nothing, supply an empty array.
      */
     public async present(includedDisclosureIndices?: Array<number>) {
-        if (!this.disclosures) {
+        if (!this.disclosures && this.disclosureFrame) {
             await this.applyDisclosureFrame()
         }
 
@@ -258,7 +258,7 @@ export class SdJwt<
             throw new SdJwtError('NaN and infinity are not allowed as indices')
         }
 
-        if (maxIndex > this.disclosures!.length - 1) {
+        if (this.disclosures && maxIndex > this.disclosures.length - 1) {
             throw new SdJwtError(
                 `Max index supplied was ${maxIndex}, but there are ${
                     this.disclosures!.length
@@ -275,11 +275,13 @@ export class SdJwt<
             )
         }
 
-        const includedDisclosures = includedDisclosureIndices
-            ? this.disclosures!.filter(
-                  (_, index) => includedDisclosureIndices?.includes(index)
-              )
-            : this.disclosures
+        const includedDisclosures = this.disclosures
+            ? includedDisclosureIndices
+                ? this.disclosures.filter(
+                      (_, index) => includedDisclosureIndices?.includes(index)
+                  )
+                : this.disclosures
+            : []
 
         return await this.__toCompact(includedDisclosures, false)
     }
@@ -289,8 +291,6 @@ export class SdJwt<
         requiredClaimKeys?: Array<keyof Payload | string>,
         publicKeyJwk?: Record<string, unknown>
     ): Promise<SdJwtVerificationResult> {
-        this.assertHeader()
-        this.assertPayload()
         this.assertSignature()
 
         const jwtVerificationResult = (await super.verify(

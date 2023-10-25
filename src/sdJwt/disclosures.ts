@@ -30,6 +30,10 @@ export class Disclosure {
     public static fromString(s: string) {
         const item = Base64url.decodeToJson<DisclosureItem>(s)
 
+        return Disclosure.fromArray(item)
+    }
+
+    public static fromArray(item: DisclosureItem) {
         return item[2] === undefined
             ? new Disclosure(item[0], item[1])
             : new Disclosure(item[0], item[2], item[1] as string)

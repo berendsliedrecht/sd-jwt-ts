@@ -9,7 +9,9 @@ export {
     DisclosureFrame,
     HasherAndAlgorithm,
     SdJwtAdditionalOptions,
-    HasherAlgorithm
+    HasherAlgorithm,
+    Verifier,
+    SdJwtVerificationResult
 } from './sdJwt'
 
 export {
@@ -18,9 +20,17 @@ export {
     KeyBindingPayload,
     KeyBindingOptions,
     KeyBindingAdditionalOptions,
-    SignatureAndEncryptionAlgorithm
+    SignatureAndEncryptionAlgorithm,
+    KeyBindingVerificationResult
 } from './keyBinding'
 
-export { Jwt, Signer, JwtError, JwtOptions, JwtAdditionalOptions } from './jwt'
+export {
+    Jwt,
+    Signer,
+    JwtError,
+    JwtOptions,
+    JwtAdditionalOptions,
+    JwtVerificationResult
+} from './jwt'
 
-export { SdJwtVc } from './sdJwtVc'
+export { SdJwtVc, SdJwtVcVerificationResult } from './sdJwtVc'

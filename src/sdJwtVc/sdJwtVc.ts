@@ -1,7 +1,6 @@
 import {
     ReturnSdJwtWithHeaderAndPayload,
     Verifier,
-    VerifyOptions,
     sdJwtFromCompact
 } from '../sdJwt'
 import { SdJwt, SdJwtVerificationResult } from '../sdJwt'
