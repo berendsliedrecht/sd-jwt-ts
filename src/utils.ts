@@ -24,7 +24,7 @@ export const getAllKeys = (
     return keys
 }
 
-const simpleDeepEqual = (lhs: unknown, rhs: unknown): boolean => {
+export const simpleDeepEqual = (lhs: unknown, rhs: unknown): boolean => {
     if (lhs === rhs) return true
 
     if (typeof lhs !== 'object' || typeof rhs !== 'object') return false

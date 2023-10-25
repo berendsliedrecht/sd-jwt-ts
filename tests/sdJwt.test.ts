@@ -786,6 +786,8 @@ describe('sd-jwt', async () => {
     })
 
     describe('verification', async () => {
+        it('verify that the correct hash is being used', async () => {})
+
         it('verify simple sd-jwt without disclosures', async () => {
             const sdJwt = new SdJwt({
                 header: { alg: SignatureAndEncryptionAlgorithm.EdDSA },

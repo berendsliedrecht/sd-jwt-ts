@@ -5,9 +5,16 @@ import {
 } from '../sdJwt'
 import { SdJwt, SdJwtVerificationResult } from '../sdJwt'
 import { SdJwtVcError } from './error'
-import { ClaimKeyTypeValue, assertClaimInObject } from '../utils'
+import {
+    ClaimKeyTypeValue,
+    assertClaimInObject,
+    simpleDeepEqual
+} from '../utils'
 
-export type SdJwtVcVerificationResult = SdJwtVerificationResult
+export type SdJwtVcVerificationResult = SdJwtVerificationResult & {
+    containsExpectedKeyBinding: boolean
+    containsRequiredVcProperties: boolean
+}
 
 export class SdJwtVc<
     Header extends Record<string, unknown> = Record<string, unknown>,
@@ -44,7 +51,7 @@ export class SdJwtVc<
     /**
      * @todo: this does not do any validation of the actual content of the `cnf`
      */
-    private validateSdJwtVc() {
+    private validateSdJwtVc(expectedCnfClaim?: Record<string, unknown>) {
         try {
             this.assertNonSelectivelyDisclosableItems()
             this.assertHeader()
@@ -65,12 +72,30 @@ export class SdJwtVc<
             ]
 
             assertClaimInObject(this.payload!, requiredPayloadProperties)
+
+            if (expectedCnfClaim) this.validateCnfClaim(expectedCnfClaim)
         } catch (e) {
             if (e instanceof Error) {
                 e.message = `jwt is not valid for usage with sd-jwt-vc. Error: ${e.message}`
             }
 
             throw e
+        }
+    }
+
+    private validateCnfClaim(expected: Record<string, unknown>) {
+        this.assertPayload()
+
+        if (!('cnf' in this.payload!)) {
+            throw new SdJwtVcError(
+                'Confirmation claim (cnf) not found inside the sd-jwt-vc'
+            )
+        }
+
+        if (!simpleDeepEqual(this.payload!.cnf, expected)) {
+            throw new SdJwtVcError(
+                `Confirmation claim (cnf) is not equal to the expected claim`
+            )
         }
     }
 
@@ -94,17 +119,37 @@ export class SdJwtVc<
 
     public override async verify(
         verifier: Verifier<Header>,
-        requiredClaimKeys?: Array<keyof Payload | string>
+        requiredClaimKeys?: Array<keyof Payload | string>,
+        expectedCnfClaim?: Record<string, unknown>
     ): Promise<SdJwtVcVerificationResult> {
         const publicKeyJwk = (
             this.payload?.cnf as Record<string, unknown> | undefined
         )?.jwk as Record<string, unknown> | undefined
 
-        const sdJwtVerificationResult = await super.verify(
+        const sdJwtVerificationResult = (await super.verify(
             verifier,
             requiredClaimKeys,
             publicKeyJwk
-        )
+        )) as SdJwtVcVerificationResult
+
+        try {
+            sdJwtVerificationResult.containsRequiredVcProperties = true
+            this.validateSdJwtVc(expectedCnfClaim)
+
+            if (expectedCnfClaim) {
+                sdJwtVerificationResult.containsExpectedKeyBinding = true
+            }
+        } catch (e) {
+            if (
+                e instanceof SdJwtVcError &&
+                e.message ===
+                    'jwt is not valid for usage with sd-jwt-vc. Error: Confirmation claim (cnf) is not equal to the expected claim'
+            ) {
+                sdJwtVerificationResult.containsExpectedKeyBinding = false
+            } else {
+                sdJwtVerificationResult.containsRequiredVcProperties = false
+            }
+        }
 
         return sdJwtVerificationResult
     }

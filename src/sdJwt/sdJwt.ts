@@ -16,6 +16,7 @@ import { Disclosure } from './disclosures'
 import { DisclosureFrame, applyDisclosureFrame } from './disclosureFrame'
 import { swapClaims } from './swapClaim'
 import { getAllKeys } from '../utils'
+import { HasherAlgorithm } from './hasherAlgorithm'
 
 export type SdJwtToCompactOptions<
     DisclosablePayload extends Record<string, unknown>
@@ -328,6 +329,14 @@ export class SdJwt<
                 )
                 .every(([, value]) => !!value)
         }
+    }
+
+    public checkHasher(expectedHasher: HasherAlgorithm | string): boolean {
+        this.assertPayload()
+
+        if (!('_sd_alg' in this.payload!)) return false
+
+        return this.payload!['_sd_alg'] === expectedHasher.toString()
     }
 
     public async getPrettyClaims<
