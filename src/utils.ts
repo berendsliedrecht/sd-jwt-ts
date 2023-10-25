@@ -24,6 +24,29 @@ export const getAllKeys = (
     return keys
 }
 
+export const getValueByKeyAnyLevel = <T = unknown>(
+    obj: Record<string, unknown>,
+    key: string
+): T | undefined => {
+    // Check if the current object has the key
+    if (obj && obj.hasOwnProperty(key)) {
+        return obj[key] as T
+    }
+
+    // If not found in the current object, iterate over its properties
+    for (const prop in obj) {
+        if (obj.hasOwnProperty(prop) && typeof obj[prop] === 'object') {
+            const result = getValueByKeyAnyLevel(
+                obj[prop] as Record<string, unknown>,
+                key
+            )
+            if (result !== undefined) {
+                return result as T
+            }
+        }
+    }
+}
+
 export const simpleDeepEqual = (lhs: unknown, rhs: unknown): boolean => {
     if (lhs === rhs) return true
 
@@ -55,30 +78,5 @@ export const deleteByPath = (object: Record<string, unknown>, path: string) => {
     }
     if (last) {
         delete currentObject[last]
-    }
-}
-
-export type ClaimKeyTypeValue = [string] | [string, unknown]
-
-export const assertClaimInObject = (
-    object: Record<string, unknown>,
-    claim: Array<ClaimKeyTypeValue>
-) => {
-    const keys = Object.keys(object)
-
-    for (const [requiredKey, requiredValue] of claim) {
-        if (!keys.includes(requiredKey)) {
-            throw new JwtError(
-                `Object does not include a required property '${requiredKey}'`
-            )
-        }
-
-        const actualValue = object[requiredKey]
-
-        if (requiredValue && !simpleDeepEqual(actualValue, requiredValue)) {
-            throw new JwtError(
-                `Object includes the required property '${requiredKey}', but there is a value mistmatch. Expected: '${requiredValue}', actual: '${actualValue}'`
-            )
-        }
     }
 }

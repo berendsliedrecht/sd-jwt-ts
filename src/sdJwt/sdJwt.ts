@@ -15,7 +15,7 @@ import { sdJwtFromCompact } from './compact'
 import { Disclosure } from './disclosures'
 import { DisclosureFrame, applyDisclosureFrame } from './disclosureFrame'
 import { swapClaims } from './swapClaim'
-import { getAllKeys } from '../utils'
+import { getAllKeys, getValueByKeyAnyLevel } from '../utils'
 import { HasherAlgorithm } from './hasherAlgorithm'
 
 export type SdJwtToCompactOptions<
@@ -181,6 +181,12 @@ export class SdJwt<
         this.payload = framedPayload as Payload
     }
 
+    public assertDisclosureFrame() {
+        if (this.disclosureFrame) return
+
+        throw new SdJwtError('Disclosureframe must be defined')
+    }
+
     private assertSaltGenerator() {
         if (!this.saltGenerator) {
             throw new SdJwtError(
@@ -193,6 +199,18 @@ export class SdJwt<
         if (!this.hasherAndAlgorithm) {
             throw new SdJwtError(
                 'A hasher and algorithm must be set in order to create a digest of a disclosure. You can set it with this.withHasherAndAlgorithm()'
+            )
+        }
+    }
+
+    public assertClaimInDisclosureFrame(claimKey: string) {
+        this.assertDisclosureFrame()
+
+        const value = getValueByKeyAnyLevel(this.disclosureFrame!, claimKey)
+
+        if (!value) {
+            throw new SdJwtError(
+                `Claim key '${claimKey}' not found in any level of the disclosureFrame`
             )
         }
     }

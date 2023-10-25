@@ -1,14 +1,8 @@
 import { before, describe, it } from 'node:test'
-import { deepEqual, deepStrictEqual, doesNotThrow, throws } from 'node:assert'
+import { deepStrictEqual } from 'node:assert'
 
-import {
-    ClaimKeyTypeValue,
-    assertClaimInObject,
-    deleteByPath,
-    getAllKeys
-} from '../src/utils'
+import { deleteByPath, getAllKeys } from '../src/utils'
 
-import { JwtError } from '../src'
 import { prelude } from './utils'
 
 const deleteByPathTestGenerator = (
@@ -20,19 +14,6 @@ const deleteByPathTestGenerator = (
     it(title, () => {
         deleteByPath(obj, path)
         deepStrictEqual(obj, expected)
-    })
-}
-
-const assertClaimInObjectTestGenerator = (
-    title: string,
-    obj: Record<string, unknown>,
-    requiredClaims: Array<ClaimKeyTypeValue>,
-    shouldThrow: boolean = true
-) => {
-    it(title, () => {
-        shouldThrow
-            ? throws(() => assertClaimInObject(obj, requiredClaims), JwtError)
-            : doesNotThrow(() => assertClaimInObject(obj, requiredClaims))
     })
 }
 
@@ -77,64 +58,6 @@ describe('utils', () => {
             'abc',
             { a: 123 },
             { a: 123 }
-        )
-    })
-
-    describe('assert claim in object', () => {
-        assertClaimInObjectTestGenerator(
-            'assert claims key, type and value correctly',
-            { a: 123 },
-            [['a', 123]],
-            false
-        )
-
-        assertClaimInObjectTestGenerator(
-            'assert multiple claims key, type and value correctly',
-            { a: 123, b: 'abc' },
-            [
-                ['a', 123],
-                ['b', 'abc']
-            ],
-            false
-        )
-
-        assertClaimInObjectTestGenerator(
-            'assert nested claims key, type and value correctly',
-            { a: { b: '123' } },
-            [['a', { b: '123' }]],
-            false
-        )
-
-        assertClaimInObjectTestGenerator('claim not in object', {}, [['a']])
-
-        assertClaimInObjectTestGenerator(
-            'claim in object, but wrong value',
-            { a: '123' },
-            [['a', { some: 'other-item' }]]
-        )
-
-        assertClaimInObjectTestGenerator(
-            'some claims in object, but not all',
-            { a: '123' },
-            [['a'], ['b']]
-        )
-
-        assertClaimInObjectTestGenerator(
-            'assert claims as in keybinding is required for the header',
-            { typ: 'kb+jwt', alg: 'ES256' },
-            [['typ', 'kb+jwt'], ['alg']],
-            false
-        )
-
-        assertClaimInObjectTestGenerator(
-            'assert claims as in keybinding is required for the payload',
-            {
-                iat: new Date().getTime(),
-                aud: 'https://example.org/audience',
-                nonce: 'some-random-nonce'
-            },
-            [['iat'], ['aud'], ['nonce']],
-            false
         )
     })
 

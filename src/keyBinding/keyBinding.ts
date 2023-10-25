@@ -1,4 +1,3 @@
-import { ClaimKeyTypeValue, assertClaimInObject } from '../utils'
 import {
     Jwt,
     JwtAdditionalOptions,
@@ -97,20 +96,12 @@ export class KeyBinding<
 
             this.assertSignature()
 
-            const requiredHeaderProperties: Array<ClaimKeyTypeValue> = [
-                ['typ', 'kb+jwt'],
-                ['alg']
-            ]
+            this.assertClaimInHeader('typ', 'kb+jwt')
+            this.assertClaimInHeader('alg')
 
-            assertClaimInObject(this.header!, requiredHeaderProperties)
-
-            const requiredPayloadProperties: Array<ClaimKeyTypeValue> = [
-                ['iat'],
-                ['aud'],
-                ['nonce']
-            ]
-
-            assertClaimInObject(this.payload!, requiredPayloadProperties)
+            this.assertClaimInPayload('iat')
+            this.assertClaimInPayload('nonce')
+            this.assertClaimInPayload('aud')
         } catch (e) {
             if (e instanceof Error) {
                 e.message = `jwt is not valid for usage with key binding. Error: ${e.message}`

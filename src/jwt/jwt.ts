@@ -3,6 +3,7 @@ import { JwtError } from './error'
 import { MakePropertyRequired, OrPromise } from '../types'
 import { jwtFromCompact } from './compact'
 import { Verifier } from '../sdJwt/types'
+import { getValueByKeyAnyLevel, simpleDeepEqual } from '../utils'
 
 type ReturnJwtWithHeaderAndPayload<T extends Jwt> = MakePropertyRequired<
     T,
@@ -147,6 +148,50 @@ export class Jwt<
         throw new JwtError(
             'A signer must be provided to create a signature. You can set it with this.withSigner()'
         )
+    }
+
+    public assertClaimInHeader(claimKey: string, claimValue?: unknown) {
+        this.assertHeader()
+
+        try {
+            this.assertClaimInObject(this.header!, claimKey, claimValue)
+        } catch (e) {
+            if (e instanceof JwtError) {
+                e.message += ' of the header'
+            }
+            throw e
+        }
+    }
+
+    public assertClaimInPayload(claimKey: string, claimValue?: unknown) {
+        this.assertPayload()
+
+        try {
+            this.assertClaimInObject(this.payload!, claimKey, claimValue)
+        } catch (e) {
+            if (e instanceof JwtError) {
+                e.message += ' of the payload'
+            }
+            throw e
+        }
+    }
+
+    private assertClaimInObject(
+        object: Record<string, unknown>,
+        claimKey: string,
+        claimValue?: unknown
+    ) {
+        const value = getValueByKeyAnyLevel(object, claimKey)
+
+        if (!value) {
+            throw new JwtError(`Claim key '${claimKey}' not found in any level`)
+        }
+
+        if (claimValue && !simpleDeepEqual(value, claimValue)) {
+            throw new JwtError(
+                `Claim key '${claimKey}' was found, but values did not match`
+            )
+        }
     }
 
     public get signableInput() {

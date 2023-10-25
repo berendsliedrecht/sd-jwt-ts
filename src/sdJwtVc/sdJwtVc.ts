@@ -5,11 +5,7 @@ import {
 } from '../sdJwt'
 import { SdJwt, SdJwtVerificationResult } from '../sdJwt'
 import { SdJwtVcError } from './error'
-import {
-    ClaimKeyTypeValue,
-    assertClaimInObject,
-    simpleDeepEqual
-} from '../utils'
+import { JwtError } from '../jwt'
 
 export type SdJwtVcVerificationResult = SdJwtVerificationResult & {
     containsExpectedKeyBinding: boolean
@@ -20,32 +16,22 @@ export class SdJwtVc<
     Header extends Record<string, unknown> = Record<string, unknown>,
     Payload extends Record<string, unknown> = Record<string, unknown>
 > extends SdJwt<Header, Payload> {
-    private assertNonSelectivelyDisclosableItems() {
+    private assertNonSelectivelyDisclosableClaim(claimKey: string) {
+        try {
+            this.assertClaimInDisclosureFrame(claimKey)
+            throw new SdJwtVcError(
+                `Claim key '${claimKey}' was found in the disclosure frame. This claim is not allowed to be selectively disclosed`
+            )
+        } catch {}
+    }
+
+    private assertNonSelectivelyDisclosableClaims() {
         if (!this.disclosureFrame) return
 
-        const disallowedSelectivelyDisclosedClaims = [
-            'iss',
-            'type',
-            'iat',
-            'cnf'
-        ]
-        const requiredPayloadProperties: Array<ClaimKeyTypeValue> =
-            disallowedSelectivelyDisclosedClaims.map((d) => [d])
-
-        try {
-            assertClaimInObject(
-                this.disclosureFrame!,
-                requiredPayloadProperties
-            )
-
-            throw new SdJwtVcError(
-                `One of the following claims was attempted to be selectively disclosed while this is not allowed. '${disallowedSelectivelyDisclosedClaims.join(
-                    ', '
-                )}'`
-            )
-        } catch {
-            return
-        }
+        this.assertNonSelectivelyDisclosableClaim('iss')
+        this.assertNonSelectivelyDisclosableClaim('type')
+        this.assertNonSelectivelyDisclosableClaim('iat')
+        this.assertNonSelectivelyDisclosableClaim('cnf')
     }
 
     /**
@@ -53,49 +39,23 @@ export class SdJwtVc<
      */
     private validateSdJwtVc(expectedCnfClaim?: Record<string, unknown>) {
         try {
-            this.assertNonSelectivelyDisclosableItems()
+            this.assertNonSelectivelyDisclosableClaims()
             this.assertHeader()
             this.assertPayload()
 
-            const requiredHeaderProperties: Array<ClaimKeyTypeValue> = [
-                ['typ', 'vc+sd-jwt'],
-                ['alg']
-            ]
+            this.assertClaimInHeader('typ', 'vc+sd-jwt')
+            this.assertClaimInHeader('alg')
 
-            assertClaimInObject(this.header!, requiredHeaderProperties)
-
-            const requiredPayloadProperties: Array<ClaimKeyTypeValue> = [
-                ['iss'],
-                ['type'],
-                ['iat'],
-                ['cnf']
-            ]
-
-            assertClaimInObject(this.payload!, requiredPayloadProperties)
-
-            if (expectedCnfClaim) this.validateCnfClaim(expectedCnfClaim)
+            this.assertClaimInPayload('iss')
+            this.assertClaimInPayload('type')
+            this.assertClaimInPayload('iat')
+            this.assertClaimInPayload('cnf', expectedCnfClaim)
         } catch (e) {
             if (e instanceof Error) {
                 e.message = `jwt is not valid for usage with sd-jwt-vc. Error: ${e.message}`
             }
 
             throw e
-        }
-    }
-
-    private validateCnfClaim(expected: Record<string, unknown>) {
-        this.assertPayload()
-
-        if (!('cnf' in this.payload!)) {
-            throw new SdJwtVcError(
-                'Confirmation claim (cnf) not found inside the sd-jwt-vc'
-            )
-        }
-
-        if (!simpleDeepEqual(this.payload!.cnf, expected)) {
-            throw new SdJwtVcError(
-                `Confirmation claim (cnf) is not equal to the expected claim`
-            )
         }
     }
 
@@ -141,9 +101,9 @@ export class SdJwtVc<
             }
         } catch (e) {
             if (
-                e instanceof SdJwtVcError &&
-                e.message ===
-                    'jwt is not valid for usage with sd-jwt-vc. Error: Confirmation claim (cnf) is not equal to the expected claim'
+                e instanceof JwtError &&
+                e.message ==
+                    "jwt is not valid for usage with sd-jwt-vc. Error: Claim key 'cnf' was found, but values did not match of the payload"
             ) {
                 sdJwtVerificationResult.containsExpectedKeyBinding = false
             } else {

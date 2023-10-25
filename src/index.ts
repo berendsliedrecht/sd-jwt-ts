@@ -33,4 +33,4 @@ export {
     JwtVerificationResult
 } from './jwt'
 
-export { SdJwtVc, SdJwtVcVerificationResult } from './sdJwtVc'
+export { SdJwtVc, SdJwtVcVerificationResult, SdJwtVcError } from './sdJwtVc'

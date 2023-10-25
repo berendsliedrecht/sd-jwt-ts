@@ -1,4 +1,6 @@
 import { before, describe, it } from 'node:test'
+import { createPublicKey, verify } from 'node:crypto'
+import assert, { deepStrictEqual, rejects, strictEqual } from 'node:assert'
 import {
     hasherAndAlgorithm,
     keyBindingSigner,
@@ -13,17 +15,9 @@ import {
     HasherAlgorithm,
     KeyBinding,
     SdJwtVc,
-    SignatureAndEncryptionAlgorithm
+    SignatureAndEncryptionAlgorithm,
+    SdJwtVcError
 } from '../src'
-
-import assert, {
-    deepEqual,
-    deepStrictEqual,
-    rejects,
-    strictEqual
-} from 'node:assert'
-import { SdJwtVcError } from '../src/sdJwtVc/error'
-import { createPublicKey, verify } from 'node:crypto'
 
 describe('sd-jwt-vc', async () => {
     before(prelude)
@@ -168,7 +162,7 @@ describe('sd-jwt-vc', async () => {
             await rejects(
                 async () => await sdJwtVc.toCompact(),
                 new SdJwtVcError(
-                    "jwt is not valid for usage with sd-jwt-vc. Error: Object does not include a required property 'iss'"
+                    "jwt is not valid for usage with sd-jwt-vc. Error: Claim key 'iss' not found in any level of the payload"
                 )
             )
         })
@@ -222,7 +216,7 @@ describe('sd-jwt-vc', async () => {
             await rejects(
                 async () => await sdJwtVc.toCompact(),
                 new SdJwtVcError(
-                    "jwt is not valid for usage with sd-jwt-vc. Error: Object does not include a required property 'type'"
+                    "jwt is not valid for usage with sd-jwt-vc. Error: Claim key 'type' not found in any level of the payload"
                 )
             )
         })
@@ -276,7 +270,7 @@ describe('sd-jwt-vc', async () => {
             await rejects(
                 async () => await sdJwtVc.toCompact(),
                 new SdJwtVcError(
-                    "jwt is not valid for usage with sd-jwt-vc. Error: Object does not include a required property 'iat'"
+                    "jwt is not valid for usage with sd-jwt-vc. Error: Claim key 'iat' not found in any level of the payload"
                 )
             )
         })
@@ -328,7 +322,7 @@ describe('sd-jwt-vc', async () => {
             await rejects(
                 async () => await sdJwtVc.toCompact(),
                 new SdJwtVcError(
-                    "jwt is not valid for usage with sd-jwt-vc. Error: Object does not include a required property 'cnf'"
+                    "jwt is not valid for usage with sd-jwt-vc. Error: Claim key 'cnf' not found in any level of the payload"
                 )
             )
         })
@@ -379,7 +373,7 @@ describe('sd-jwt-vc', async () => {
             await rejects(
                 async () => await sdJwtVc.toCompact(),
                 new SdJwtVcError(
-                    "jwt is not valid for usage with sd-jwt-vc. Error: Object does not include a required property 'typ'"
+                    "jwt is not valid for usage with sd-jwt-vc. Error: Claim key 'typ' not found in any level of the header"
                 )
             )
         })
@@ -430,7 +424,7 @@ describe('sd-jwt-vc', async () => {
             await rejects(
                 async () => await sdJwtVc.toCompact(),
                 new SdJwtVcError(
-                    "jwt is not valid for usage with sd-jwt-vc. Error: Object does not include a required property 'alg'"
+                    "jwt is not valid for usage with sd-jwt-vc. Error: Claim key 'alg' not found in any level of the header"
                 )
             )
         })
@@ -482,7 +476,7 @@ describe('sd-jwt-vc', async () => {
             await rejects(
                 async () => await sdJwtVc.toCompact(),
                 new SdJwtVcError(
-                    "jwt is not valid for usage with sd-jwt-vc. Error: Object includes the required property 'typ', but there is a value mistmatch. Expected: 'vc+sd-jwt', actual: 'invalid-typ'"
+                    "jwt is not valid for usage with sd-jwt-vc. Error: Claim key 'typ' was found, but values did not match of the header"
                 )
             )
         })
