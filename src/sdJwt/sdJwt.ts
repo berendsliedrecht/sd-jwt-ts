@@ -2,13 +2,17 @@ import { Base64url } from '../base64url'
 import { SdJwtError } from './error'
 import { SaltGenerator } from './decoys'
 import { HasherAndAlgorithm } from './hasher'
-import { Jwt, JwtAdditionalOptions, JwtVerificationResult } from '../jwt/jwt'
-import { KeyBinding, KeyBindingHeader } from '../keyBinding'
+import {
+    Jwt,
+    JwtAdditionalOptions,
+    JwtVerificationResult,
+    Signer
+} from '../jwt/jwt'
+import { KeyBinding } from '../keyBinding'
 import {
     ReturnSdJwtWithHeaderAndPayload,
     ReturnSdJwtWithKeyBinding,
     ReturnSdJwtWithPayload,
-    Signer,
     Verifier
 } from './types'
 import { sdJwtFromCompact } from './compact'
@@ -101,7 +105,11 @@ export class SdJwt<
             keyBinding
         })
 
-        return sdJwt as ReturnSdJwtWithHeaderAndPayload<typeof sdJwt>
+        return sdJwt as ReturnSdJwtWithHeaderAndPayload<
+            Header,
+            Payload,
+            typeof sdJwt
+        >
     }
 
     public withSaltGenerator(saltGenerator: SaltGenerator) {
@@ -114,32 +122,32 @@ export class SdJwt<
         return this
     }
 
-    public withHasher(
-        hasherAndAlgorithm: HasherAndAlgorithm
-    ): ReturnSdJwtWithPayload<this> {
+    public withHasher(hasherAndAlgorithm: HasherAndAlgorithm) {
         this.hasherAndAlgorithm = hasherAndAlgorithm
 
-        return this as ReturnSdJwtWithPayload<this>
+        return this as ReturnSdJwtWithPayload<Header, Payload, this>
     }
 
-    private addHasherAlgorithmToPayload(): ReturnSdJwtWithPayload<this> {
+    private addHasherAlgorithmToPayload() {
         this.assertHashAndAlgorithm()
 
         this.addPayloadClaim('_sd_alg', this.hasherAndAlgorithm!.algorithm)
 
-        return this as ReturnSdJwtWithPayload<this>
+        return this as ReturnSdJwtWithPayload<Header, Payload, this>
     }
 
     public withKeyBinding(
         keyBinding: Jwt | KeyBinding | string
-    ): ReturnSdJwtWithKeyBinding<this> {
+    ): ReturnSdJwtWithKeyBinding<Header, Payload, this> {
         const kb =
             typeof keyBinding === 'string'
                 ? KeyBinding.fromCompact(keyBinding)
+                : keyBinding instanceof KeyBinding
+                ? keyBinding
                 : KeyBinding.fromJwt(keyBinding)
 
         this.keyBinding = kb
-        return this as ReturnSdJwtWithKeyBinding<this>
+        return this as ReturnSdJwtWithKeyBinding<Header, Payload, this>
     }
 
     public withDisclosureFrame(disclosureFrame: DisclosureFrame<Payload>) {
@@ -319,7 +327,7 @@ export class SdJwt<
 
         if (this.keyBinding) {
             const { isValid } = await this.keyBinding.verify(
-                verifier as Verifier<KeyBindingHeader>,
+                verifier as Verifier,
                 [],
                 publicKeyJwk
             )

@@ -2,10 +2,18 @@ import {
     Jwt,
     JwtAdditionalOptions,
     JwtOptions,
-    JwtVerificationResult
+    JwtVerificationResult,
+    Signer
 } from '../jwt'
 import { SignatureAndEncryptionAlgorithm } from './signatureAndEncryptionAlgorithm'
 import { Verifier } from '../sdJwt'
+import { MakePropertyRequired } from '../../build/types'
+
+type ReturnKeyBindingWithHeaderAndPayload<
+    H extends Record<string, unknown>,
+    P extends Record<string, unknown>,
+    T extends KeyBinding<H, P>
+> = MakePropertyRequired<T, 'header' | 'payload'>
 
 export type KeyBindingHeader<
     H extends Record<string, unknown> = Record<string, unknown>
@@ -23,32 +31,35 @@ export type KeyBindingPayload<
 }
 
 export type KeyBindingOptions<
-    H extends Record<string, unknown> = Record<string, unknown>,
-    P extends Record<string, unknown> = Record<string, unknown>
-> = JwtOptions<H, P> & {
-    header?: KeyBindingHeader<H>
-    payload?: KeyBindingPayload<P>
-}
+    Header extends Record<string, unknown> = Record<string, unknown>,
+    Payload extends Record<string, unknown> = Record<string, unknown>
+> = JwtOptions<KeyBindingHeader<Header>, KeyBindingPayload<Payload>>
 
-export type KeyBindingAdditionalOptions = JwtAdditionalOptions
+export type KeyBindingAdditionalOptions<
+    Header extends Record<string, unknown> = Record<string, unknown>
+> = JwtAdditionalOptions<KeyBindingHeader<Header>>
 
 export type KeyBindingVerificationResult = JwtVerificationResult
 
 export class KeyBinding<
     Header extends Record<string, unknown> = Record<string, unknown>,
     Payload extends Record<string, unknown> = Record<string, unknown>
-> extends Jwt<KeyBindingHeader<Header>, KeyBindingPayload<Payload>> {
+> extends Jwt<Header, Payload> {
+    public override signer?: Signer<Header>
+
     public constructor(
         options?: KeyBindingOptions<Header, Payload>,
-        additionalOptions?: KeyBindingAdditionalOptions
+        additionalOptions?: KeyBindingAdditionalOptions<Header>
     ) {
-        super(options, additionalOptions)
+        super(options)
+
+        this.signer = additionalOptions?.signer as Signer<Header>
     }
 
     public static fromJwt<
         Header extends Record<string, unknown> = Record<string, unknown>,
         Payload extends Record<string, unknown> = Record<string, unknown>
-    >(jwt: Jwt) {
+    >(jwt: Jwt<Header, Payload>): KeyBinding<Header, Payload> {
         const keyBinding = new KeyBinding<Header, Payload>(
             {
                 header: jwt.header as KeyBindingHeader<Header>,
@@ -62,7 +73,7 @@ export class KeyBinding<
     }
 
     public override async verify(
-        verifySignature: Verifier<KeyBindingHeader<Header>>,
+        verifySignature: Verifier<Header>,
         requiredClaims?: Array<keyof Payload | string>,
         publicKeyJwk?: Record<string, unknown>
     ): Promise<KeyBindingVerificationResult> {
@@ -78,11 +89,17 @@ export class KeyBinding<
     }
 
     public static override fromCompact<
-        H extends Record<string, unknown> = Record<string, unknown>,
-        P extends Record<string, unknown> = Record<string, unknown>
+        Header extends Record<string, unknown> = Record<string, unknown>,
+        Payload extends Record<string, unknown> = Record<string, unknown>
     >(compact: string) {
-        const jwt = Jwt.fromCompact<H, P>(compact)
-        return KeyBinding.fromJwt<H, P>(jwt)
+        const jwt = Jwt.fromCompact<Header, Payload>(compact)
+        const keyBinding = KeyBinding.fromJwt<Header, Payload>(jwt)
+
+        return keyBinding as ReturnKeyBindingWithHeaderAndPayload<
+            Header,
+            Payload,
+            typeof keyBinding
+        >
     }
 
     public async assertValidForKeyBinding() {

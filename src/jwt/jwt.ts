@@ -5,16 +5,29 @@ import { jwtFromCompact } from './compact'
 import { Verifier } from '../sdJwt/types'
 import { getValueByKeyAnyLevel, simpleDeepEqual } from '../utils'
 
-type ReturnJwtWithHeaderAndPayload<T extends Jwt> = MakePropertyRequired<
-    T,
-    'header' | 'payload'
->
-type ReturnJwtWithHeader<T extends Jwt> = MakePropertyRequired<T, 'header'>
-type ReturnJwtWithPayload<T extends Jwt> = MakePropertyRequired<T, 'payload'>
-type ReturnJwtWithSignature<T extends Jwt> = MakePropertyRequired<
-    T,
-    'signature'
->
+type ReturnJwtWithHeaderAndPayload<
+    H extends Record<string, unknown>,
+    P extends Record<string, unknown>,
+    T extends Jwt<H, P>
+> = MakePropertyRequired<T, 'header' | 'payload'>
+
+type ReturnJwtWithHeader<
+    H extends Record<string, unknown>,
+    P extends Record<string, unknown>,
+    T extends Jwt<H, P>
+> = MakePropertyRequired<T, 'header'>
+
+type ReturnJwtWithPayload<
+    H extends Record<string, unknown>,
+    P extends Record<string, unknown>,
+    T extends Jwt<H, P>
+> = MakePropertyRequired<T, 'payload'>
+
+type ReturnJwtWithSignature<
+    H extends Record<string, unknown>,
+    P extends Record<string, unknown>,
+    T extends Jwt<H, P>
+> = MakePropertyRequired<T, 'signature'>
 
 export type JwtOptions<
     H extends Record<string, unknown>,
@@ -47,12 +60,39 @@ export class Jwt<
     Header extends Record<string, unknown> = Record<string, unknown>,
     Payload extends Record<string, unknown> = Record<string, unknown>
 > {
+    /**
+     *
+     * non-compact structure for a header of a JWT.
+     *
+     * Defined in: {@link https://datatracker.ietf.org/doc/html/rfc7519#section-5 | RFC 7519}
+     *
+     */
     public header?: Header
+
+    /**
+     *
+     * non-compact structure for a payload of a JWT.
+     *
+     * Defined in: {@link https://datatracker.ietf.org/doc/html/rfc7519#section-4 | RFC 7519}
+     *
+     */
     public payload?: Payload
+
+    /**
+     *
+     * Signature over the BASE64URL(HEADER) || '.' || BASE64URL(PAYLOAD).
+     *
+     * Defined in: {@link https://datatracker.ietf.org/doc/html/rfc7515 | RFC 7515}
+     *
+     */
     public signature?: Uint8Array
 
-    // TODO: `Signer` type should take the `Header` generic
-    public signer?: Signer
+    /**
+     *
+     * Callback that will be used when creating a signature over the JWT.
+     *
+     */
+    public signer?: Signer<Header>
 
     public constructor(
         options?: JwtOptions<Header, Payload>,
@@ -65,10 +105,19 @@ export class Jwt<
         this.signer = additionalOptions?.signer
     }
 
+    /**
+     *
+     * Instantiate a JWT from a compact format.
+     *
+     * Two generics may be supplied for typing on the Header and Payload. These are not enforced.
+     *
+     * Defined in: {@link https://datatracker.ietf.org/doc/html/rfc7519#section-3 | RFC 7519 }
+     *
+     */
     public static fromCompact<
         Header extends Record<string, unknown> = Record<string, unknown>,
         Payload extends Record<string, unknown> = Record<string, unknown>
-    >(compact: string): Jwt {
+    >(compact: string) {
         const { header, payload, signature } = jwtFromCompact<Header, Payload>(
             compact
         )
@@ -79,69 +128,135 @@ export class Jwt<
             signature
         })
 
-        return jwt as ReturnJwtWithHeaderAndPayload<typeof jwt>
+        return jwt as ReturnJwtWithHeaderAndPayload<Header, Payload, typeof jwt>
     }
 
-    public withHeader(header: Header): ReturnJwtWithHeader<this> {
+    /**
+     *
+     * Replaces the current Header a new one.
+     *
+     */
+    public withHeader(
+        header: Header
+    ): ReturnJwtWithHeader<Header, Payload, this> {
         this.header = header
-        return this as ReturnJwtWithHeader<this>
+        return this as ReturnJwtWithHeader<Header, Payload, this>
     }
 
+    /**
+     *
+     * Add a new claim to the Header, overriding the old one if it already is on there.
+     *
+     */
     public addHeaderClaim(
         item: keyof Header,
         value: Header[typeof item] | unknown
-    ): ReturnJwtWithHeader<this> {
+    ): ReturnJwtWithHeader<Header, Payload, this> {
         this.header ??= {} as Header
         if (value !== undefined && item !== null) {
             this.header = { ...this.header, [item]: value }
         }
-        return this as ReturnJwtWithHeader<this>
+        return this as ReturnJwtWithHeader<Header, Payload, this>
     }
 
-    public withPayload(payload: Payload): ReturnJwtWithPayload<this> {
+    /**
+     *
+     * Replaces the current Payload a new one.
+     *
+     */
+    public withPayload(
+        payload: Payload
+    ): ReturnJwtWithPayload<Header, Payload, this> {
         this.payload = payload
-        return this as ReturnJwtWithPayload<this>
+        return this as ReturnJwtWithPayload<Header, Payload, this>
     }
 
+    /**
+     *
+     * Add a new claim to the Payload, overriding the old one if it already is on there.
+     *
+     */
     public addPayloadClaim(
         item: keyof Payload,
         value: Payload[typeof item] | unknown
-    ): ReturnJwtWithPayload<this> {
+    ): ReturnJwtWithPayload<Header, Payload, this> {
         this.payload ??= {} as Payload
         if (value !== undefined && item !== null) {
             this.payload = { ...this.payload, [item]: value }
         }
-        return this as ReturnJwtWithPayload<this>
+        return this as ReturnJwtWithPayload<Header, Payload, this>
     }
 
-    public withSignature(signature: Uint8Array): ReturnJwtWithSignature<this> {
+    /**
+     *
+     * Manually append a signature to the JWT. This signature is not validated.
+     *
+     * @note Only use this if the supplying a signing callback does not fit your use case.
+     *
+     */
+    public withSignature(
+        signature: Uint8Array
+    ): ReturnJwtWithSignature<Header, Payload, this> {
         this.signature = signature
-        return this as ReturnJwtWithSignature<this>
+        return this as ReturnJwtWithSignature<Header, Payload, this>
     }
 
+    /**
+     *
+     * Add a signing callback to the JWT that will be used for creating the signature.
+     *
+     */
     public withSigner(signer: Signer) {
         this.signer = signer
         return this
     }
 
+    /**
+     *
+     * Assert that there is a Header on the JWT.
+     *
+     * @throws when the Header is not defined
+     *
+     */
     public assertHeader() {
         if (this.header) return
 
         throw new JwtError('Header must be defined')
     }
 
+    /**
+     *
+     * Assert that there is a Payload on the JWT.
+     *
+     * @throws when the Payload is not defined
+     *
+     */
     public assertPayload() {
         if (this.payload) return
 
         throw new JwtError('Payload must be defined')
     }
 
+    /**
+     *
+     * Assert that there is a Signature on the JWT.
+     *
+     * @throws when the Signature is not defined
+     *
+     */
     public assertSignature() {
         if (this.signature) return
 
         throw new JwtError('Signature must be defined')
     }
 
+    /**
+     *
+     * Assert that there is a Signing callback on the JWT.
+     *
+     * @throws when the Signer is not defined
+     *
+     */
     public assertSigner() {
         if (this.signer) return
 
@@ -150,6 +265,11 @@ export class Jwt<
         )
     }
 
+    /**
+     *
+     * Assert that there is a specific claim, possibly with value, in the Header.
+     *
+     */
     public assertClaimInHeader(claimKey: string, claimValue?: unknown) {
         this.assertHeader()
 
@@ -163,6 +283,11 @@ export class Jwt<
         }
     }
 
+    /**
+     *
+     * Assert that there is a specific claim, possibly with value, in the Payload.
+     *
+     */
     public assertClaimInPayload(claimKey: string, claimValue?: unknown) {
         this.assertPayload()
 
@@ -194,6 +319,13 @@ export class Jwt<
         }
     }
 
+    /**
+     *
+     * Returns a string of what needs to be signed.
+     *
+     * Defined in: {@link https://datatracker.ietf.org/doc/html/rfc7519#section-3 | RFC 7519}
+     *
+     */
     public get signableInput() {
         this.assertHeader()
         this.assertPayload()
@@ -201,12 +333,19 @@ export class Jwt<
         return `${this.compactHeader}.${this.compactPayload}`
     }
 
-    public async signAndAdd(): Promise<ReturnJwtWithSignature<this>> {
+    /**
+     *
+     * Sign the Header and Payload and append the signature to the JWT.
+     *
+     */
+    public async signAndAdd(): Promise<
+        ReturnJwtWithSignature<Header, Payload, this>
+    > {
         this.assertSigner()
         const signature = await this.signer!(this.signableInput, this.header!)
         this.withSignature(signature)
 
-        return this as ReturnJwtWithSignature<this>
+        return this as ReturnJwtWithSignature<Header, Payload, this>
     }
 
     private get compactHeader() {
@@ -219,6 +358,15 @@ export class Jwt<
         return Base64url.encodeFromJson(this.payload!)
     }
 
+    /**
+     *
+     * Create a compact format of the JWT.
+     *
+     * This will add a signature if there is none.
+     *
+     * @throws When the signature and signer are not defined
+     *
+     */
     public async toCompact() {
         this.assertHeader()
         this.assertPayload()
@@ -232,6 +380,16 @@ export class Jwt<
         return `${this.compactHeader}.${this.compactPayload}.${encodedSignature}`
     }
 
+    /**
+     *
+     * Verify the JWT.
+     *
+     * - Check the nbf claim with `now`
+     * - Check the exp claim with `now`
+     * - Additionally validate any required claims
+     * - Additionally pass in a specific publicKeyJwk to validate the signature
+     *
+     */
     public async verify(
         verifySignature: Verifier<Header>,
         requiredClaims?: Array<keyof Payload | string>,

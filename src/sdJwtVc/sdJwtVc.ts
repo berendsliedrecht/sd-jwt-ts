@@ -74,7 +74,11 @@ export class SdJwtVc<
             keyBinding
         })
 
-        return sdJwt as ReturnSdJwtWithHeaderAndPayload<typeof sdJwt>
+        return sdJwt as ReturnSdJwtWithHeaderAndPayload<
+            Header,
+            Payload,
+            typeof sdJwt
+        >
     }
 
     public override async verify(

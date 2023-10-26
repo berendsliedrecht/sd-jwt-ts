@@ -309,7 +309,10 @@ describe('sd-jwt', async () => {
 
     describe('SD-JWT with key binding', async () => {
         it('should create an sd-jwt with key binding', async () => {
-            const keyBinding = new KeyBinding(
+            const keyBinding = new KeyBinding<
+                Record<string, unknown>,
+                Record<string, unknown>
+            >(
                 {
                     header: {
                         typ: 'kb+jwt',
@@ -355,7 +358,10 @@ describe('sd-jwt', async () => {
         })
 
         it('should create an sd-jwt with key binding, without disclosures', async () => {
-            const keyBinding = new KeyBinding(
+            const keyBinding = new KeyBinding<
+                Record<string, unknown>,
+                Record<string, unknown>
+            >(
                 {
                     header: {
                         typ: 'kb+jwt',
@@ -400,7 +406,10 @@ describe('sd-jwt', async () => {
         })
 
         it('create sd-jwt with key binding and compare', async () => {
-            const keyBinding = new KeyBinding(
+            const keyBinding = new KeyBinding<
+                Record<string, unknown>,
+                Record<string, unknown>
+            >(
                 {
                     header: {
                         typ: 'kb+jwt',
@@ -439,7 +448,10 @@ describe('sd-jwt', async () => {
         })
 
         it('create sd-jwt with key binding from compact round trip', async () => {
-            const keyBinding = new KeyBinding(
+            const keyBinding = new KeyBinding<
+                Record<string, unknown>,
+                Record<string, unknown>
+            >(
                 {
                     header: {
                         typ: 'kb+jwt',
@@ -834,7 +846,10 @@ describe('sd-jwt', async () => {
         })
 
         it('verify simple sd-jwt with a disclosure and key binding', async () => {
-            const keyBinding = new KeyBinding(
+            const keyBinding = new KeyBinding<
+                Record<string, unknown>,
+                Record<string, unknown>
+            >(
                 {
                     header: {
                         typ: 'kb+jwt',

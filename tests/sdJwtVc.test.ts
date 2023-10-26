@@ -83,7 +83,10 @@ describe('sd-jwt-vc', async () => {
                 'eyJhbGciOiAiRWREU0EiLCAidHlwIjogInZjK3NkLWp3dCJ9.eyJ0eXBlIjogIklkZW50aXR5Q3JlZGVudGlhbCIsICJpc3MiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZy9pc3N1ZXIiLCAiaWF0IjogMTY5ODA1NjExMCwiY25mIjogeyJqd2siOiB7ImNydiI6ICJFZDI1NTE5IiwgIngiOiAiQ2lyWm4tVjluX0tSaDhjMkl5V3FPdHJWbTl3bHphVkREUzhZNHpHbVFzbyIsICJrdHkiOiAiT0tQIn19LCJfc2RfYWxnIjogInNoYS0yNTYiLCAiX3NkIjogWyJoYXNoPVd5SnpZV3gwSWl3Z0ltRmtaSEpsYzNNaUxDQjdJbk4wY21WbGRGOWhaR1J5WlhOeklqb2dJakV5TXlCTllXbHVJRk4wSWl3Z0lteHZZMkZzYVhSNUlqb2dJa0Z1ZVhSdmQyNGlMQ0FpY21WbmFXOXVJam9nSWtGdWVYTjBZWFJsSWl3Z0ltTnZkVzUwY25raU9pQWlWVk1pZlYwIiwgImhhc2g9V3lKellXeDBJaXdnSW1KcGNuUm9aR0YwWlNJc0lDSXhPVFF3TFRBeExUQXhJbDAiLCAiaGFzaD1XeUp6WVd4MElpd2dJbVZ0WVdsc0lpd2dJbXB2YUc1a2IyVkFaWGhoYlhCc1pTNWpiMjBpWFEiLCAiaGFzaD1XeUp6WVd4MElpd2dJbVpoYldsc2VWOXVZVzFsSWl3Z0lrUnZaU0pkIiwgImhhc2g9V3lKellXeDBJaXdnSW1kcGRtVnVYMjVoYldVaUxDQWlTbTlvYmlKZCIsICJoYXNoPVd5SnpZV3gwSWl3Z0ltbHpYMjkyWlhKZk1UZ2lMQ0IwY25WbFhRIiwgImhhc2g9V3lKellXeDBJaXdnSW1selgyOTJaWEpmTWpFaUxDQjBjblZsWFEiLCAiaGFzaD1XeUp6WVd4MElpd2dJbWx6WDI5MlpYSmZOalVpTENCMGNuVmxYUSIsICJoYXNoPVd5SnpZV3gwSWl3Z0luQm9iMjVsWDI1MWJXSmxjaUlzSUNJck1TMHlNREl0TlRVMUxUQXhNREVpWFEiXX0.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio~WyJzYWx0IiwgImlzX292ZXJfNjUiLCB0cnVlXQ~WyJzYWx0IiwgImlzX292ZXJfMjEiLCB0cnVlXQ~WyJzYWx0IiwgImlzX292ZXJfMTgiLCB0cnVlXQ~WyJzYWx0IiwgImJpcnRoZGF0ZSIsICIxOTQwLTAxLTAxIl0~WyJzYWx0IiwgImVtYWlsIiwgImpvaG5kb2VAZXhhbXBsZS5jb20iXQ~WyJzYWx0IiwgImFkZHJlc3MiLCB7InN0cmVldF9hZGRyZXNzIjogIjEyMyBNYWluIFN0IiwgImxvY2FsaXR5IjogIkFueXRvd24iLCAicmVnaW9uIjogIkFueXN0YXRlIiwgImNvdW50cnkiOiAiVVMifV0~WyJzYWx0IiwgImdpdmVuX25hbWUiLCAiSm9obiJd~WyJzYWx0IiwgImZhbWlseV9uYW1lIiwgIkRvZSJd~WyJzYWx0IiwgInBob25lX251bWJlciIsICIrMS0yMDItNTU1LTAxMDEiXQ~'
             )
 
-            const keyBinding = new KeyBinding({
+            const keyBinding = new KeyBinding<
+                Record<string, unknown>,
+                Record<string, unknown>
+            >({
                 header: {
                     alg: SignatureAndEncryptionAlgorithm.EdDSA,
                     typ: 'kb+jwt'
