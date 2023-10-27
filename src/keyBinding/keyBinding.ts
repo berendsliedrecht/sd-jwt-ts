@@ -7,7 +7,7 @@ import {
 } from '../jwt'
 import { SignatureAndEncryptionAlgorithm } from './signatureAndEncryptionAlgorithm'
 import { Verifier } from '../sdJwt'
-import { MakePropertyRequired } from '../../build/types'
+import { MakePropertyRequired } from '../types'
 
 type ReturnKeyBindingWithHeaderAndPayload<
     H extends Record<string, unknown>,
