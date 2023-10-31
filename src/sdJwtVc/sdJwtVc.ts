@@ -107,7 +107,7 @@ export class SdJwtVc<
             if (
                 e instanceof JwtError &&
                 e.message ==
-                    "jwt is not valid for usage with sd-jwt-vc. Error: Claim key 'cnf' was found, but values did not match of the payload"
+                    "jwt is not valid for usage with sd-jwt-vc. Error: Claim key 'cnf' was found, but values did not match within the payload"
             ) {
                 sdJwtVerificationResult.containsExpectedKeyBinding = false
             } else {

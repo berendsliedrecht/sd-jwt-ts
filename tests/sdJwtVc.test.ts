@@ -165,7 +165,7 @@ describe('sd-jwt-vc', async () => {
             await rejects(
                 async () => await sdJwtVc.toCompact(),
                 new SdJwtVcError(
-                    "jwt is not valid for usage with sd-jwt-vc. Error: Claim key 'iss' not found in any level of the payload"
+                    "jwt is not valid for usage with sd-jwt-vc. Error: Claim key 'iss' not found in any level within the payload"
                 )
             )
         })
@@ -219,7 +219,7 @@ describe('sd-jwt-vc', async () => {
             await rejects(
                 async () => await sdJwtVc.toCompact(),
                 new SdJwtVcError(
-                    "jwt is not valid for usage with sd-jwt-vc. Error: Claim key 'type' not found in any level of the payload"
+                    "jwt is not valid for usage with sd-jwt-vc. Error: Claim key 'type' not found in any level within the payload"
                 )
             )
         })
@@ -273,7 +273,7 @@ describe('sd-jwt-vc', async () => {
             await rejects(
                 async () => await sdJwtVc.toCompact(),
                 new SdJwtVcError(
-                    "jwt is not valid for usage with sd-jwt-vc. Error: Claim key 'iat' not found in any level of the payload"
+                    "jwt is not valid for usage with sd-jwt-vc. Error: Claim key 'iat' not found in any level within the payload"
                 )
             )
         })
@@ -325,7 +325,7 @@ describe('sd-jwt-vc', async () => {
             await rejects(
                 async () => await sdJwtVc.toCompact(),
                 new SdJwtVcError(
-                    "jwt is not valid for usage with sd-jwt-vc. Error: Claim key 'cnf' not found in any level of the payload"
+                    "jwt is not valid for usage with sd-jwt-vc. Error: Claim key 'cnf' not found in any level within the payload"
                 )
             )
         })
@@ -376,7 +376,7 @@ describe('sd-jwt-vc', async () => {
             await rejects(
                 async () => await sdJwtVc.toCompact(),
                 new SdJwtVcError(
-                    "jwt is not valid for usage with sd-jwt-vc. Error: Claim key 'typ' not found in any level of the header"
+                    "jwt is not valid for usage with sd-jwt-vc. Error: Claim key 'typ' not found in any level within the header"
                 )
             )
         })
@@ -427,7 +427,7 @@ describe('sd-jwt-vc', async () => {
             await rejects(
                 async () => await sdJwtVc.toCompact(),
                 new SdJwtVcError(
-                    "jwt is not valid for usage with sd-jwt-vc. Error: Claim key 'alg' not found in any level of the header"
+                    "jwt is not valid for usage with sd-jwt-vc. Error: Claim key 'alg' not found in any level within the header"
                 )
             )
         })
@@ -479,7 +479,7 @@ describe('sd-jwt-vc', async () => {
             await rejects(
                 async () => await sdJwtVc.toCompact(),
                 new SdJwtVcError(
-                    "jwt is not valid for usage with sd-jwt-vc. Error: Claim key 'typ' was found, but values did not match of the header"
+                    "jwt is not valid for usage with sd-jwt-vc. Error: Claim key 'typ' was found, but values did not match within the header"
                 )
             )
         })

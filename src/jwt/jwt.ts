@@ -284,7 +284,7 @@ export class Jwt<
             )
         } catch (e) {
             if (e instanceof JwtError) {
-                e.message += ' of the header'
+                e.message += ' within the header'
             }
             throw e
         }
@@ -296,7 +296,7 @@ export class Jwt<
      *
      */
     public assertClaimInPayload(
-        claimKey: string | keyof Payload,
+        claimKey: keyof Payload | string,
         claimValue?: Payload[typeof claimKey] | unknown
     ) {
         this.assertPayload()
@@ -309,7 +309,7 @@ export class Jwt<
             )
         } catch (e) {
             if (e instanceof JwtError) {
-                e.message += ' of the payload'
+                e.message += ' within the payload'
             }
             throw e
         }
