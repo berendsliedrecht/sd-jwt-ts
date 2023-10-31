@@ -128,7 +128,7 @@ export class SdJwt<
         return this as ReturnSdJwtWithPayload<Header, Payload, this>
     }
 
-    private addHasherAlgorithmToPayload() {
+    public addHasherAlgorithmToPayload() {
         this.assertHashAndAlgorithm()
 
         this.addPayloadClaim('_sd_alg', this.hasherAndAlgorithm!.algorithm)
@@ -358,12 +358,12 @@ export class SdJwt<
     }
 
     public checkHasher(expectedHasher: HasherAlgorithm | string): boolean {
-        this.assertPayload()
-
         try {
-            this.assertClaimInPayload('_sd_alg', expectedHasher)
+            this.assertPayload()
+            this.assertClaimInPayload('_sd_alg', expectedHasher.toString())
             return true
-        } catch {
+        } catch (e) {
+            console.error(e)
             return false
         }
     }

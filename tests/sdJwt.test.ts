@@ -1,5 +1,11 @@
 import { before, describe, it } from 'node:test'
-import assert, { deepStrictEqual, rejects, strictEqual } from 'node:assert'
+import assert, {
+    deepStrictEqual,
+    doesNotThrow,
+    rejects,
+    strictEqual,
+    throws
+} from 'node:assert'
 
 import {
     hasherAndAlgorithm,
@@ -19,6 +25,67 @@ import {
 
 describe('sd-jwt', async () => {
     before(prelude)
+
+    describe('utility', () => {
+        it('Check correct hashing algorithm', () => {
+            const sdJwt = new SdJwt({
+                payload: { some: 'payload' }
+            })
+                .withHasher(hasherAndAlgorithm)
+                .addHasherAlgorithmToPayload()
+
+            assert(sdJwt.checkHasher(HasherAlgorithm.Sha256))
+        })
+
+        it('Check incorrect hashing algorithm', () => {
+            const sdJwt = new SdJwt({
+                payload: { some: 'payload' }
+            })
+                .withHasher(hasherAndAlgorithm)
+                .addHasherAlgorithmToPayload()
+
+            assert(!sdJwt.checkHasher(HasherAlgorithm.Sha3_256))
+        })
+    })
+
+    describe('assert in disclosure frame', () => {
+        it('assert claim in disclosure frame', () => {
+            const sdJwt = new SdJwt(
+                { header: { a: 'b' }, payload: { c: 'd' } },
+                { disclosureFrame: { c: true } }
+            )
+
+            doesNotThrow(() => sdJwt.assertClaimInDisclosureFrame('c'))
+        })
+
+        it('assert claims in disclosure frame', () => {
+            const sdJwt = new SdJwt(
+                { header: { a: 'b' }, payload: { c: 'd', e: 'f', g: 'h' } },
+                { disclosureFrame: { c: true, g: true } }
+            )
+
+            doesNotThrow(() => sdJwt.assertClaimInDisclosureFrame('c'))
+            doesNotThrow(() => sdJwt.assertClaimInDisclosureFrame('g'))
+        })
+
+        it('assert claim not in disclosure frame', () => {
+            const sdJwt = new SdJwt(
+                { header: { a: 'b' }, payload: { c: 'd' } },
+                { disclosureFrame: { c: true } }
+            )
+
+            throws(() => sdJwt.assertClaimInDisclosureFrame('z'))
+        })
+
+        it('assert claims not in disclosure frame', () => {
+            const sdJwt = new SdJwt(
+                { header: { a: 'b' }, payload: { c: 'd', e: 'f', g: 'h' } },
+                { disclosureFrame: { c: true, g: true } }
+            )
+
+            throws(() => sdJwt.assertClaimInDisclosureFrame('e'))
+        })
+    })
 
     describe('JWT without selective disclosure', async () => {
         it('should create a simple jwt', async () => {

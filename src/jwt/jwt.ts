@@ -149,7 +149,7 @@ export class Jwt<
      *
      */
     public addHeaderClaim(
-        item: keyof Header,
+        item: keyof Header | string,
         value: Header[typeof item] | unknown
     ): ReturnJwtWithHeader<Header, Payload, this> {
         this.header ??= {} as Header
@@ -177,7 +177,7 @@ export class Jwt<
      *
      */
     public addPayloadClaim(
-        item: keyof Payload,
+        item: keyof Payload | string,
         value: Payload[typeof item] | unknown
     ): ReturnJwtWithPayload<Header, Payload, this> {
         this.payload ??= {} as Payload
