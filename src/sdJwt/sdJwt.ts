@@ -360,9 +360,12 @@ export class SdJwt<
     public checkHasher(expectedHasher: HasherAlgorithm | string): boolean {
         this.assertPayload()
 
-        if (!('_sd_alg' in this.payload!)) return false
-
-        return this.payload!['_sd_alg'] === expectedHasher.toString()
+        try {
+            this.assertClaimInPayload('_sd_alg', expectedHasher)
+            return true
+        } catch {
+            return false
+        }
     }
 
     public async getPrettyClaims<

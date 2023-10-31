@@ -319,6 +319,14 @@ export class Jwt<
         }
     }
 
+    /**
+     *
+     * Get a claim within the payload.
+     *
+     * @throws when the payload is not defined
+     * @throws when the claim could not be found at any level
+     *
+     */
     public getClaimInPayload<T>(claimKey: string): T {
         this.assertPayload()
         return this.getClaimInObject<T>(this.payload!, claimKey)
