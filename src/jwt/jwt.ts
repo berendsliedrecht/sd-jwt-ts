@@ -319,6 +319,29 @@ export class Jwt<
         }
     }
 
+    public getClaimInPayload<T>(claimKey: string): T {
+        this.assertPayload()
+        return this.getClaimInObject<T>(this.payload!, claimKey)
+    }
+
+    public getClaimInHeader<T>(claimKey: string): T {
+        this.assertHeader()
+        return this.getClaimInObject<T>(this.header!, claimKey)
+    }
+
+    private getClaimInObject<T>(
+        object: Record<string, unknown>,
+        claimKey: string
+    ): T {
+        const value = getValueByKeyAnyLevel<T>(object, claimKey)
+
+        if (!value) {
+            throw new JwtError(`Claim key '${claimKey}' not found in any level`)
+        }
+
+        return value
+    }
+
     /**
      *
      * Returns a string of what needs to be signed.
