@@ -270,11 +270,18 @@ export class Jwt<
      * Assert that there is a specific claim, possibly with value, in the Header.
      *
      */
-    public assertClaimInHeader(claimKey: string, claimValue?: unknown) {
+    public assertClaimInHeader(
+        claimKey: keyof Header | string,
+        claimValue?: Header[typeof claimKey] | unknown
+    ) {
         this.assertHeader()
 
         try {
-            this.assertClaimInObject(this.header!, claimKey, claimValue)
+            this.assertClaimInObject(
+                this.header!,
+                claimKey as string,
+                claimValue
+            )
         } catch (e) {
             if (e instanceof JwtError) {
                 e.message += ' of the header'
@@ -288,11 +295,18 @@ export class Jwt<
      * Assert that there is a specific claim, possibly with value, in the Payload.
      *
      */
-    public assertClaimInPayload(claimKey: string, claimValue?: unknown) {
+    public assertClaimInPayload(
+        claimKey: string | keyof Payload,
+        claimValue?: Payload[typeof claimKey] | unknown
+    ) {
         this.assertPayload()
 
         try {
-            this.assertClaimInObject(this.payload!, claimKey, claimValue)
+            this.assertClaimInObject(
+                this.payload!,
+                claimKey as string,
+                claimValue
+            )
         } catch (e) {
             if (e instanceof JwtError) {
                 e.message += ' of the payload'
@@ -327,14 +341,22 @@ export class Jwt<
      * @throws when the claim could not be found at any level
      *
      */
-    public getClaimInPayload<T>(claimKey: string): T {
+    public getClaimInPayload<T>(claimKey: keyof Payload | string): T {
         this.assertPayload()
-        return this.getClaimInObject<T>(this.payload!, claimKey)
+        return this.getClaimInObject<T>(this.payload!, claimKey as string)
     }
 
-    public getClaimInHeader<T>(claimKey: string): T {
+    /**
+     *
+     * Get a claim within the payload.
+     *
+     * @throws when the payload is not defined
+     * @throws when the claim could not be found at any level
+     *
+     */
+    public getClaimInHeader<T>(claimKey: keyof Header | string): T {
         this.assertHeader()
-        return this.getClaimInObject<T>(this.header!, claimKey)
+        return this.getClaimInObject<T>(this.header!, claimKey as string)
     }
 
     private getClaimInObject<T>(

@@ -1,5 +1,5 @@
 import { before, describe, it } from 'node:test'
-import assert, { deepStrictEqual, strictEqual } from 'node:assert'
+import assert, { deepStrictEqual, doesNotThrow, strictEqual } from 'node:assert'
 
 import { prelude, signer, verifier } from './utils'
 
@@ -369,6 +369,72 @@ describe('JWT', async () => {
             assert(isSignatureValid)
             assert(!isValid)
             assert(!areRequiredClaimsIncluded)
+        })
+    })
+
+    describe('assert claims', () => {
+        it('assert top-level claims in payload and header', () => {
+            const jwt = new Jwt({
+                header: { alg: 'ES256' },
+                payload: { iss: 'https://example.org' },
+                signature: new Uint8Array(32).fill(42)
+            })
+
+            doesNotThrow(() =>
+                jwt.assertClaimInPayload('iss', 'https://example.org')
+            )
+
+            doesNotThrow(() => jwt.assertClaimInHeader('alg', 'ES256'))
+        })
+
+        it('assert nested-level claims in payload and header', () => {
+            const jwt = new Jwt({
+                header: { alg: 'ES256', nested: { nestedHeaderClaim: 'foo' } },
+                payload: {
+                    iss: 'https://example.org',
+                    nested: { nestedPayloadClaim: [1, 2, 3] }
+                },
+                signature: new Uint8Array(32).fill(42)
+            })
+
+            doesNotThrow(() =>
+                jwt.assertClaimInPayload('nestedPayloadClaim', [1, 2, 3])
+            )
+
+            doesNotThrow(() =>
+                jwt.assertClaimInHeader('nestedHeaderClaim', 'foo')
+            )
+        })
+    })
+
+    describe('get claims', () => {
+        it('get assert top-level claims in payload and header', () => {
+            const jwt = new Jwt({
+                header: { alg: 'ES256' },
+                payload: { iss: 'https://example.org' },
+                signature: new Uint8Array(32).fill(42)
+            })
+
+            deepStrictEqual(jwt.getClaimInHeader('alg'), 'ES256')
+            deepStrictEqual(jwt.getClaimInPayload('iss'), 'https://example.org')
+        })
+
+        it('assert nested-level claims in payload and header', () => {
+            const jwt = new Jwt({
+                header: { alg: 'ES256', nested: { nestedHeaderClaim: 'foo' } },
+                payload: {
+                    iss: 'https://example.org',
+                    nested: { nestedPayloadClaim: [1, 2, 3] }
+                },
+                signature: new Uint8Array(32).fill(42)
+            })
+
+            deepStrictEqual(
+                jwt.getClaimInPayload('nestedPayloadClaim'),
+                [1, 2, 3]
+            )
+
+            deepStrictEqual(jwt.getClaimInHeader('nestedHeaderClaim'), 'foo')
         })
     })
 })
