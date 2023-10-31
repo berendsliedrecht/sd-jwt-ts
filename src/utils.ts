@@ -1,5 +1,3 @@
-import { JwtError } from './jwt'
-
 export const getAllKeys = (
     object: unknown,
     keys: Array<string> = []

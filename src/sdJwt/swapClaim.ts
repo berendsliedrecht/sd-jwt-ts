@@ -1,5 +1,5 @@
 import { Disclosure } from './disclosures'
-import { Hasher } from './hasher'
+import { Hasher } from '../types'
 
 const shouldInsertDisclosure = async (
     hasher: Hasher,

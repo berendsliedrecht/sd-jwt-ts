@@ -175,17 +175,6 @@ describe('sd-jwt', async () => {
             )
         })
 
-        it('should error when verifying the signature without a signature', async () => {
-            const sdJwt = new SdJwt()
-                .addHeaderClaim('kid', 'a')
-                .addPayloadClaim('some', 'claim')
-
-            await rejects(
-                async () => await sdJwt.verifySignature(() => true),
-                new SdJwtError('Signature must be defined')
-            )
-        })
-
         it('should error when no salt method is provided', async () => {
             await rejects(
                 () =>
@@ -198,7 +187,7 @@ describe('sd-jwt', async () => {
                         {
                             disclosureFrame: { sub: true },
                             hasherAndAlgorithm: {
-                                hasher: () => 'hash',
+                                hasher: () => Buffer.from('hash'),
                                 algorithm: HasherAlgorithm.Sha256
                             }
                         }
@@ -259,7 +248,7 @@ describe('sd-jwt', async () => {
                     saltGenerator: () => 'salt',
                     disclosureFrame: { arr: [true, false] },
                     hasherAndAlgorithm: {
-                        hasher: () => 'hash',
+                        hasher: () => Buffer.from('hash'),
                         algorithm: HasherAlgorithm.Sha256
                     }
                 }
@@ -268,7 +257,7 @@ describe('sd-jwt', async () => {
 
             strictEqual(
                 compact,
-                'eyJhbGciOiAiRWREU0EifQ.eyJhcnIiOiBbeyIuLi4iOiAiaGFzaCJ9LCJGUiJdLCJfc2RfYWxnIjogInNoYS0yNTYifQ.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwgIkRFIl0~'
+                'eyJhbGciOiAiRWREU0EifQ.eyJhcnIiOiBbeyIuLi4iOiAiYUdGemFBIn0sIkZSIl0sIl9zZF9hbGciOiAic2hhLTI1NiJ9.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwgIkRFIl0~'
             )
         })
 
@@ -408,7 +397,7 @@ describe('sd-jwt', async () => {
                     saltGenerator: () => 'salt',
                     disclosureFrame: { iss: true, __decoyCount: 1 },
                     hasherAndAlgorithm: {
-                        hasher: () => 'hash',
+                        hasher: () => Buffer.from('hash'),
                         algorithm: HasherAlgorithm.Sha256
                     }
                 }
@@ -420,7 +409,7 @@ describe('sd-jwt', async () => {
 
             strictEqual(
                 compactSdJwt,
-                'eyJhbGciOiAiRWREU0EifQ.eyJfc2RfYWxnIjogInNoYS0yNTYiLCAiX3NkIjogWyJoYXNoIiwgImhhc2giXX0.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwgImlzcyIsICJodHRwczovL2V4YW1wbGUub3JnL2lzc3VlciJd~eyJ0eXAiOiAia2Irand0IiwgImFsZyI6ICJFUzI1NiJ9.eyJpYXQiOiAxMjMsIm5vbmNlIjogInNlY3VyZS1ub25jZSIsICJhdWQiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZy9hdWRpZW5jZSJ9.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
+                'eyJhbGciOiAiRWREU0EifQ.eyJfc2RfYWxnIjogInNoYS0yNTYiLCAiX3NkIjogWyJhR0Z6YUEiLCAiYUdGemFBIl19.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwgImlzcyIsICJodHRwczovL2V4YW1wbGUub3JnL2lzc3VlciJd~eyJ0eXAiOiAia2Irand0IiwgImFsZyI6ICJFUzI1NiJ9.eyJpYXQiOiAxMjMsIm5vbmNlIjogInNlY3VyZS1ub25jZSIsICJhdWQiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZy9hdWRpZW5jZSJ9.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
             )
         })
 
@@ -456,7 +445,7 @@ describe('sd-jwt', async () => {
                     signer: () => new Uint8Array(32).fill(41),
                     saltGenerator: () => 'salt',
                     hasherAndAlgorithm: {
-                        hasher: () => 'hash',
+                        hasher: () => Buffer.from('hash'),
                         algorithm: HasherAlgorithm.Sha256
                     }
                 }
@@ -505,7 +494,7 @@ describe('sd-jwt', async () => {
                     saltGenerator: () => 'salt',
                     disclosureFrame: { iss: true, __decoyCount: 1 },
                     hasherAndAlgorithm: {
-                        hasher: () => 'hash',
+                        hasher: () => Buffer.from('hash'),
                         algorithm: HasherAlgorithm.Sha256
                     }
                 }
@@ -547,7 +536,7 @@ describe('sd-jwt', async () => {
                     saltGenerator: () => 'salt',
                     disclosureFrame: { iss: true, __decoyCount: 1 },
                     hasherAndAlgorithm: {
-                        hasher: () => 'hash',
+                        hasher: () => Buffer.from('hash'),
                         algorithm: HasherAlgorithm.Sha256
                     }
                 }
@@ -559,7 +548,7 @@ describe('sd-jwt', async () => {
 
             strictEqual(
                 compactSdJwt,
-                'eyJhbGciOiAiRWREU0EifQ.eyJfc2RfYWxnIjogInNoYS0yNTYiLCAiX3NkIjogWyJoYXNoIiwgImhhc2giXX0.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwgImlzcyIsICJodHRwczovL2V4YW1wbGUub3JnL2lzc3VlciJd~eyJ0eXAiOiAia2Irand0IiwgImFsZyI6ICJFUzI1NiJ9.eyJpYXQiOiAxMjMsIm5vbmNlIjogInNlY3VyZS1ub25jZSIsICJhdWQiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZy9hdWRpZW5jZSJ9.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
+                'eyJhbGciOiAiRWREU0EifQ.eyJfc2RfYWxnIjogInNoYS0yNTYiLCAiX3NkIjogWyJhR0Z6YUEiLCAiYUdGemFBIl19.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwgImlzcyIsICJodHRwczovL2V4YW1wbGUub3JnL2lzc3VlciJd~eyJ0eXAiOiAia2Irand0IiwgImFsZyI6ICJFUzI1NiJ9.eyJpYXQiOiAxMjMsIm5vbmNlIjogInNlY3VyZS1ub25jZSIsICJhdWQiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZy9hdWRpZW5jZSJ9.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
             )
 
             const fromCompactSdJwt = SdJwt.fromCompact(compactSdJwt).withSigner(
@@ -587,7 +576,7 @@ describe('sd-jwt', async () => {
                     saltGenerator: () => 'salt',
                     disclosureFrame: { iss: true, __decoyCount: 1 },
                     hasherAndAlgorithm: {
-                        hasher: () => 'hash',
+                        hasher: () => Buffer.from('hash'),
                         algorithm: HasherAlgorithm.Sha256
                     }
                 }
@@ -595,7 +584,7 @@ describe('sd-jwt', async () => {
 
             strictEqual(
                 await sdJwt.toCompact(),
-                'eyJhbGciOiAiRWREU0EifQ.eyJfc2RfYWxnIjogInNoYS0yNTYiLCAiX3NkIjogWyJoYXNoIiwgImhhc2giXX0.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwgImlzcyIsICJodHRwczovL2V4YW1wbGUub3JnL2lzc3VlciJd~'
+                'eyJhbGciOiAiRWREU0EifQ.eyJfc2RfYWxnIjogInNoYS0yNTYiLCAiX3NkIjogWyJhR0Z6YUEiLCAiYUdGemFBIl19.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwgImlzcyIsICJodHRwczovL2V4YW1wbGUub3JnL2lzc3VlciJd~'
             )
         })
 
@@ -622,7 +611,7 @@ describe('sd-jwt', async () => {
                         }
                     },
                     hasherAndAlgorithm: {
-                        hasher: () => 'hash',
+                        hasher: () => Buffer.from('hash'),
                         algorithm: HasherAlgorithm.Sha256
                     }
                 }
@@ -630,7 +619,7 @@ describe('sd-jwt', async () => {
 
             strictEqual(
                 await sdJwt.toCompact(),
-                'eyJhbGciOiAiRWREU0EifQ.eyJuZXN0ZWRfZmllbGQiOiB7Il9zZCI6IFsiaGFzaCIsICJoYXNoIiwgImhhc2giLCAiaGFzaCIsICJoYXNoIiwgImhhc2giXX0sIl9zZF9hbGciOiAic2hhLTI1NiIsICJfc2QiOiBbImhhc2giLCAiaGFzaCJdfQ.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwgImlzcyIsICJodHRwczovL2V4YW1wbGUub3JnL2lzc3VlciJd~WyJzYWx0IiwgIm1vcmVfbmVzdGVkX2ZpZWxkIiwgeyJhIjogWzEsMiwzLDRdfV0~'
+                'eyJhbGciOiAiRWREU0EifQ.eyJuZXN0ZWRfZmllbGQiOiB7Il9zZCI6IFsiYUdGemFBIiwgImFHRnphQSIsICJhR0Z6YUEiLCAiYUdGemFBIiwgImFHRnphQSIsICJhR0Z6YUEiXX0sIl9zZF9hbGciOiAic2hhLTI1NiIsICJfc2QiOiBbImFHRnphQSIsICJhR0Z6YUEiXX0.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwgImlzcyIsICJodHRwczovL2V4YW1wbGUub3JnL2lzc3VlciJd~WyJzYWx0IiwgIm1vcmVfbmVzdGVkX2ZpZWxkIiwgeyJhIjogWzEsMiwzLDRdfV0~'
             )
         })
 
@@ -640,7 +629,7 @@ describe('sd-jwt', async () => {
 
             const sdJwt = SdJwt.fromCompact(compact)
                 .withHasher({
-                    hasher: () => 'hash',
+                    hasher: () => Buffer.from('hash'),
                     algorithm: HasherAlgorithm.Sha256
                 })
                 .withSigner(() => new Uint8Array(32).fill(41))

@@ -2,12 +2,10 @@ import {
     Jwt,
     JwtAdditionalOptions,
     JwtOptions,
-    JwtVerificationResult,
-    Signer
+    JwtVerificationResult
 } from '../jwt'
-import { SignatureAndEncryptionAlgorithm } from './signatureAndEncryptionAlgorithm'
-import { Verifier } from '../sdJwt'
-import { MakePropertyRequired } from '../types'
+import { SignatureAndEncryptionAlgorithm } from '../signatureAndEncryptionAlgorithm'
+import { MakePropertyRequired, Signer, Verifier } from '../types'
 
 type ReturnKeyBindingWithHeaderAndPayload<
     H extends Record<string, unknown>,
@@ -56,6 +54,13 @@ export class KeyBinding<
         this.signer = additionalOptions?.signer as Signer<Header>
     }
 
+    /**
+     *
+     * Convert a standard `JWT` to an instance of `KeyBinding`.
+     *
+     * @throws when the claims are not valid for key binding
+     *
+     */
     public static fromJwt<
         Header extends Record<string, unknown> = Record<string, unknown>,
         Payload extends Record<string, unknown> = Record<string, unknown>
@@ -69,9 +74,21 @@ export class KeyBinding<
             { signer: jwt.signer }
         )
 
+        keyBinding.assertValidForKeyBinding()
+
         return keyBinding
     }
 
+    /**
+     *
+     * Verify the jwt as a valid `KeyBinding` jwt.
+     *
+     * Invalid when:
+     *   - The required claims for key binding are not included
+     *   - The signature is invalid
+     *   - The optional required additional claims are not included
+     *
+     */
     public override async verify(
         verifySignature: Verifier<Header>,
         requiredClaims?: Array<keyof Payload | string>,
@@ -88,6 +105,13 @@ export class KeyBinding<
         return jwtVerificationResult
     }
 
+    /**
+     *
+     * Convert a compact `JWT` into an instance of `KeyBinding`.
+     *
+     * @throws when the claims are not valid for key binding
+     *
+     */
     public static override fromCompact<
         Header extends Record<string, unknown> = Record<string, unknown>,
         Payload extends Record<string, unknown> = Record<string, unknown>
@@ -102,6 +126,13 @@ export class KeyBinding<
         >
     }
 
+    /**
+     *
+     * Asserts the required properties for valid key binding.
+     *
+     * @throws when a claim in the header, or payload, is invalid
+     *
+     */
     public async assertValidForKeyBinding() {
         try {
             this.assertHeader()

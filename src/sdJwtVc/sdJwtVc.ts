@@ -1,11 +1,8 @@
-import {
-    ReturnSdJwtWithHeaderAndPayload,
-    Verifier,
-    sdJwtFromCompact
-} from '../sdJwt'
+import { ReturnSdJwtWithHeaderAndPayload, sdJwtFromCompact } from '../sdJwt'
 import { SdJwt, SdJwtVerificationResult } from '../sdJwt'
 import { SdJwtVcError } from './error'
 import { JwtError } from '../jwt'
+import { Verifier } from '../types'
 
 export type SdJwtVcVerificationResult = SdJwtVerificationResult & {
     containsExpectedKeyBinding: boolean
@@ -34,9 +31,6 @@ export class SdJwtVc<
         this.assertNonSelectivelyDisclosableClaim('cnf')
     }
 
-    /**
-     * @todo: this does not do any validation of the actual content of the `cnf`
-     */
     private validateSdJwtVc(expectedCnfClaim?: Record<string, unknown>) {
         try {
             this.assertNonSelectivelyDisclosableClaims()
@@ -59,6 +53,13 @@ export class SdJwtVc<
         }
     }
 
+    /**
+     *
+     * Instantiate a sd-jwt-vc from a compact format.
+     *
+     * @throws when the compact sd-jwt-vc is not a valid sd-jwt-vc
+     *
+     */
     public static override fromCompact<
         Header extends Record<string, unknown> = Record<string, unknown>,
         Payload extends Record<string, unknown> = Record<string, unknown>
@@ -66,7 +67,7 @@ export class SdJwtVc<
         const { disclosures, keyBinding, signature, payload, header } =
             sdJwtFromCompact<Header, Payload>(compact)
 
-        const sdJwt = new SdJwtVc<Header, Payload>({
+        const sdJwtVc = new SdJwtVc<Header, Payload>({
             header,
             payload,
             signature,
@@ -74,13 +75,28 @@ export class SdJwtVc<
             keyBinding
         })
 
-        return sdJwt as ReturnSdJwtWithHeaderAndPayload<
+        sdJwtVc.validateSdJwtVc()
+
+        return sdJwtVc as ReturnSdJwtWithHeaderAndPayload<
             Header,
             Payload,
-            typeof sdJwt
+            typeof sdJwtVc
         >
     }
 
+    /**
+     *
+     * Verify the sd-jwt-vc.
+     *
+     * It validates the following properties:
+     *   - sd-jwt issuer signature
+     *   - Optionally, the required claims
+     *   - The `nbf` and `exp` claims
+     *   - Whether the key binding is valid
+     *   - Whether the expected key binding is used
+     *   - Whether the required sd-jwt-vc properties are included
+     *
+     */
     public override async verify(
         verifier: Verifier<Header>,
         requiredClaimKeys?: Array<keyof Payload | string>,
@@ -118,6 +134,19 @@ export class SdJwtVc<
         return sdJwtVerificationResult
     }
 
+    /**
+     *
+     * Create a compact format of the sd-jwt-vc.
+     *
+     * This will
+     *   - Apply the disclosure frame
+     *   - Add a signature if there is none
+     *
+     * @throws when the sd-jwt-vc is not conformant to the specification
+     * @throws When the signature and signer are not defined
+     * @throws When a claim is requested to be selectively disclosable, but it was not found in the payload
+     *
+     */
     override async toCompact(): Promise<string> {
         this.validateSdJwtVc()
         return await super.toCompact()

@@ -1,0 +1,12 @@
+import { OrPromise } from './utils'
+
+import { HasherAlgorithm } from '../hasherAlgorithm'
+
+/**
+ * A simple hash function that takes the base64url encoded variant of the disclosure and returns the digest as a byte array
+ */
+export type Hasher = (input: string) => OrPromise<Uint8Array>
+export type HasherAndAlgorithm = {
+    hasher: Hasher
+    algorithm: string | HasherAlgorithm
+}

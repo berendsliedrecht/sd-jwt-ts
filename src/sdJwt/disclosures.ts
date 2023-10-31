@@ -1,8 +1,6 @@
+import { DisclosureItem, Hasher } from '../types'
 import { Base64url } from '../base64url'
 import { SdJwtError } from './error'
-import { Hasher } from './hasher'
-
-export type DisclosureItem = [string, string, unknown] | [string, unknown]
 
 export class Disclosure {
     private salt: string
@@ -50,7 +48,8 @@ export class Disclosure {
     }
 
     public async digest(hasher: Hasher) {
-        return hasher(this.encoded)
+        const hash = await hasher(this.encoded)
+        return Base64url.encode(hash)
     }
 
     public toString() {

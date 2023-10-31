@@ -1,24 +1,9 @@
+import { DisclosureFrame } from '../types'
 import { deleteByPath } from '../utils'
-import { SaltGenerator, createDecoys } from './decoys'
+import { createDecoys } from './decoys'
 import { Disclosure } from './disclosures'
 import { SdJwtError } from './error'
-import { Hasher } from './hasher'
-
-export type DisclosureFrame<T> = T extends Array<unknown>
-    ? {
-          [K in keyof T]?: T[K] extends Record<string | number, unknown>
-              ? DisclosureFrame<T[K]> | boolean
-              : boolean
-      }
-    : T extends Record<string, unknown>
-    ? {
-          [K in keyof T]?: T[K] extends Array<unknown>
-              ? DisclosureFrame<T[K]> | boolean
-              : T[K] extends Record<string, unknown>
-              ? ({ __decoyCount?: number } & DisclosureFrame<T[K]>) | boolean
-              : boolean
-      } & { __decoyCount?: number } & Record<string, unknown>
-    : boolean
+import { SaltGenerator, Hasher } from '../types'
 
 export const applyDisclosureFrame = async <
     Payload extends Record<string, unknown> = Record<string, unknown>

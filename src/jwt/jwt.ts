@@ -1,8 +1,8 @@
 import { Base64url } from '../base64url'
 import { JwtError } from './error'
-import { MakePropertyRequired, OrPromise } from '../types'
+import { MakePropertyRequired, Signer } from '../types'
 import { jwtFromCompact } from './compact'
-import { Verifier } from '../sdJwt/types'
+import { Verifier } from '../types'
 import { getValueByKeyAnyLevel, simpleDeepEqual } from '../utils'
 
 type ReturnJwtWithHeaderAndPayload<
@@ -43,10 +43,6 @@ export type JwtAdditionalOptions<
 > = {
     signer?: Signer<Header>
 }
-
-export type Signer<
-    Header extends Record<string, unknown> = Record<string, unknown>
-> = (input: string, header: Header) => OrPromise<Uint8Array>
 
 export type JwtVerificationResult = {
     isValid: boolean

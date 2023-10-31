@@ -13,17 +13,20 @@ describe('decoys', async () => {
         const decoys = await createDecoys(
             10,
             () => 'salt',
-            (input) => `hash=${input}`
+            (input) => Uint8Array.from(Buffer.from(input))
         )
 
-        deepStrictEqual(decoys, new Array(10).fill('hash=salt'))
+        deepStrictEqual(
+            decoys,
+            new Array(10).fill(Buffer.from('salt').toString('base64url'))
+        )
     })
 
     it('Sha256 decoys have the correct length', async () => {
         const decoys = await createDecoys(
             10,
             () => getRandomValues(Buffer.alloc(128 / 8)).toString('base64url'),
-            (input) => createHash('sha256').update(input).digest('base64url')
+            (input) => createHash('sha256').update(input).digest()
         )
 
         decoys.forEach((d) => strictEqual(d.length, 43))

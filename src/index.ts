@@ -1,36 +1,40 @@
-export {
-    SdJwt,
-    Hasher,
-    Disclosure,
-    SdJwtError,
+export type {
     SdJwtOptions,
-    SaltGenerator,
-    DisclosureItem,
-    DisclosureFrame,
-    HasherAndAlgorithm,
     SdJwtAdditionalOptions,
-    HasherAlgorithm,
-    Verifier,
     SdJwtVerificationResult
 } from './sdJwt'
 
-export {
-    KeyBinding,
+export type {
     KeyBindingHeader,
     KeyBindingPayload,
     KeyBindingOptions,
     KeyBindingAdditionalOptions,
-    SignatureAndEncryptionAlgorithm,
     KeyBindingVerificationResult
 } from './keyBinding'
 
-export {
-    Jwt,
-    Signer,
-    JwtError,
+export type {
     JwtOptions,
     JwtAdditionalOptions,
     JwtVerificationResult
 } from './jwt'
 
-export { SdJwtVc, SdJwtVcVerificationResult, SdJwtVcError } from './sdJwtVc'
+export type {
+    Hasher,
+    Signer,
+    Verifier,
+    VerifyOptions,
+    SaltGenerator,
+    DisclosureItem,
+    DisclosureFrame,
+    HasherAndAlgorithm
+} from './types'
+
+export type { SdJwtVcVerificationResult } from './sdJwtVc'
+
+export { HasherAlgorithm } from './hasherAlgorithm'
+export { SignatureAndEncryptionAlgorithm } from './signatureAndEncryptionAlgorithm'
+
+export { SdJwt, Disclosure, SdJwtError } from './sdJwt'
+export { KeyBinding } from './keyBinding'
+export { Jwt, JwtError } from './jwt'
+export { SdJwtVc, SdJwtVcError } from './sdJwtVc'

@@ -8,13 +8,15 @@ import {
 } from 'node:crypto'
 import { strictEqual } from 'node:assert'
 
-import { Disclosure, SignatureAndEncryptionAlgorithm, Signer } from '../src'
 import {
+    Disclosure,
+    SignatureAndEncryptionAlgorithm,
+    Signer,
     HasherAlgorithm,
     HasherAndAlgorithm,
-    SaltGenerator
-} from '../src/sdJwt'
-import { Verifier } from '../src/sdJwt/types'
+    SaltGenerator,
+    Verifier
+} from '../src'
 
 const { publicKey, privateKey } = generateKeyPairSync('ed25519')
 
@@ -46,9 +48,7 @@ export const prelude = () => {
 }
 
 export const hasherAndAlgorithm: HasherAndAlgorithm = {
-    hasher: (input: string) =>
-        createHash('sha256').update(input).digest().toString('base64url'),
-
+    hasher: (input: string) => createHash('sha256').update(input).digest(),
     algorithm: HasherAlgorithm.Sha256
 }
 

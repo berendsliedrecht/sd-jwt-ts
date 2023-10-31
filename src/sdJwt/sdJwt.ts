@@ -1,26 +1,24 @@
 import { Base64url } from '../base64url'
 import { SdJwtError } from './error'
-import { SaltGenerator } from './decoys'
-import { HasherAndAlgorithm } from './hasher'
 import {
-    Jwt,
-    JwtAdditionalOptions,
-    JwtVerificationResult,
-    Signer
-} from '../jwt/jwt'
+    DisclosureFrame,
+    HasherAndAlgorithm,
+    SaltGenerator,
+    Verifier
+} from '../types'
+import { Jwt, JwtAdditionalOptions, JwtVerificationResult } from '../jwt/jwt'
 import { KeyBinding } from '../keyBinding'
 import {
     ReturnSdJwtWithHeaderAndPayload,
     ReturnSdJwtWithKeyBinding,
-    ReturnSdJwtWithPayload,
-    Verifier
+    ReturnSdJwtWithPayload
 } from './types'
 import { sdJwtFromCompact } from './compact'
 import { Disclosure } from './disclosures'
-import { DisclosureFrame, applyDisclosureFrame } from './disclosureFrame'
+import { applyDisclosureFrame } from './disclosureFrame'
 import { swapClaims } from './swapClaim'
 import { getAllKeys, getValueByKeyAnyLevel } from '../utils'
-import { HasherAlgorithm } from './hasherAlgorithm'
+import { HasherAlgorithm } from '../hasherAlgorithm'
 
 export type SdJwtToCompactOptions<
     DisclosablePayload extends Record<string, unknown>
@@ -90,6 +88,11 @@ export class SdJwt<
         }
     }
 
+    /**
+     *
+     * Create an sd-jwt from a compact format. This will succeed for a normal jwt as well.
+     *
+     */
     public static override fromCompact<
         Header extends Record<string, unknown> = Record<string, unknown>,
         Payload extends Record<string, unknown> = Record<string, unknown>
@@ -112,23 +115,58 @@ export class SdJwt<
         >
     }
 
+    /**
+     *
+     * Add a salt generator.
+     *
+     * Recommended size is 128 bits (i.e. 16 bytes).
+     *
+     * Salts will not be seeded and a new one will be used for each claim.
+     *
+     * @example
+     *
+     * Node.js: `crypto.randomBytes(128 / 8)`
+     *
+     * React Native: `expo-standard-web-crypto`
+     *
+     * Browser: `crypto.getRandomValues(new Uint8Array(128 / 8))`
+     *
+     */
     public withSaltGenerator(saltGenerator: SaltGenerator) {
         this.saltGenerator = saltGenerator
         return this
     }
 
-    public withSigner(signer: Signer<Header>) {
-        this.signer = signer as Signer<Record<string, unknown>>
-        return this
-    }
-
+    /**
+     *
+     * Add a hasher that will be used to hash the disclosures.
+     *
+     * @note Make sure to return a base64url encoded version of the hash.
+     *
+     * @example
+     *
+     * Node.js: `createHash('sha256').update(input).digest().toString('base64url')`
+     *
+     */
     public withHasher(hasherAndAlgorithm: HasherAndAlgorithm) {
         this.hasherAndAlgorithm = hasherAndAlgorithm
 
         return this as ReturnSdJwtWithPayload<Header, Payload, this>
     }
 
-    public addHasherAlgorithmToPayload() {
+    /**
+     *
+     * Adds the algorithm of the hasher to the payload.
+     *
+     * For convience, this also allows you to set the hasher.
+     *
+     * @throws when the hasher and algorithm are not set.
+     *
+     */
+    public addHasherAlgorithmToPayload(
+        hasherAndAlgorithm?: HasherAndAlgorithm
+    ) {
+        if (hasherAndAlgorithm) this.withHasher(hasherAndAlgorithm)
         this.assertHashAndAlgorithm()
 
         this.addPayloadClaim('_sd_alg', this.hasherAndAlgorithm!.algorithm)
@@ -136,6 +174,13 @@ export class SdJwt<
         return this as ReturnSdJwtWithPayload<Header, Payload, this>
     }
 
+    /**
+     *
+     * Set the `KeyBinding` jwt.
+     *
+     * This can be done as a holder to provide proof of possession of key material
+     *
+     */
     public withKeyBinding(
         keyBinding: Jwt | KeyBinding | string
     ): ReturnSdJwtWithKeyBinding<Header, Payload, this> {
@@ -150,21 +195,35 @@ export class SdJwt<
         return this as ReturnSdJwtWithKeyBinding<Header, Payload, this>
     }
 
+    /**
+     *
+     * Set the disclosure frame which will be applied via `SdJwt.applyDisclosureFrame` or when `SdJwt.toCompact` is called.
+     *
+     */
     public withDisclosureFrame(disclosureFrame: DisclosureFrame<Payload>) {
         this.disclosureFrame = disclosureFrame
         return this
     }
 
+    /**
+     *
+     * Apply the disclosure frame.
+     *
+     * @throws when the salt generator is not set
+     * @throws when the hasher and algorithm is not set
+     * @throws when the payload is not set
+     * @throws when no disclosure frame is set
+     * @throws when disclosures are included and a signature is set, but no signer is provided `*`
+     * @throws when the disclosure frame is inconsistent with the payload
+     *
+     * * This is done as removing items from the payload alters the signature and it has to be resigned.
+     *
+     */
     public async applyDisclosureFrame() {
         this.assertSaltGenerator()
         this.assertHashAndAlgorithm()
         this.assertPayload()
-
-        if (!this.disclosureFrame) {
-            throw new SdJwtError(
-                'To apply a disclosure frame, either inlude one in the API, supply it via the constructor or call `this.withDisclosureFrame()`.'
-            )
-        }
+        this.assertDisclosureFrame()
 
         if (
             this.disclosures &&
@@ -182,19 +241,29 @@ export class SdJwt<
                 this.saltGenerator!,
                 this.hasherAndAlgorithm!.hasher,
                 this.addHasherAlgorithmToPayload().payload!,
-                this.disclosureFrame
+                this.disclosureFrame!
             )
 
         this.disclosures = disclosures
         this.payload = framedPayload as Payload
     }
 
+    /**
+     *
+     * Assert that the disclosure frame is set.
+     *
+     */
     public assertDisclosureFrame() {
         if (this.disclosureFrame) return
 
         throw new SdJwtError('Disclosureframe must be defined')
     }
 
+    /**
+     *
+     * Assert that the salt generator is set.
+     *
+     */
     private assertSaltGenerator() {
         if (!this.saltGenerator) {
             throw new SdJwtError(
@@ -203,6 +272,11 @@ export class SdJwt<
         }
     }
 
+    /**
+     *
+     * Assert that the hasher and algorithm is set.
+     *
+     */
     private assertHashAndAlgorithm() {
         if (!this.hasherAndAlgorithm) {
             throw new SdJwtError(
@@ -211,6 +285,13 @@ export class SdJwt<
         }
     }
 
+    /**
+     *
+     * Assert that a certain claim is included in the disclosure frame.
+     *
+     * @throws when the disclosure frame is not set
+     *
+     */
     public assertClaimInDisclosureFrame(claimKey: string) {
         this.assertDisclosureFrame()
 
@@ -223,24 +304,20 @@ export class SdJwt<
         }
     }
 
-    public async verifySignature(cb: Verifier<Header>): Promise<boolean> {
-        this.assertSignature()
-
-        const message = this.signableInput
-
-        return await cb({
-            message,
-            header: this.header as Header,
-            signature: this.signature!
-        })
-    }
-
     /**
      * @todo: using the indices of the disclosures that should be added is not the best API.
      *
      * Either support for PEX should be added and we can just take a `PresentationDefinition`, but for now this is the best we can do.
      *
      * This function includes disclosures optimisitcally. This means that is `undefined` is supplied, it includes all disclosures. To include nothing, supply an empty array.
+     *
+     * @throws when indices are supplied, but there are no disclosures on the instance
+     * @throws when the indices list is larger than the disclosure list
+     * @throws when a negative index is provided
+     * @throws when `NaN` or `Infinity` is supplied
+     * @throws when an index larger than the `disclosures.length - 1` is provided
+     * @throws when the same index is included multiple times
+     *
      */
     public async present(includedDisclosureIndices?: Array<number>) {
         if (!this.disclosures && this.disclosureFrame) {
@@ -313,6 +390,17 @@ export class SdJwt<
         return await this.__toCompact(includedDisclosures, false)
     }
 
+    /**
+     *
+     * Verify the sd-jwt.
+     *
+     * It validates the following properties:
+     *   - sd-jwt issuer signature
+     *   - Optionally, the required claims
+     *   - The `nbf` and `exp` claims
+     *   - Whether the key binding is valid
+     *
+     */
     public async verify(
         verifier: Verifier<Header>,
         requiredClaimKeys?: Array<keyof Payload | string>,
@@ -357,6 +445,11 @@ export class SdJwt<
         }
     }
 
+    /**
+     *
+     * Utility method to check whether the expected hasher algorithm is used.
+     *
+     */
     public checkHasher(expectedHasher: HasherAlgorithm | string): boolean {
         try {
             this.assertPayload()
@@ -368,6 +461,11 @@ export class SdJwt<
         }
     }
 
+    /**
+     *
+     * Return all claims from the payload and the disclosures on their original place.
+     *
+     */
     public async getPrettyClaims<
         Claims extends Record<string, unknown> = Payload
     >(): Promise<Claims> {
@@ -383,6 +481,18 @@ export class SdJwt<
         return newPayload as Claims
     }
 
+    /**
+     *
+     * Create a compact format of the sd-jwt.
+     *
+     * This will
+     *   - Apply the disclosure frame
+     *   - Add a signature if there is none
+     *
+     * @throws When the signature and signer are not defined
+     * @throws When a claim is requested to be selectively disclosable, but it was not found in the payload
+     *
+     */
     public async toCompact(): Promise<string> {
         return this.__toCompact()
     }
