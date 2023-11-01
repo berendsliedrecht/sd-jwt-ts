@@ -18,9 +18,7 @@ import {
 const { privateKey } = generateKeyPairSync('ed25519')
 
 const hasherAndAlgorithm: HasherAndAlgorithm = {
-    hasher: (input: string) =>
-        createHash('sha256').update(input).digest().toString('base64url'),
-
+    hasher: (input: string) => createHash('sha256').update(input).digest(),
     algorithm: HasherAlgorithm.Sha256
 }
 
@@ -35,7 +33,7 @@ const saltGenerator: SaltGenerator = () =>
     getRandomValues(Buffer.alloc(16)).toString('base64url')
 
 void (async () => {
-    const keyBinding = new KeyBinding(
+    const keyBinding = new KeyBinding<{}, {}>(
         {
             header: {
                 typ: 'kb+jwt',

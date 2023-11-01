@@ -17,9 +17,7 @@ import {
 const { privateKey } = generateKeyPairSync('ed25519')
 
 const hasherAndAlgorithm: HasherAndAlgorithm = {
-    hasher: (input: string) =>
-        createHash('sha256').update(input).digest().toString('base64url'),
-
+    hasher: (input: string) => createHash('sha256').update(input).digest(),
     algorithm: HasherAlgorithm.Sha256
 }
 

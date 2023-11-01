@@ -12,16 +12,14 @@ import {
     SaltGenerator,
     SdJwt,
     SignatureAndEncryptionAlgorithm,
-    Signer
+    Signer,
+    Verifier
 } from '../src'
-import { Verifier } from '../src/sdJwt/types'
 
 const { privateKey, publicKey } = generateKeyPairSync('ed25519')
 
 const hasherAndAlgorithm: HasherAndAlgorithm = {
-    hasher: (input: string) =>
-        createHash('sha256').update(input).digest().toString('base64url'),
-
+    hasher: (input: string) => createHash('sha256').update(input).digest(),
     algorithm: HasherAlgorithm.Sha256
 }
 
