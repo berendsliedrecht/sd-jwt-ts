@@ -1,7 +1,7 @@
 import { before, describe, it } from 'node:test'
-import { deepStrictEqual } from 'node:assert'
+import assert, { deepStrictEqual } from 'node:assert'
 
-import { deleteByPath, getAllKeys } from '../src/utils'
+import { deleteByPath, getAllKeys, simpleDeepEqual } from '../src/utils'
 
 import { prelude } from './utils'
 
@@ -59,6 +59,53 @@ describe('utils', () => {
             { a: 123 },
             { a: 123 }
         )
+    })
+
+    describe('simple deep equality', () => {
+        it('simple object comparison', () => {
+            const l = {
+                a: 'b',
+                c: 'd'
+            }
+
+            const r = {
+                a: 'b',
+                c: 'd'
+            }
+
+            assert(simpleDeepEqual(l, r))
+        })
+
+        it('simple object ignore undefined comparison', () => {
+            const l = {
+                a: 'b',
+                c: 'd',
+                d: undefined
+            }
+
+            const r = {
+                a: 'b',
+                c: 'd'
+            }
+
+            assert(simpleDeepEqual(l, r))
+        })
+
+        it('simple string comparison', () => {
+            const l = 'a'
+
+            const r = 'a'
+
+            assert(simpleDeepEqual(l, r))
+        })
+
+        it('simple number comparison', () => {
+            const l = 1
+
+            const r = 1
+
+            assert(simpleDeepEqual(l, r))
+        })
     })
 
     describe('get all keys', () => {
