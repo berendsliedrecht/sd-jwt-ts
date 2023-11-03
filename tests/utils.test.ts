@@ -76,7 +76,7 @@ describe('utils', () => {
             assert(simpleDeepEqual(l, r))
         })
 
-        it('simple object ignore undefined comparison', () => {
+        it('simple object ignore undefined comparison (lhs has undefined)', () => {
             const l = {
                 a: 'b',
                 c: 'd',
@@ -86,6 +86,21 @@ describe('utils', () => {
             const r = {
                 a: 'b',
                 c: 'd'
+            }
+
+            assert(simpleDeepEqual(l, r))
+        })
+
+        it('simple object ignore undefined comparison (rhs has undefined)', () => {
+            const l = {
+                a: 'b',
+                c: 'd'
+            }
+
+            const r = {
+                a: 'b',
+                c: 'd',
+                d: undefined
             }
 
             assert(simpleDeepEqual(l, r))

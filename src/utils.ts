@@ -54,7 +54,7 @@ export const simpleDeepEqual = (lhs: unknown, rhs: unknown): boolean => {
     const r = { ...rhs } as Record<string, unknown>
 
     Object.keys(l).forEach((key) => l[key] === undefined && delete l[key])
-    Object.keys(r).forEach((key) => l[key] === undefined && delete l[key])
+    Object.keys(r).forEach((key) => r[key] === undefined && delete r[key])
 
     const keys1 = Object.keys(l)
     const keys2 = Object.keys(r)
