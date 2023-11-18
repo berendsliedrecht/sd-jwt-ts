@@ -1,6 +1,5 @@
 import { ReturnSdJwtWithHeaderAndPayload, sdJwtFromCompact } from '../sdJwt'
 import { SdJwt, SdJwtVerificationResult } from '../sdJwt'
-import { SdJwtVcError } from './error'
 import { JwtError } from '../jwt'
 import { Verifier } from '../types'
 
@@ -13,22 +12,11 @@ export class SdJwtVc<
     Header extends Record<string, unknown> = Record<string, unknown>,
     Payload extends Record<string, unknown> = Record<string, unknown>
 > extends SdJwt<Header, Payload> {
-    private assertNonSelectivelyDisclosableClaim(claimKey: string) {
-        try {
-            this.assertClaimInDisclosureFrame(claimKey)
-            throw new SdJwtVcError(
-                `Claim key '${claimKey}' was found in the disclosure frame. This claim is not allowed to be selectively disclosed`
-            )
-        } catch {}
-    }
-
-    private assertNonSelectivelyDisclosableClaims() {
+    public assertNonSelectivelyDisclosableClaims() {
         if (!this.disclosureFrame) return
-
-        this.assertNonSelectivelyDisclosableClaim('iss')
-        this.assertNonSelectivelyDisclosableClaim('type')
-        this.assertNonSelectivelyDisclosableClaim('iat')
-        this.assertNonSelectivelyDisclosableClaim('cnf')
+        ;['iss', 'type', 'iat', 'cnf'].forEach(
+            this.assertNonSelectivelyDisclosableClaim
+        )
     }
 
     private validateSdJwtVc(expectedCnfClaim?: Record<string, unknown>) {
