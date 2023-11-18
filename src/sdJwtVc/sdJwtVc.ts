@@ -14,7 +14,7 @@ export class SdJwtVc<
 > extends SdJwt<Header, Payload> {
     public assertNonSelectivelyDisclosableClaims() {
         if (!this.disclosureFrame) return
-        ;['iss', 'type', 'iat', 'cnf'].forEach(
+        ;['iss', 'vct', 'iat', 'cnf'].forEach(
             this.assertNonSelectivelyDisclosableClaim
         )
     }
@@ -29,7 +29,7 @@ export class SdJwtVc<
             this.assertClaimInHeader('alg')
 
             this.assertClaimInPayload('iss')
-            this.assertClaimInPayload('type')
+            this.assertClaimInPayload('vct')
             this.assertClaimInPayload('iat')
             this.assertClaimInPayload('cnf', expectedCnfClaim)
         } catch (e) {

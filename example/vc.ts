@@ -53,7 +53,7 @@ const issuer = async () => {
                 'https://w3id.org/security/bbs/v1'
             ],
             id: 'https://issuer.oidp.uscis.gov/credentials/83627465',
-            type: ['VerifiableCredential', 'PermanentResidentCard'],
+            vct: ['VerifiableCredential', 'PermanentResidentCard'],
             issuer: 'did:key:zUC74VEqqhEHQcgv4zagSPkqFJxuNWuoBPKjJuHETEUeHLoSqWt92viSsmaWjy82y2cgguc8e9hsGBifnVK67pQ4gve3m6iSboDkmJjxVEb1d6mRAx5fpMAejooNzNqqbTMVeUN',
             identifier: '83627465',
             name: 'Permanent Resident Card',

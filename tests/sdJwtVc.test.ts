@@ -32,7 +32,7 @@ describe('sd-jwt-vc', async () => {
                     typ: 'vc+sd-jwt'
                 },
                 payload: {
-                    type: 'IdentityCredential',
+                    vct: 'IdentityCredential',
                     iss: 'https://example.org/issuer',
                     iat: 1698056110,
                     cnf,
@@ -74,13 +74,13 @@ describe('sd-jwt-vc', async () => {
 
             strictEqual(
                 compact,
-                'eyJhbGciOiAiRWREU0EiLCAidHlwIjogInZjK3NkLWp3dCJ9.eyJ0eXBlIjogIklkZW50aXR5Q3JlZGVudGlhbCIsICJpc3MiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZy9pc3N1ZXIiLCAiaWF0IjogMTY5ODA1NjExMCwiY25mIjogeyJqd2siOiB7ImNydiI6ICJFZDI1NTE5IiwgImt0eSI6ICJPS1AiLCAieCI6ICJDaXJabi1WOW5fS1JoOGMySXlXcU90clZtOXdsemFWRERTOFk0ekdtUXNvIn19LCJfc2RfYWxnIjogInNoYS0yNTYiLCAiX3NkIjogWyJWM2xLZWxsWGVEQkphWGRuU1cxR2ExcElTbXhqTTAxcFRFTkNOMGx1VGpCamJWWnNaRVk1YUZwSFVubGFXRTU2U1dwdlowbHFSWGxOZVVKT1dWZHNkVWxHVGpCSmFYZG5TVzE0ZGxreVJuTmhXRkkxU1dwdlowbHJSblZsV0ZKMlpESTBhVXhEUVdsamJWWnVZVmM1ZFVscWIyZEphMFoxWlZoT01GbFlVbXhKYVhkblNXMU9kbVJYTlRCamJtdHBUMmxCYVZaV1RXbG1WakEiLCAiVjNsS2VsbFhlREJKYVhkblNXMUtjR051VW05YVIwWXdXbE5KYzBsRFNYaFBWRkYzVEZSQmVFeFVRWGhKYkRBIiwgIlYzbEtlbGxYZURCSmFYZG5TVzFXZEZsWGJITkphWGRuU1cxd2RtRkhOV3RpTWxaQldsaG9hR0pZUW5OYVV6VnFZakl3YVZoUiIsICJWM2xLZWxsWGVEQkphWGRuU1cxYWFHSlhiSE5sVmpsMVdWY3hiRWxwZDJkSmExSjJXbE5LWkEiLCAiVjNsS2VsbFhlREJKYVhkblNXMWtjR1J0Vm5WWU1qVm9ZbGRWYVV4RFFXbFRiVGx2WW1sS1pBIiwgIlYzbEtlbGxYZURCSmFYZG5TVzFzZWxneU9USmFXRXBtVFZSbmFVeERRakJqYmxac1dGRSIsICJWM2xLZWxsWGVEQkphWGRuU1cxc2VsZ3lPVEphV0VwbVRXcEZhVXhEUWpCamJsWnNXRkUiLCAiVjNsS2VsbFhlREJKYVhkblNXMXNlbGd5T1RKYVdFcG1UbXBWYVV4RFFqQmpibFpzV0ZFIiwgIlYzbEtlbGxYZURCSmFYZG5TVzVDYjJJeU5XeFlNalV4WWxkS2JHTnBTWE5KUTBseVRWTXdlVTFFU1hST1ZGVXhURlJCZUUxRVJXbFlVUSJdfQ.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio~WyJzYWx0IiwgImlzX292ZXJfNjUiLCB0cnVlXQ~WyJzYWx0IiwgImlzX292ZXJfMjEiLCB0cnVlXQ~WyJzYWx0IiwgImlzX292ZXJfMTgiLCB0cnVlXQ~WyJzYWx0IiwgImJpcnRoZGF0ZSIsICIxOTQwLTAxLTAxIl0~WyJzYWx0IiwgImVtYWlsIiwgImpvaG5kb2VAZXhhbXBsZS5jb20iXQ~WyJzYWx0IiwgImFkZHJlc3MiLCB7InN0cmVldF9hZGRyZXNzIjogIjEyMyBNYWluIFN0IiwgImxvY2FsaXR5IjogIkFueXRvd24iLCAicmVnaW9uIjogIkFueXN0YXRlIiwgImNvdW50cnkiOiAiVVMifV0~WyJzYWx0IiwgImdpdmVuX25hbWUiLCAiSm9obiJd~WyJzYWx0IiwgImZhbWlseV9uYW1lIiwgIkRvZSJd~WyJzYWx0IiwgInBob25lX251bWJlciIsICIrMS0yMDItNTU1LTAxMDEiXQ~'
+                'eyJhbGciOiAiRWREU0EiLCAidHlwIjogInZjK3NkLWp3dCJ9.eyJ2Y3QiOiAiSWRlbnRpdHlDcmVkZW50aWFsIiwgImlzcyI6ICJodHRwczovL2V4YW1wbGUub3JnL2lzc3VlciIsICJpYXQiOiAxNjk4MDU2MTEwLCJjbmYiOiB7Imp3ayI6IHsiY3J2IjogIkVkMjU1MTkiLCAia3R5IjogIk9LUCIsICJ4IjogIkNpclpuLVY5bl9LUmg4YzJJeVdxT3RyVm05d2x6YVZERFM4WTR6R21Rc28ifX0sIl9zZF9hbGciOiAic2hhLTI1NiIsICJfc2QiOiBbIlYzbEtlbGxYZURCSmFYZG5TVzFHYTFwSVNteGpNMDFwVEVOQ04wbHVUakJqYlZac1pFWTVhRnBIVW5sYVdFNTZTV3B2WjBscVJYbE5lVUpPV1Zkc2RVbEdUakJKYVhkblNXMTRkbGt5Um5OaFdGSTFTV3B2WjBsclJuVmxXRkoyWkRJMGFVeERRV2xqYlZadVlWYzVkVWxxYjJkSmEwWjFaVmhPTUZsWVVteEphWGRuU1cxT2RtUlhOVEJqYm10cFQybEJhVlpXVFdsbVZqQSIsICJWM2xLZWxsWGVEQkphWGRuU1cxS2NHTnVVbTlhUjBZd1dsTkpjMGxEU1hoUFZGRjNURlJCZUV4VVFYaEpiREEiLCAiVjNsS2VsbFhlREJKYVhkblNXMVdkRmxYYkhOSmFYZG5TVzF3ZG1GSE5XdGlNbFpCV2xob2FHSllRbk5hVXpWcVlqSXdhVmhSIiwgIlYzbEtlbGxYZURCSmFYZG5TVzFhYUdKWGJITmxWamwxV1ZjeGJFbHBkMmRKYTFKMldsTktaQSIsICJWM2xLZWxsWGVEQkphWGRuU1cxa2NHUnRWblZZTWpWb1lsZFZhVXhEUVdsVGJUbHZZbWxLWkEiLCAiVjNsS2VsbFhlREJKYVhkblNXMXNlbGd5T1RKYVdFcG1UVlJuYVV4RFFqQmpibFpzV0ZFIiwgIlYzbEtlbGxYZURCSmFYZG5TVzFzZWxneU9USmFXRXBtVFdwRmFVeERRakJqYmxac1dGRSIsICJWM2xLZWxsWGVEQkphWGRuU1cxc2VsZ3lPVEphV0VwbVRtcFZhVXhEUWpCamJsWnNXRkUiLCAiVjNsS2VsbFhlREJKYVhkblNXNUNiMkl5Tld4WU1qVXhZbGRLYkdOcFNYTkpRMGx5VFZNd2VVMUVTWFJPVkZVeFRGUkJlRTFFUldsWVVRIl19.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio~WyJzYWx0IiwgImlzX292ZXJfNjUiLCB0cnVlXQ~WyJzYWx0IiwgImlzX292ZXJfMjEiLCB0cnVlXQ~WyJzYWx0IiwgImlzX292ZXJfMTgiLCB0cnVlXQ~WyJzYWx0IiwgImJpcnRoZGF0ZSIsICIxOTQwLTAxLTAxIl0~WyJzYWx0IiwgImVtYWlsIiwgImpvaG5kb2VAZXhhbXBsZS5jb20iXQ~WyJzYWx0IiwgImFkZHJlc3MiLCB7InN0cmVldF9hZGRyZXNzIjogIjEyMyBNYWluIFN0IiwgImxvY2FsaXR5IjogIkFueXRvd24iLCAicmVnaW9uIjogIkFueXN0YXRlIiwgImNvdW50cnkiOiAiVVMifV0~WyJzYWx0IiwgImdpdmVuX25hbWUiLCAiSm9obiJd~WyJzYWx0IiwgImZhbWlseV9uYW1lIiwgIkRvZSJd~WyJzYWx0IiwgInBob25lX251bWJlciIsICIrMS0yMDItNTU1LTAxMDEiXQ~'
             )
         })
 
         it('create simple sd-jwt-vc with key binding', async () => {
             const sdJwtVc = SdJwtVc.fromCompact(
-                'eyJhbGciOiAiRWREU0EiLCAidHlwIjogInZjK3NkLWp3dCJ9.eyJ0eXBlIjogIklkZW50aXR5Q3JlZGVudGlhbCIsICJpc3MiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZy9pc3N1ZXIiLCAiaWF0IjogMTY5ODA1NjExMCwiY25mIjogeyJqd2siOiB7ImNydiI6ICJFZDI1NTE5IiwgIngiOiAiQ2lyWm4tVjluX0tSaDhjMkl5V3FPdHJWbTl3bHphVkREUzhZNHpHbVFzbyIsICJrdHkiOiAiT0tQIn19LCJfc2RfYWxnIjogInNoYS0yNTYiLCAiX3NkIjogWyJoYXNoPVd5SnpZV3gwSWl3Z0ltRmtaSEpsYzNNaUxDQjdJbk4wY21WbGRGOWhaR1J5WlhOeklqb2dJakV5TXlCTllXbHVJRk4wSWl3Z0lteHZZMkZzYVhSNUlqb2dJa0Z1ZVhSdmQyNGlMQ0FpY21WbmFXOXVJam9nSWtGdWVYTjBZWFJsSWl3Z0ltTnZkVzUwY25raU9pQWlWVk1pZlYwIiwgImhhc2g9V3lKellXeDBJaXdnSW1KcGNuUm9aR0YwWlNJc0lDSXhPVFF3TFRBeExUQXhJbDAiLCAiaGFzaD1XeUp6WVd4MElpd2dJbVZ0WVdsc0lpd2dJbXB2YUc1a2IyVkFaWGhoYlhCc1pTNWpiMjBpWFEiLCAiaGFzaD1XeUp6WVd4MElpd2dJbVpoYldsc2VWOXVZVzFsSWl3Z0lrUnZaU0pkIiwgImhhc2g9V3lKellXeDBJaXdnSW1kcGRtVnVYMjVoYldVaUxDQWlTbTlvYmlKZCIsICJoYXNoPVd5SnpZV3gwSWl3Z0ltbHpYMjkyWlhKZk1UZ2lMQ0IwY25WbFhRIiwgImhhc2g9V3lKellXeDBJaXdnSW1selgyOTJaWEpmTWpFaUxDQjBjblZsWFEiLCAiaGFzaD1XeUp6WVd4MElpd2dJbWx6WDI5MlpYSmZOalVpTENCMGNuVmxYUSIsICJoYXNoPVd5SnpZV3gwSWl3Z0luQm9iMjVsWDI1MWJXSmxjaUlzSUNJck1TMHlNREl0TlRVMUxUQXhNREVpWFEiXX0.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio~WyJzYWx0IiwgImlzX292ZXJfNjUiLCB0cnVlXQ~WyJzYWx0IiwgImlzX292ZXJfMjEiLCB0cnVlXQ~WyJzYWx0IiwgImlzX292ZXJfMTgiLCB0cnVlXQ~WyJzYWx0IiwgImJpcnRoZGF0ZSIsICIxOTQwLTAxLTAxIl0~WyJzYWx0IiwgImVtYWlsIiwgImpvaG5kb2VAZXhhbXBsZS5jb20iXQ~WyJzYWx0IiwgImFkZHJlc3MiLCB7InN0cmVldF9hZGRyZXNzIjogIjEyMyBNYWluIFN0IiwgImxvY2FsaXR5IjogIkFueXRvd24iLCAicmVnaW9uIjogIkFueXN0YXRlIiwgImNvdW50cnkiOiAiVVMifV0~WyJzYWx0IiwgImdpdmVuX25hbWUiLCAiSm9obiJd~WyJzYWx0IiwgImZhbWlseV9uYW1lIiwgIkRvZSJd~WyJzYWx0IiwgInBob25lX251bWJlciIsICIrMS0yMDItNTU1LTAxMDEiXQ~'
+                'eyJhbGciOiAiRWREU0EiLCAidHlwIjogInZjK3NkLWp3dCJ9.eyJ2Y3QiOiAiSWRlbnRpdHlDcmVkZW50aWFsIiwgImlzcyI6ICJodHRwczovL2V4YW1wbGUub3JnL2lzc3VlciIsICJpYXQiOiAxNjk4MDU2MTEwLCJjbmYiOiB7Imp3ayI6IHsiY3J2IjogIkVkMjU1MTkiLCAia3R5IjogIk9LUCIsICJ4IjogIkNpclpuLVY5bl9LUmg4YzJJeVdxT3RyVm05d2x6YVZERFM4WTR6R21Rc28ifX0sIl9zZF9hbGciOiAic2hhLTI1NiIsICJfc2QiOiBbIlYzbEtlbGxYZURCSmFYZG5TVzFHYTFwSVNteGpNMDFwVEVOQ04wbHVUakJqYlZac1pFWTVhRnBIVW5sYVdFNTZTV3B2WjBscVJYbE5lVUpPV1Zkc2RVbEdUakJKYVhkblNXMTRkbGt5Um5OaFdGSTFTV3B2WjBsclJuVmxXRkoyWkRJMGFVeERRV2xqYlZadVlWYzVkVWxxYjJkSmEwWjFaVmhPTUZsWVVteEphWGRuU1cxT2RtUlhOVEJqYm10cFQybEJhVlpXVFdsbVZqQSIsICJWM2xLZWxsWGVEQkphWGRuU1cxS2NHTnVVbTlhUjBZd1dsTkpjMGxEU1hoUFZGRjNURlJCZUV4VVFYaEpiREEiLCAiVjNsS2VsbFhlREJKYVhkblNXMVdkRmxYYkhOSmFYZG5TVzF3ZG1GSE5XdGlNbFpCV2xob2FHSllRbk5hVXpWcVlqSXdhVmhSIiwgIlYzbEtlbGxYZURCSmFYZG5TVzFhYUdKWGJITmxWamwxV1ZjeGJFbHBkMmRKYTFKMldsTktaQSIsICJWM2xLZWxsWGVEQkphWGRuU1cxa2NHUnRWblZZTWpWb1lsZFZhVXhEUVdsVGJUbHZZbWxLWkEiLCAiVjNsS2VsbFhlREJKYVhkblNXMXNlbGd5T1RKYVdFcG1UVlJuYVV4RFFqQmpibFpzV0ZFIiwgIlYzbEtlbGxYZURCSmFYZG5TVzFzZWxneU9USmFXRXBtVFdwRmFVeERRakJqYmxac1dGRSIsICJWM2xLZWxsWGVEQkphWGRuU1cxc2VsZ3lPVEphV0VwbVRtcFZhVXhEUWpCamJsWnNXRkUiLCAiVjNsS2VsbFhlREJKYVhkblNXNUNiMkl5Tld4WU1qVXhZbGRLYkdOcFNYTkpRMGx5VFZNd2VVMUVTWFJPVkZVeFRGUkJlRTFFUldsWVVRIl19.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio~WyJzYWx0IiwgImlzX292ZXJfNjUiLCB0cnVlXQ~WyJzYWx0IiwgImlzX292ZXJfMjEiLCB0cnVlXQ~WyJzYWx0IiwgImlzX292ZXJfMTgiLCB0cnVlXQ~WyJzYWx0IiwgImJpcnRoZGF0ZSIsICIxOTQwLTAxLTAxIl0~WyJzYWx0IiwgImVtYWlsIiwgImpvaG5kb2VAZXhhbXBsZS5jb20iXQ~WyJzYWx0IiwgImFkZHJlc3MiLCB7InN0cmVldF9hZGRyZXNzIjogIjEyMyBNYWluIFN0IiwgImxvY2FsaXR5IjogIkFueXRvd24iLCAicmVnaW9uIjogIkFueXN0YXRlIiwgImNvdW50cnkiOiAiVVMifV0~WyJzYWx0IiwgImdpdmVuX25hbWUiLCAiSm9obiJd~WyJzYWx0IiwgImZhbWlseV9uYW1lIiwgIkRvZSJd~WyJzYWx0IiwgInBob25lX251bWJlciIsICIrMS0yMDItNTU1LTAxMDEiXQ~'
             )
 
             const keyBinding = new KeyBinding<
@@ -107,7 +107,7 @@ describe('sd-jwt-vc', async () => {
 
             strictEqual(
                 compactWithKeyBinding,
-                'eyJhbGciOiAiRWREU0EiLCAidHlwIjogInZjK3NkLWp3dCJ9.eyJ0eXBlIjogIklkZW50aXR5Q3JlZGVudGlhbCIsICJpc3MiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZy9pc3N1ZXIiLCAiaWF0IjogMTY5ODA1NjExMCwiY25mIjogeyJqd2siOiB7ImNydiI6ICJFZDI1NTE5IiwgIngiOiAiQ2lyWm4tVjluX0tSaDhjMkl5V3FPdHJWbTl3bHphVkREUzhZNHpHbVFzbyIsICJrdHkiOiAiT0tQIn19LCJfc2RfYWxnIjogInNoYS0yNTYiLCAiX3NkIjogWyJoYXNoPVd5SnpZV3gwSWl3Z0ltRmtaSEpsYzNNaUxDQjdJbk4wY21WbGRGOWhaR1J5WlhOeklqb2dJakV5TXlCTllXbHVJRk4wSWl3Z0lteHZZMkZzYVhSNUlqb2dJa0Z1ZVhSdmQyNGlMQ0FpY21WbmFXOXVJam9nSWtGdWVYTjBZWFJsSWl3Z0ltTnZkVzUwY25raU9pQWlWVk1pZlYwIiwgImhhc2g9V3lKellXeDBJaXdnSW1KcGNuUm9aR0YwWlNJc0lDSXhPVFF3TFRBeExUQXhJbDAiLCAiaGFzaD1XeUp6WVd4MElpd2dJbVZ0WVdsc0lpd2dJbXB2YUc1a2IyVkFaWGhoYlhCc1pTNWpiMjBpWFEiLCAiaGFzaD1XeUp6WVd4MElpd2dJbVpoYldsc2VWOXVZVzFsSWl3Z0lrUnZaU0pkIiwgImhhc2g9V3lKellXeDBJaXdnSW1kcGRtVnVYMjVoYldVaUxDQWlTbTlvYmlKZCIsICJoYXNoPVd5SnpZV3gwSWl3Z0ltbHpYMjkyWlhKZk1UZ2lMQ0IwY25WbFhRIiwgImhhc2g9V3lKellXeDBJaXdnSW1selgyOTJaWEpmTWpFaUxDQjBjblZsWFEiLCAiaGFzaD1XeUp6WVd4MElpd2dJbWx6WDI5MlpYSmZOalVpTENCMGNuVmxYUSIsICJoYXNoPVd5SnpZV3gwSWl3Z0luQm9iMjVsWDI1MWJXSmxjaUlzSUNJck1TMHlNREl0TlRVMUxUQXhNREVpWFEiXX0.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio~WyJzYWx0IiwgImlzX292ZXJfNjUiLCB0cnVlXQ~WyJzYWx0IiwgImlzX292ZXJfMjEiLCB0cnVlXQ~WyJzYWx0IiwgImlzX292ZXJfMTgiLCB0cnVlXQ~WyJzYWx0IiwgImJpcnRoZGF0ZSIsICIxOTQwLTAxLTAxIl0~WyJzYWx0IiwgImVtYWlsIiwgImpvaG5kb2VAZXhhbXBsZS5jb20iXQ~WyJzYWx0IiwgImFkZHJlc3MiLCB7InN0cmVldF9hZGRyZXNzIjogIjEyMyBNYWluIFN0IiwgImxvY2FsaXR5IjogIkFueXRvd24iLCAicmVnaW9uIjogIkFueXN0YXRlIiwgImNvdW50cnkiOiAiVVMifV0~WyJzYWx0IiwgImdpdmVuX25hbWUiLCAiSm9obiJd~WyJzYWx0IiwgImZhbWlseV9uYW1lIiwgIkRvZSJd~WyJzYWx0IiwgInBob25lX251bWJlciIsICIrMS0yMDItNTU1LTAxMDEiXQ~eyJhbGciOiAiRWREU0EiLCAidHlwIjogImtiK2p3dCJ9.eyJhdWQiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZy9hdWRpZW5jZSIsICJpYXQiOiAxNjk4MDU2MTIwLCJub25jZSI6ICJzb21lLW5vbmNlIn0.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
+                'eyJhbGciOiAiRWREU0EiLCAidHlwIjogInZjK3NkLWp3dCJ9.eyJ2Y3QiOiAiSWRlbnRpdHlDcmVkZW50aWFsIiwgImlzcyI6ICJodHRwczovL2V4YW1wbGUub3JnL2lzc3VlciIsICJpYXQiOiAxNjk4MDU2MTEwLCJjbmYiOiB7Imp3ayI6IHsiY3J2IjogIkVkMjU1MTkiLCAia3R5IjogIk9LUCIsICJ4IjogIkNpclpuLVY5bl9LUmg4YzJJeVdxT3RyVm05d2x6YVZERFM4WTR6R21Rc28ifX0sIl9zZF9hbGciOiAic2hhLTI1NiIsICJfc2QiOiBbIlYzbEtlbGxYZURCSmFYZG5TVzFHYTFwSVNteGpNMDFwVEVOQ04wbHVUakJqYlZac1pFWTVhRnBIVW5sYVdFNTZTV3B2WjBscVJYbE5lVUpPV1Zkc2RVbEdUakJKYVhkblNXMTRkbGt5Um5OaFdGSTFTV3B2WjBsclJuVmxXRkoyWkRJMGFVeERRV2xqYlZadVlWYzVkVWxxYjJkSmEwWjFaVmhPTUZsWVVteEphWGRuU1cxT2RtUlhOVEJqYm10cFQybEJhVlpXVFdsbVZqQSIsICJWM2xLZWxsWGVEQkphWGRuU1cxS2NHTnVVbTlhUjBZd1dsTkpjMGxEU1hoUFZGRjNURlJCZUV4VVFYaEpiREEiLCAiVjNsS2VsbFhlREJKYVhkblNXMVdkRmxYYkhOSmFYZG5TVzF3ZG1GSE5XdGlNbFpCV2xob2FHSllRbk5hVXpWcVlqSXdhVmhSIiwgIlYzbEtlbGxYZURCSmFYZG5TVzFhYUdKWGJITmxWamwxV1ZjeGJFbHBkMmRKYTFKMldsTktaQSIsICJWM2xLZWxsWGVEQkphWGRuU1cxa2NHUnRWblZZTWpWb1lsZFZhVXhEUVdsVGJUbHZZbWxLWkEiLCAiVjNsS2VsbFhlREJKYVhkblNXMXNlbGd5T1RKYVdFcG1UVlJuYVV4RFFqQmpibFpzV0ZFIiwgIlYzbEtlbGxYZURCSmFYZG5TVzFzZWxneU9USmFXRXBtVFdwRmFVeERRakJqYmxac1dGRSIsICJWM2xLZWxsWGVEQkphWGRuU1cxc2VsZ3lPVEphV0VwbVRtcFZhVXhEUWpCamJsWnNXRkUiLCAiVjNsS2VsbFhlREJKYVhkblNXNUNiMkl5Tld4WU1qVXhZbGRLYkdOcFNYTkpRMGx5VFZNd2VVMUVTWFJPVkZVeFRGUkJlRTFFUldsWVVRIl19.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio~WyJzYWx0IiwgImlzX292ZXJfNjUiLCB0cnVlXQ~WyJzYWx0IiwgImlzX292ZXJfMjEiLCB0cnVlXQ~WyJzYWx0IiwgImlzX292ZXJfMTgiLCB0cnVlXQ~WyJzYWx0IiwgImJpcnRoZGF0ZSIsICIxOTQwLTAxLTAxIl0~WyJzYWx0IiwgImVtYWlsIiwgImpvaG5kb2VAZXhhbXBsZS5jb20iXQ~WyJzYWx0IiwgImFkZHJlc3MiLCB7InN0cmVldF9hZGRyZXNzIjogIjEyMyBNYWluIFN0IiwgImxvY2FsaXR5IjogIkFueXRvd24iLCAicmVnaW9uIjogIkFueXN0YXRlIiwgImNvdW50cnkiOiAiVVMifV0~WyJzYWx0IiwgImdpdmVuX25hbWUiLCAiSm9obiJd~WyJzYWx0IiwgImZhbWlseV9uYW1lIiwgIkRvZSJd~WyJzYWx0IiwgInBob25lX251bWJlciIsICIrMS0yMDItNTU1LTAxMDEiXQ~eyJhbGciOiAiRWREU0EiLCAidHlwIjogImtiK2p3dCJ9.eyJhdWQiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZy9hdWRpZW5jZSIsICJpYXQiOiAxNjk4MDU2MTIwLCJub25jZSI6ICJzb21lLW5vbmNlIn0.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
             )
 
             assert(compactWithKeyBinding.endsWith(compactKeyBinding))
@@ -125,7 +125,7 @@ describe('sd-jwt-vc', async () => {
                     typ: 'vc+sd-jwt'
                 },
                 payload: {
-                    type: 'IdentityCredential',
+                    vct: 'IdentityCredential',
                     iat: 1698056110,
                     cnf,
                     given_name: 'John',
@@ -170,7 +170,7 @@ describe('sd-jwt-vc', async () => {
             )
         })
 
-        it('validate that required claim (type) are included in payload', async () => {
+        it('validate that required claim (vct) are included in payload', async () => {
             const cnf = publicHolderKeyJwk
 
             const sdJwtVc = new SdJwtVc({
@@ -219,7 +219,7 @@ describe('sd-jwt-vc', async () => {
             await rejects(
                 async () => await sdJwtVc.toCompact(),
                 new SdJwtVcError(
-                    "jwt is not valid for usage with sd-jwt-vc. Error: Claim key 'type' not found in any level within the payload"
+                    "jwt is not valid for usage with sd-jwt-vc. Error: Claim key 'vct' not found in any level within the payload"
                 )
             )
         })
@@ -233,7 +233,7 @@ describe('sd-jwt-vc', async () => {
                     typ: 'vc+sd-jwt'
                 },
                 payload: {
-                    type: 'IdentityCredential',
+                    vct: 'IdentityCredential',
                     iss: 'https://example.org/issuer',
                     cnf,
                     given_name: 'John',
@@ -285,7 +285,7 @@ describe('sd-jwt-vc', async () => {
                     typ: 'vc+sd-jwt'
                 },
                 payload: {
-                    type: 'IdentityCredential',
+                    vct: 'IdentityCredential',
                     iss: 'https://example.org/issuer',
                     iat: 1698056110,
                     given_name: 'John',
@@ -336,7 +336,7 @@ describe('sd-jwt-vc', async () => {
                     alg: SignatureAndEncryptionAlgorithm.EdDSA
                 },
                 payload: {
-                    type: 'IdentityCredential',
+                    vct: 'IdentityCredential',
                     iss: 'https://example.org/issuer',
                     iat: 1698056110,
                     given_name: 'John',
@@ -387,7 +387,7 @@ describe('sd-jwt-vc', async () => {
                     typ: 'vc+sd-jwt'
                 },
                 payload: {
-                    type: 'IdentityCredential',
+                    vct: 'IdentityCredential',
                     iss: 'https://example.org/issuer',
                     iat: 1698056110,
                     given_name: 'John',
@@ -439,7 +439,7 @@ describe('sd-jwt-vc', async () => {
                     typ: 'invalid-typ'
                 },
                 payload: {
-                    type: 'IdentityCredential',
+                    vct: 'IdentityCredential',
                     iss: 'https://example.org/issuer',
                     iat: 1698056110,
                     given_name: 'John',
@@ -488,7 +488,7 @@ describe('sd-jwt-vc', async () => {
     describe('verify sd-jwt-vc', async () => {
         it('check whether publicKeyJwk is defined when cnf and keybinding are defined', async () => {
             const sdJwtVc = SdJwtVc.fromCompact(
-                'eyJhbGciOiAiRWREU0EiLCAidHlwIjogInZjK3NkLWp3dCJ9.eyJ0eXBlIjogIklkZW50aXR5Q3JlZGVudGlhbCIsICJpc3MiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZy9pc3N1ZXIiLCAiaWF0IjogMTY5ODA1NjExMCwiY25mIjogeyJqd2siOiB7ImNydiI6ICJFZDI1NTE5IiwgIngiOiAiQ2lyWm4tVjluX0tSaDhjMkl5V3FPdHJWbTl3bHphVkREUzhZNHpHbVFzbyIsICJrdHkiOiAiT0tQIn19LCJfc2RfYWxnIjogInNoYS0yNTYiLCAiX3NkIjogWyJoYXNoPVd5SnpZV3gwSWl3Z0ltRmtaSEpsYzNNaUxDQjdJbk4wY21WbGRGOWhaR1J5WlhOeklqb2dJakV5TXlCTllXbHVJRk4wSWl3Z0lteHZZMkZzYVhSNUlqb2dJa0Z1ZVhSdmQyNGlMQ0FpY21WbmFXOXVJam9nSWtGdWVYTjBZWFJsSWl3Z0ltTnZkVzUwY25raU9pQWlWVk1pZlYwIiwgImhhc2g9V3lKellXeDBJaXdnSW1KcGNuUm9aR0YwWlNJc0lDSXhPVFF3TFRBeExUQXhJbDAiLCAiaGFzaD1XeUp6WVd4MElpd2dJbVZ0WVdsc0lpd2dJbXB2YUc1a2IyVkFaWGhoYlhCc1pTNWpiMjBpWFEiLCAiaGFzaD1XeUp6WVd4MElpd2dJbVpoYldsc2VWOXVZVzFsSWl3Z0lrUnZaU0pkIiwgImhhc2g9V3lKellXeDBJaXdnSW1kcGRtVnVYMjVoYldVaUxDQWlTbTlvYmlKZCIsICJoYXNoPVd5SnpZV3gwSWl3Z0ltbHpYMjkyWlhKZk1UZ2lMQ0IwY25WbFhRIiwgImhhc2g9V3lKellXeDBJaXdnSW1selgyOTJaWEpmTWpFaUxDQjBjblZsWFEiLCAiaGFzaD1XeUp6WVd4MElpd2dJbWx6WDI5MlpYSmZOalVpTENCMGNuVmxYUSIsICJoYXNoPVd5SnpZV3gwSWl3Z0luQm9iMjVsWDI1MWJXSmxjaUlzSUNJck1TMHlNREl0TlRVMUxUQXhNREVpWFEiXX0.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio~WyJzYWx0IiwgImlzX292ZXJfNjUiLCB0cnVlXQ~WyJzYWx0IiwgImlzX292ZXJfMjEiLCB0cnVlXQ~WyJzYWx0IiwgImlzX292ZXJfMTgiLCB0cnVlXQ~WyJzYWx0IiwgImJpcnRoZGF0ZSIsICIxOTQwLTAxLTAxIl0~WyJzYWx0IiwgImVtYWlsIiwgImpvaG5kb2VAZXhhbXBsZS5jb20iXQ~WyJzYWx0IiwgImFkZHJlc3MiLCB7InN0cmVldF9hZGRyZXNzIjogIjEyMyBNYWluIFN0IiwgImxvY2FsaXR5IjogIkFueXRvd24iLCAicmVnaW9uIjogIkFueXN0YXRlIiwgImNvdW50cnkiOiAiVVMifV0~WyJzYWx0IiwgImdpdmVuX25hbWUiLCAiSm9obiJd~WyJzYWx0IiwgImZhbWlseV9uYW1lIiwgIkRvZSJd~WyJzYWx0IiwgInBob25lX251bWJlciIsICIrMS0yMDItNTU1LTAxMDEiXQ~eyJhbGciOiAiRWREU0EiLCAidHlwIjogImtiK2p3dCJ9.eyJhdWQiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZy9hdWRpZW5jZSIsICJpYXQiOiAxNjk4MDU2MTIwLCJub25jZSI6ICJzb21lLW5vbmNlIn0.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
+                'eyJhbGciOiAiRWREU0EiLCAidHlwIjogInZjK3NkLWp3dCJ9.eyJ2Y3QiOiAiSWRlbnRpdHlDcmVkZW50aWFsIiwgImlzcyI6ICJodHRwczovL2V4YW1wbGUub3JnL2lzc3VlciIsICJpYXQiOiAxNjk4MDU2MTEwLCJjbmYiOiB7Imp3ayI6IHsiY3J2IjogIkVkMjU1MTkiLCAia3R5IjogIk9LUCIsICJ4IjogIkNpclpuLVY5bl9LUmg4YzJJeVdxT3RyVm05d2x6YVZERFM4WTR6R21Rc28ifX0sIl9zZF9hbGciOiAic2hhLTI1NiIsICJfc2QiOiBbIlYzbEtlbGxYZURCSmFYZG5TVzFHYTFwSVNteGpNMDFwVEVOQ04wbHVUakJqYlZac1pFWTVhRnBIVW5sYVdFNTZTV3B2WjBscVJYbE5lVUpPV1Zkc2RVbEdUakJKYVhkblNXMTRkbGt5Um5OaFdGSTFTV3B2WjBsclJuVmxXRkoyWkRJMGFVeERRV2xqYlZadVlWYzVkVWxxYjJkSmEwWjFaVmhPTUZsWVVteEphWGRuU1cxT2RtUlhOVEJqYm10cFQybEJhVlpXVFdsbVZqQSIsICJWM2xLZWxsWGVEQkphWGRuU1cxS2NHTnVVbTlhUjBZd1dsTkpjMGxEU1hoUFZGRjNURlJCZUV4VVFYaEpiREEiLCAiVjNsS2VsbFhlREJKYVhkblNXMVdkRmxYYkhOSmFYZG5TVzF3ZG1GSE5XdGlNbFpCV2xob2FHSllRbk5hVXpWcVlqSXdhVmhSIiwgIlYzbEtlbGxYZURCSmFYZG5TVzFhYUdKWGJITmxWamwxV1ZjeGJFbHBkMmRKYTFKMldsTktaQSIsICJWM2xLZWxsWGVEQkphWGRuU1cxa2NHUnRWblZZTWpWb1lsZFZhVXhEUVdsVGJUbHZZbWxLWkEiLCAiVjNsS2VsbFhlREJKYVhkblNXMXNlbGd5T1RKYVdFcG1UVlJuYVV4RFFqQmpibFpzV0ZFIiwgIlYzbEtlbGxYZURCSmFYZG5TVzFzZWxneU9USmFXRXBtVFdwRmFVeERRakJqYmxac1dGRSIsICJWM2xLZWxsWGVEQkphWGRuU1cxc2VsZ3lPVEphV0VwbVRtcFZhVXhEUWpCamJsWnNXRkUiLCAiVjNsS2VsbFhlREJKYVhkblNXNUNiMkl5Tld4WU1qVXhZbGRLYkdOcFNYTkpRMGx5VFZNd2VVMUVTWFJPVkZVeFRGUkJlRTFFUldsWVVRIl19.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio~WyJzYWx0IiwgImlzX292ZXJfNjUiLCB0cnVlXQ~WyJzYWx0IiwgImlzX292ZXJfMjEiLCB0cnVlXQ~WyJzYWx0IiwgImlzX292ZXJfMTgiLCB0cnVlXQ~WyJzYWx0IiwgImJpcnRoZGF0ZSIsICIxOTQwLTAxLTAxIl0~WyJzYWx0IiwgImVtYWlsIiwgImpvaG5kb2VAZXhhbXBsZS5jb20iXQ~WyJzYWx0IiwgImFkZHJlc3MiLCB7InN0cmVldF9hZGRyZXNzIjogIjEyMyBNYWluIFN0IiwgImxvY2FsaXR5IjogIkFueXRvd24iLCAicmVnaW9uIjogIkFueXN0YXRlIiwgImNvdW50cnkiOiAiVVMifV0~WyJzYWx0IiwgImdpdmVuX25hbWUiLCAiSm9obiJd~WyJzYWx0IiwgImZhbWlseV9uYW1lIiwgIkRvZSJd~WyJzYWx0IiwgInBob25lX251bWJlciIsICIrMS0yMDItNTU1LTAxMDEiXQ~'
             )
 
             // Verify that the `publicKeyJwk` is passed in when the JWT is for keybinding
@@ -521,7 +521,7 @@ describe('sd-jwt-vc', async () => {
                     typ: 'vc+sd-jwt'
                 },
                 payload: {
-                    type: 'IdentityCredential',
+                    vct: 'IdentityCredential',
                     iss: 'https://example.org/issuer',
                     iat: 1698056110,
                     cnf,
@@ -616,7 +616,7 @@ describe('sd-jwt-vc', async () => {
                     typ: 'vc+sd-jwt'
                 },
                 payload: {
-                    type: 'IdentityCredential',
+                    vct: 'IdentityCredential',
                     iss: 'https://example.org/issuer',
                     iat: 1698056110,
                     cnf,
@@ -710,7 +710,7 @@ describe('sd-jwt-vc', async () => {
                     typ: 'vc+sd-jwt'
                 },
                 payload: {
-                    type: 'IdentityCredential',
+                    vct: 'IdentityCredential',
                     iss: 'https://example.org/issuer',
                     iat: 1698056110,
                     cnf,

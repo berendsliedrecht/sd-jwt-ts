@@ -8,7 +8,8 @@
         "simple": "ts-node simple.ts",
         "no-disclosures": "ts-node noDisclosures.ts",
         "triangle": "ts-node issuerHolderVerifier.ts",
-        "vc": "ts-node vc.ts"
+        "vc": "ts-node vc.ts",
+        "all": "pnpm simple; pnpm complex; pnpm no-disclosures; pnpm triangle; pnpm vc"
     },
     "keywords": [],
     "author": "",

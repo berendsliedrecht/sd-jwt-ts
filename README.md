@@ -1,14 +1,11 @@
-# Selective Disclosure JWT (SD-JWT) Draft 06 & Selective Disclosure JWT VC
+# Selective Disclosure JWT (SD-JWT) Draft 06 & Selective Disclosure JWT VC 01
 
 ## Compliant with
 
 -   [sd-jwt
     06](https://datatracker.ietf.org/doc/draft-ietf-oauth-selective-disclosure-jwt/06/)
 -   [sd-jwt-vc
-    00](https://datatracker.ietf.org/doc/draft-ietf-oauth-sd-jwt-vc/00/)
-
-> NOTE: the latest specifications are sd-jwt 06 & sd-jwt-vc 01. This library is
-> not conformat, yet with sd-jwt-vc 01.
+    01](https://datatracker.ietf.org/doc/draft-ietf-oauth-sd-jwt-vc/01/)
 
 ## Design decisions
 
