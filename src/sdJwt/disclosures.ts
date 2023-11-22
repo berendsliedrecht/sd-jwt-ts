@@ -6,6 +6,7 @@ export class Disclosure {
     private salt: string
     private key?: string
     private value: unknown
+    private _digest: string | undefined
 
     public constructor(salt: string, value: unknown, key?: string) {
         if (typeof value === 'number' && isNaN(value)) {
@@ -48,8 +49,13 @@ export class Disclosure {
     }
 
     public async digest(hasher: Hasher) {
-        const hash = await hasher(this.encoded)
-        return Base64url.encode(hash)
+        // Memoize value so we don't have to re-compute
+        if (!this._digest) {
+            const hash = await hasher(this.encoded)
+            this._digest = Base64url.encode(hash)
+        }
+
+        return this._digest
     }
 
     public toString() {

@@ -19,6 +19,8 @@ import { applyDisclosureFrame } from './disclosureFrame'
 import { swapClaims } from './swapClaim'
 import { getAllKeys, getValueByKeyAnyLevel } from '../utils'
 import { HasherAlgorithm } from '../hasherAlgorithm'
+import { PresentationFrame } from '../types/present'
+import { getDisclosuresForPresentationFrame } from './presentationFrame'
 
 export type SdJwtToCompactOptions<
     DisclosablePayload extends Record<string, unknown>
@@ -305,89 +307,65 @@ export class SdJwt<
     }
 
     /**
-     * @todo: using the indices of the disclosures that should be added is not the best API.
+     * This function creates a presentation of an SD-JWT, based on the presentation frame. The
+     * presentation frame is similar to the disclosure frame, and allows you to present a subset
+     * of the disclosures.
      *
-     * Either support for PEX should be added and we can just take a `PresentationDefinition`, but for now this is the best we can do.
+     * If no `presentationFrame` is passed, the entire SD-JWT will be presented.
+     * To create a presentation without any of the disclosures, pass an empty object as the `presentationFrame`.
      *
-     * This function includes disclosures optimisitcally. This means that is `undefined` is supplied, it includes all disclosures. To include nothing, supply an empty array.
+     * @example
+     * The following example will expose `name`, `a.nested`, and `orderItems[0]` and `orderItems[2]`.
+     * Based on the disclosures it will also expose the parent and child disclosures when needed.
+     * E.g. if `a` can only be disclosed as a whole, disclosing `a.nested` will also disclose `a`.
+     * The same is true for child disclosures. If you expose `name`, and it potentially contains recursive
+     * disclosures, all disclosures under name will be disclosed as well.
+     * ```ts
+     * await sdJwt.present({
+     *   name: true,
+     *   a: {
+     *     nested: 'property'
+     *   }
+     *   orderItems: [true, false, true]
+     * })
+     * ```
      *
-     * @throws when indices are supplied, but there are no disclosures on the instance
-     * @throws when the indices list is larger than the disclosure list
-     * @throws when a negative index is provided
-     * @throws when `NaN` or `Infinity` is supplied
-     * @throws when an index larger than the `disclosures.length - 1` is provided
-     * @throws when the same index is included multiple times
+     * @throws when the presentation frame does not match the decoded/pretty payload of the sd-jwt
+     * @throws when the presentation frame contains fields other than object, array or boolean
      *
      */
-    public async present(includedDisclosureIndices?: Array<number>) {
+    public async present(presentationFrame?: PresentationFrame<Payload>) {
         if (!this.disclosures && this.disclosureFrame) {
             await this.applyDisclosureFrame()
         }
 
+        // TODO: wouldn't it be easier if this returned the value so we don't have to use !
+        this.assertHashAndAlgorithm()
+        this.assertPayload()
+
+        // If no presentationFrame is passed, we want to disclose everything
+        if (!presentationFrame) {
+            return await this.__toCompact(this.disclosures, false)
+        }
+
         if (
-            includedDisclosureIndices &&
-            includedDisclosureIndices.length > 0 &&
-            !this.disclosures
+            (Object.keys(presentationFrame).length > 0 && !this.disclosures) ||
+            this.disclosures?.length === 0
         ) {
             throw new SdJwtError(
                 'Cannot create a presentation with disclosures while no disclosures are on the sd-jwt'
             )
         }
 
-        if (
-            includedDisclosureIndices &&
-            includedDisclosureIndices.length > this.disclosures!.length
-        ) {
-            throw new SdJwtError(
-                `List of included indices (${
-                    includedDisclosureIndices.length
-                }) is longer than the list of disclosures (${
-                    this.disclosures!.length
-                }).`
-            )
-        }
+        const requiredDisclosures = await getDisclosuresForPresentationFrame(
+            this.payload!,
+            presentationFrame,
+            await this.getPrettyClaims(),
+            this.hasherAndAlgorithm!.hasher,
+            this.disclosures
+        )
 
-        const maxIndex = Math.max(...(includedDisclosureIndices ?? []))
-        const minIndex = Math.min(...(includedDisclosureIndices ?? []))
-
-        if (minIndex < 0) {
-            throw new SdJwtError('Only positive indices are allowed')
-        }
-
-        if (
-            (includedDisclosureIndices ?? []).some(
-                (i) => isNaN(i) || !isFinite(i)
-            )
-        ) {
-            throw new SdJwtError('NaN and infinity are not allowed as indices')
-        }
-
-        if (this.disclosures && maxIndex > this.disclosures.length - 1) {
-            throw new SdJwtError(
-                `Max index supplied was ${maxIndex}, but there are ${
-                    this.disclosures!.length
-                } items available. Note that it is 0-indexed`
-            )
-        }
-
-        if (
-            new Set(includedDisclosureIndices ?? []).size !==
-            (includedDisclosureIndices ?? []).length
-        ) {
-            throw new SdJwtError(
-                `It is not allowed to include multiple of same index`
-            )
-        }
-
-        const includedDisclosures = this.disclosures
-            ? includedDisclosureIndices
-                ? this.disclosures.filter(
-                      (_, index) => includedDisclosureIndices?.includes(index)
-                  )
-                : this.disclosures
-            : []
-
-        return await this.__toCompact(includedDisclosures, false)
+        return await this.__toCompact(requiredDisclosures, false)
     }
 
     /**

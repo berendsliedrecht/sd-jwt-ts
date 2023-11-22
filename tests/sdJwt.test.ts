@@ -837,7 +837,9 @@ describe('sd-jwt', async () => {
                     }
                 }
             )
-            const presentation = await sdJwt.present([1])
+            const presentation = await sdJwt.present({
+                age_over_24: true
+            })
 
             const sdJwtFromCompact =
                 SdJwt.fromCompact(presentation).withHasher(hasherAndAlgorithm)
@@ -1158,7 +1160,9 @@ describe('sd-jwt', async () => {
                 .withSaltGenerator(() => 'salt')
                 .withHasher(hasherAndAlgorithm)
 
-            const presentation = await sdJwt.present([0])
+            const presentation = await sdJwt.present({
+                sign: true
+            })
 
             strictEqual(
                 presentation,
@@ -1176,7 +1180,7 @@ describe('sd-jwt', async () => {
                 .withSaltGenerator(() => 'salt')
                 .withHasher(hasherAndAlgorithm)
 
-            const presentation = await sdJwt.present([])
+            const presentation = await sdJwt.present({})
 
             strictEqual(
                 presentation,
@@ -1184,33 +1188,7 @@ describe('sd-jwt', async () => {
             )
         })
 
-        it('error when the highest index is above the length of the disclosure array', async () => {
-            const sdJwt = new SdJwt({
-                header: { alg: SignatureAndEncryptionAlgorithm.EdDSA },
-                payload: { sign: 'me!!', discloseMe: 'please' }
-            })
-                .withDisclosureFrame({ sign: true, discloseMe: true })
-                .withSigner(() => new Uint8Array(32).fill(42))
-                .withSaltGenerator(() => 'salt')
-                .withHasher(hasherAndAlgorithm)
-
-            await rejects(async () => await sdJwt.present([1000]), SdJwtError)
-        })
-
-        it('error when the same index is supplied twice', async () => {
-            const sdJwt = new SdJwt({
-                header: { alg: SignatureAndEncryptionAlgorithm.EdDSA },
-                payload: { sign: 'me!!', discloseMe: 'please' }
-            })
-                .withDisclosureFrame({ sign: true, discloseMe: true })
-                .withSigner(() => new Uint8Array(32).fill(42))
-                .withSaltGenerator(() => 'salt')
-                .withHasher(hasherAndAlgorithm)
-
-            await rejects(async () => await sdJwt.present([0, 0]), SdJwtError)
-        })
-
-        it('error when there are more indices than disclosable items', async () => {
+        it('error when the presenation frame contains other values than object, array or boolean', async () => {
             const sdJwt = new SdJwt({
                 header: { alg: SignatureAndEncryptionAlgorithm.EdDSA },
                 payload: { sign: 'me!!', discloseMe: 'please' }
@@ -1221,38 +1199,15 @@ describe('sd-jwt', async () => {
                 .withHasher(hasherAndAlgorithm)
 
             await rejects(
-                async () => await sdJwt.present([0, 1, 2, 4]),
+                async () =>
+                    await sdJwt.present({
+                        name: 'string'
+                    }),
                 SdJwtError
             )
         })
 
-        it('error when a negative number is used', async () => {
-            const sdJwt = new SdJwt({
-                header: { alg: SignatureAndEncryptionAlgorithm.EdDSA },
-                payload: { sign: 'me!!', discloseMe: 'please' }
-            })
-                .withDisclosureFrame({ sign: true, discloseMe: true })
-                .withSigner(() => new Uint8Array(32).fill(42))
-                .withSaltGenerator(() => 'salt')
-                .withHasher(hasherAndAlgorithm)
-
-            await rejects(async () => await sdJwt.present([-1]), SdJwtError)
-        })
-
-        it('error when NaN is used', async () => {
-            const sdJwt = new SdJwt({
-                header: { alg: SignatureAndEncryptionAlgorithm.EdDSA },
-                payload: { sign: 'me!!', discloseMe: 'please' }
-            })
-                .withDisclosureFrame({ sign: true, discloseMe: true })
-                .withSigner(() => new Uint8Array(32).fill(42))
-                .withSaltGenerator(() => 'salt')
-                .withHasher(hasherAndAlgorithm)
-
-            await rejects(async () => await sdJwt.present([NaN]), SdJwtError)
-        })
-
-        it('error when infinity is used', async () => {
+        it('error when the presenation frame does not match the structure of the sd-jwt payload', async () => {
             const sdJwt = new SdJwt({
                 header: { alg: SignatureAndEncryptionAlgorithm.EdDSA },
                 payload: { sign: 'me!!', discloseMe: 'please' }
@@ -1263,7 +1218,10 @@ describe('sd-jwt', async () => {
                 .withHasher(hasherAndAlgorithm)
 
             await rejects(
-                async () => await sdJwt.present([Infinity]),
+                async () =>
+                    await sdJwt.present({
+                        name: true
+                    }),
                 SdJwtError
             )
         })

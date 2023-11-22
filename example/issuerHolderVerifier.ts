@@ -42,27 +42,29 @@ const verifyCb: Verifier = ({ header, message, signature }) => {
 const saltGenerator: SaltGenerator = () =>
     getRandomValues(Buffer.alloc(16)).toString('base64url')
 
+const payload = {
+    iss: 'https://issuer.org/issuer-123',
+    sub: 'https://holder.org/holder-321',
+    aud: 'https://verifier.org/verifier-987',
+    nbf: Math.floor(new Date().getTime() / 1000 - 1000),
+    exp: Math.floor(new Date().getTime() / 1000 + 1000),
+    age_over_21: true,
+    age_over_24: true,
+    age_over_65: false,
+    address: {
+        locality: 'Maxstadt',
+        postal_code: '12344',
+        country: 'DE',
+        street_address: 'Weidenstraße 22'
+    }
+} as const
+
 const issuer = async () => {
     console.log('====== ISSUER ======')
 
     const sdJwt = new SdJwt({
         header: { alg: SignatureAndEncryptionAlgorithm.EdDSA },
-        payload: {
-            iss: 'https://issuer.org/issuer-123',
-            sub: 'https://holder.org/holder-321',
-            aud: 'https://verifier.org/verifier-987',
-            nbf: Math.floor(new Date().getTime() / 1000 - 1000),
-            exp: Math.floor(new Date().getTime() / 1000 + 1000),
-            age_over_21: true,
-            age_over_24: true,
-            age_over_65: false,
-            address: {
-                locality: 'Maxstadt',
-                postal_code: '12344',
-                country: 'DE',
-                street_address: 'Weidenstraße 22'
-            }
-        }
+        payload
     })
         .withHasher(hasherAndAlgorithm)
         .withSigner(signer)
@@ -91,7 +93,9 @@ const issuer = async () => {
 const holder = async (compact: string) => {
     console.log('====== HOLDER ======')
 
-    const sdJwt = SdJwt.fromCompact(compact).withHasher(hasherAndAlgorithm)
+    const sdJwt = SdJwt.fromCompact<Record<string, unknown>, typeof payload>(
+        compact
+    ).withHasher(hasherAndAlgorithm)
 
     console.log('Claims: ')
     console.log('========')
@@ -99,7 +103,17 @@ const holder = async (compact: string) => {
     console.log('========')
     console.log()
 
-    const presentation = await sdJwt.present([1])
+    const presentationFrame = {
+        age_over_24: true
+    } as const
+
+    console.log('Presentation Frame:')
+    console.log('========')
+    console.log(presentationFrame)
+    console.log('========')
+    console.log()
+
+    const presentation = await sdJwt.present(presentationFrame)
 
     console.log('Presenting: ')
     console.log('============')
