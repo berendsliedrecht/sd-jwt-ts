@@ -7,7 +7,7 @@ import { prelude } from './utils'
 
 const deleteByPathTestGenerator = (
     title: string,
-    path: string,
+    path: string[],
     obj: Record<string, unknown>,
     expected: Record<string, unknown>
 ) => {
@@ -21,41 +21,41 @@ describe('utils', () => {
     before(prelude)
 
     describe('delete by path', () => {
-        deleteByPathTestGenerator('simple path', 'a', { a: 123 }, {})
+        deleteByPathTestGenerator('simple path', ['a'], { a: 123 }, {})
 
-        deleteByPathTestGenerator('empty path', '', { a: 123 }, { a: 123 })
+        deleteByPathTestGenerator('empty path', [], { a: 123 }, { a: 123 })
 
         deleteByPathTestGenerator(
             'nested path',
-            'a.b',
+            ['a', 'b'],
             { a: { b: 123 } },
             { a: {} }
         )
 
         deleteByPathTestGenerator(
             'triple nested path',
-            'a.b.c',
+            ['a', 'b', 'c'],
             { a: { b: { c: 123 } } },
             { a: { b: {} } }
         )
 
         deleteByPathTestGenerator(
             'nested path, delete parent',
-            'a',
+            ['a'],
             { a: { b: 123 } },
             {}
         )
 
         deleteByPathTestGenerator(
             'triple nested path, delete parent',
-            'a',
+            ['a'],
             { a: { b: { c: 123 } } },
             {}
         )
 
         deleteByPathTestGenerator(
             'path does not exist',
-            'abc',
+            ['abc'],
             { a: 123 },
             { a: 123 }
         )

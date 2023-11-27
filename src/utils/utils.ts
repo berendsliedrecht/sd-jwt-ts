@@ -1,3 +1,5 @@
+import { SdJwtError } from '../sdJwt'
+
 export const getAllKeys = (
     object: unknown,
     keys: Array<string> = []
@@ -64,9 +66,12 @@ export const simpleDeepEqual = (lhs: unknown, rhs: unknown): boolean => {
     return keys1.every((key) => simpleDeepEqual(l[key], r[key]))
 }
 
-export const deleteByPath = (object: Record<string, unknown>, path: string) => {
+export const deleteByPath = (
+    object: Record<string, unknown>,
+    path: string[]
+) => {
     let currentObject: Record<string, unknown> | undefined = object
-    const parts = path.split('.')
+    const parts = [...path]
     const last = parts.pop()
     for (const part of parts) {
         currentObject = currentObject[part] as
@@ -80,4 +85,63 @@ export const deleteByPath = (object: Record<string, unknown>, path: string) => {
     if (last) {
         delete currentObject[last]
     }
+}
+
+export const getByPath = (
+    item: any[] | Record<string, unknown>,
+    path: Array<string | number>
+): unknown => {
+    let current: any = item
+    for (const key of path) {
+        if (Array.isArray(current)) {
+            const keyAsNumber = Number(key)
+            if (isNaN(keyAsNumber)) {
+                throw new SdJwtError(
+                    `Unable to get ${path.join(
+                        '.'
+                    )} from array ${item}. ${key} is not a number.`
+                )
+            }
+            if (keyAsNumber >= current.length) {
+                throw new SdJwtError(
+                    `Unable to get ${path.join(
+                        '.'
+                    )} from array ${item}. ${key} is out of bounds.`
+                )
+            }
+            current = current[keyAsNumber]
+        } else if (typeof current === 'object' && current !== null) {
+            if (!(key in current)) {
+                throw new SdJwtError(
+                    `Unable to get ${path.join(
+                        '.'
+                    )} from ${item}. ${key} does not exists in ${current}.`
+                )
+            }
+            current = current[key]
+        } else {
+            throw new SdJwtError(
+                `Unable to get ${path.join(
+                    '.'
+                )} from ${item}. ${key} is not an object or array.`
+            )
+        }
+    }
+    return current
+}
+
+export const hasByPath = (
+    item: any[] | Record<string, unknown>,
+    path: Array<string | number>
+): boolean => {
+    try {
+        getByPath(item, path)
+        return true
+    } catch {
+        return false
+    }
+}
+
+export function isObject(input: any): boolean {
+    return typeof input === 'object' && input !== null && !Array.isArray(input)
 }

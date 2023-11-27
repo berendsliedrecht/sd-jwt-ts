@@ -41,49 +41,51 @@ const verifyCb: Verifier = ({ header, message, signature }) => {
 const saltGenerator: SaltGenerator = () =>
     getRandomValues(Buffer.alloc(16)).toString('base64url')
 
+const payload = {
+    '@context': [
+        'https://www.w3.org/2018/credentials/v1',
+        'https://w3id.org/citizenship/v1',
+        'https://w3id.org/security/bbs/v1'
+    ],
+    id: 'https://issuer.oidp.uscis.gov/credentials/83627465',
+    vct: ['VerifiableCredential', 'PermanentResidentCard'],
+    issuer: 'did:key:zUC74VEqqhEHQcgv4zagSPkqFJxuNWuoBPKjJuHETEUeHLoSqWt92viSsmaWjy82y2cgguc8e9hsGBifnVK67pQ4gve3m6iSboDkmJjxVEb1d6mRAx5fpMAejooNzNqqbTMVeUN',
+    identifier: '83627465',
+    name: 'Permanent Resident Card',
+    description: 'Government of Example Permanent Resident Card.',
+    issuanceDate: '2019-12-03T12:19:52Z',
+    expirationDate: '2029-12-03T12:19:52Z',
+    credentialSubject: {
+        id: 'did:example:b34ca6cd37bbf23',
+        type: ['PermanentResident', 'Person'],
+        givenName: 'JOHN',
+        familyName: 'SMITH',
+        gender: 'Male',
+        image: 'data:image/png;base64,iVBORw0KGgokJggg==',
+        residentSince: '2015-01-01',
+        lprCategory: 'C09',
+        lprNumber: '999-999-999',
+        commuterClassification: 'C1',
+        birthCountry: 'Bahamas',
+        birthDate: '1958-07-17'
+    },
+    proof: {
+        type: 'BbsBlsSignature2020',
+        created: '2022-04-13T13:47:47Z',
+        verificationMethod:
+            'did:key:zUC74VEqqhEHQcgv4zagSPkqFJxuNWuoBPKjJuHETEUeHLoSqWt92viSsmaWjy82y2cgguc8e9hsGBifnVK67pQ4gve3m6iSboDkmJjxVEb1d6mRAx5fpMAejooNzNqqbTMVeUN#zUC74VEqqhEHQcgv4zagSPkqFJxuNWuoBPKjJuHETEUeHLoSqWt92viSsmaWjy82y2cgguc8e9hsGBifnVK67pQ4gve3m6iSboDkmJjxVEb1d6mRAx5fpMAejooNzNqqbTMVeUN',
+        proofPurpose: 'assertionMethod',
+        proofValue:
+            'hoNNnnRIoEoaY9Fvg3pGVG2eWTAHnR1kIM01nObEL2FdI2IkkpM3246jn3VBD8KBYUHlKfzccE4m7waZyoLEkBLFiK2g54Q2i+CdtYBgDdkUDsoULSBMcH1MwGHwdjfXpldFNFrHFx/IAvLVniyeMQ=='
+    }
+} as const
+
 const issuer = async () => {
     console.log('====== ISSUER ======')
 
     const sdJwt = new SdJwt({
         header: { alg: SignatureAndEncryptionAlgorithm.EdDSA },
-        payload: {
-            '@context': [
-                'https://www.w3.org/2018/credentials/v1',
-                'https://w3id.org/citizenship/v1',
-                'https://w3id.org/security/bbs/v1'
-            ],
-            id: 'https://issuer.oidp.uscis.gov/credentials/83627465',
-            vct: ['VerifiableCredential', 'PermanentResidentCard'],
-            issuer: 'did:key:zUC74VEqqhEHQcgv4zagSPkqFJxuNWuoBPKjJuHETEUeHLoSqWt92viSsmaWjy82y2cgguc8e9hsGBifnVK67pQ4gve3m6iSboDkmJjxVEb1d6mRAx5fpMAejooNzNqqbTMVeUN',
-            identifier: '83627465',
-            name: 'Permanent Resident Card',
-            description: 'Government of Example Permanent Resident Card.',
-            issuanceDate: '2019-12-03T12:19:52Z',
-            expirationDate: '2029-12-03T12:19:52Z',
-            credentialSubject: {
-                id: 'did:example:b34ca6cd37bbf23',
-                type: ['PermanentResident', 'Person'],
-                givenName: 'JOHN',
-                familyName: 'SMITH',
-                gender: 'Male',
-                image: 'data:image/png;base64,iVBORw0KGgokJggg==',
-                residentSince: '2015-01-01',
-                lprCategory: 'C09',
-                lprNumber: '999-999-999',
-                commuterClassification: 'C1',
-                birthCountry: 'Bahamas',
-                birthDate: '1958-07-17'
-            },
-            proof: {
-                type: 'BbsBlsSignature2020',
-                created: '2022-04-13T13:47:47Z',
-                verificationMethod:
-                    'did:key:zUC74VEqqhEHQcgv4zagSPkqFJxuNWuoBPKjJuHETEUeHLoSqWt92viSsmaWjy82y2cgguc8e9hsGBifnVK67pQ4gve3m6iSboDkmJjxVEb1d6mRAx5fpMAejooNzNqqbTMVeUN#zUC74VEqqhEHQcgv4zagSPkqFJxuNWuoBPKjJuHETEUeHLoSqWt92viSsmaWjy82y2cgguc8e9hsGBifnVK67pQ4gve3m6iSboDkmJjxVEb1d6mRAx5fpMAejooNzNqqbTMVeUN',
-                proofPurpose: 'assertionMethod',
-                proofValue:
-                    'hoNNnnRIoEoaY9Fvg3pGVG2eWTAHnR1kIM01nObEL2FdI2IkkpM3246jn3VBD8KBYUHlKfzccE4m7waZyoLEkBLFiK2g54Q2i+CdtYBgDdkUDsoULSBMcH1MwGHwdjfXpldFNFrHFx/IAvLVniyeMQ=='
-            }
-        }
+        payload
     })
         .withHasher(hasherAndAlgorithm)
         .withSigner(signer)
@@ -133,7 +135,9 @@ const issuer = async () => {
 const holder = async (compact: string) => {
     console.log('====== HOLDER ======')
 
-    const sdJwt = SdJwt.fromCompact(compact).withHasher(hasherAndAlgorithm)
+    const sdJwt = SdJwt.fromCompact<Record<string, unknown>, typeof payload>(
+        compact
+    ).withHasher(hasherAndAlgorithm)
 
     console.log('Claims: ')
     console.log('========')
@@ -141,7 +145,21 @@ const holder = async (compact: string) => {
     console.log('========')
     console.log()
 
-    const presentation = await sdJwt.present([0, 1, 6])
+    const presentationFrame = {
+        credentialSubject: {
+            image: true,
+            gender: true,
+            birthCountry: true
+        }
+    } as const
+
+    console.log('Presentation Frame:')
+    console.log('========')
+    console.log(presentationFrame)
+    console.log('========')
+    console.log()
+
+    const presentation = await sdJwt.present(presentationFrame)
 
     console.log('Presenting: ')
     console.log('============')

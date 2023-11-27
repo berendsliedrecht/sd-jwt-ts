@@ -126,7 +126,7 @@ export const applyDisclosureFrame = async <
     }
 
     const payloadClone = { ...payload }
-    cleanup.forEach((path) => deleteByPath(payloadClone, path.join('.')))
+    cleanup.forEach((path) => deleteByPath(payloadClone, path))
 
     return { payload: payloadClone, disclosures }
 }
