@@ -24,6 +24,17 @@ export const getDisclosuresForPresentationFrame = async <
         disclosureMap
     )
 
+    // No disclosures needed
+    if (payloadDisclosureMapping === null) {
+        if (disclosures.length > 0) {
+            throw new SdJwtError(
+                'Payload disclosure mapping is null, but disclosures are present.'
+            )
+        }
+
+        return []
+    }
+
     for (const node of traverseNodes(presentationFrame)) {
         // We only want to process leaf nodes here
         if (!node.isLeaf) continue

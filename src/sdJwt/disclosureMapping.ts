@@ -80,66 +80,64 @@ function getArrayPayloadDisclosureMapping(
                     )
                 }
 
-                // Look up disclosure
+                // Look up disclosure. It's valid that the disclosure is not present (decoy digests)
                 const disclosed = map[digest]
-                if (!disclosed) {
-                    throw new SdJwtError(
-                        `Could not find disclosure for digest ${digest}`
-                    )
-                }
+                if (disclosed) {
+                    // value is always the last item in the disclosure array
+                    const value = [...disclosed.disclosure.decoded].pop()
 
-                // value is always the last item in the disclosure array
-                const value = [...disclosed.disclosure.decoded].pop()
+                    // Recursively look if the disclosed value contains any disclosure references
+                    // of itself. Based on the type we can decide how to handle it.
+                    if (isObject(value)) {
+                        // Get nested disclosures for the object value
+                        const unpacked = getPayloadDisclosureMapping(value, map)
 
-                // Recursively look if the disclosed value contains any disclosure references
-                // of itself. Based on the type we can decide how to handle it.
-                if (isObject(value)) {
-                    // Get nested disclosures for the object value
-                    const unpacked = getPayloadDisclosureMapping(value, map)
+                        // If there's any nested disclosures, we need to include both this item's
+                        // disclosure, as well as the nested disclosures
+                        if (unpacked && Object.keys(unpacked).length > 0) {
+                            arrayPayloadDisclosureMapping.push({
+                                ...unpacked,
+                                __digest: digest
+                            })
+                        } else {
+                            arrayPayloadDisclosureMapping.push(digest)
+                        }
+                    } else if (Array.isArray(value)) {
+                        // Get nested disclosures for the array value
+                        const nestedUnpackedArray =
+                            getArrayPayloadDisclosureMapping(value, map)
 
-                    // If there's any nested disclosures, we need to include both this item's
-                    // disclosure, as well as the nested disclosures
-                    if (unpacked && Object.keys(unpacked).length > 0) {
-                        arrayPayloadDisclosureMapping.push({
-                            ...unpacked,
-                            __digest: digest
-                        })
-                    } else {
+                        // If all entries are null, it means there's no nested disclosures
+                        // And thus we push the digest directly
+                        if (
+                            nestedUnpackedArray.every((item) => item === null)
+                        ) {
+                            arrayPayloadDisclosureMapping.push(digest)
+                        } else {
+                            arrayPayloadDisclosureMapping.push({
+                                // This will assign the indexes of the array as keys (so '0': 'value')
+                                // And will allow us to still keep the query path (so 'nested.0': 'value')
+                                // while also being able to include the `__digest` property to define the
+                                // encapsulating disclosure digest
+                                ...nestedUnpackedArray,
+                                // __digest is for encapsulating disclosure
+                                __digest: digest
+                            })
+                        }
+                    }
+                    // If the value is not an object or a array, it means there's no nested disclosures
+                    // and thus we can push the digest directly
+                    else {
                         arrayPayloadDisclosureMapping.push(digest)
                     }
-                } else if (Array.isArray(value)) {
-                    // Get nested disclosures for the array value
-                    const nestedUnpackedArray =
-                        getArrayPayloadDisclosureMapping(value, map)
-
-                    // If all entries are null, it means there's no nested disclosures
-                    // And thus we push the digest directly
-                    if (nestedUnpackedArray.every((item) => item === null)) {
-                        arrayPayloadDisclosureMapping.push(digest)
-                    } else {
-                        arrayPayloadDisclosureMapping.push({
-                            // This will assign the indexes of the array as keys (so '0': 'value')
-                            // And will allow us to still keep the query path (so 'nested.0': 'value')
-                            // while also being able to include the `__digest` property to define the
-                            // encapsulating disclosure digest
-                            ...nestedUnpackedArray,
-                            // __digest is for encapsulating disclosure
-                            __digest: digest
-                        })
-                    }
-                }
-                // If the value is not an object or a array, it means there's no nested disclosures
-                // and thus we can push the digest directly
-                else {
-                    arrayPayloadDisclosureMapping.push(digest)
-                }
-            } else {
-                // Value is not a disclosure for an array ('...') so we unpack the object recursively
-                const claims = getPayloadDisclosureMapping(item, map)
-                if (claims && Object.keys(claims).length > 0) {
-                    arrayPayloadDisclosureMapping.push(claims)
                 } else {
-                    arrayPayloadDisclosureMapping.push(null)
+                    // Value is not a disclosure for an array ('...') so we unpack the object recursively
+                    const claims = getPayloadDisclosureMapping(item, map)
+                    if (claims && Object.keys(claims).length > 0) {
+                        arrayPayloadDisclosureMapping.push(claims)
+                    } else {
+                        arrayPayloadDisclosureMapping.push(null)
+                    }
                 }
             }
         }
@@ -220,63 +218,57 @@ export function getPayloadDisclosureMapping(payload: any, map: DisclosureMap) {
                 )
             }
 
-            // Look up disclosure
+            // Look up disclosure. It's valid that the disclosure is not present (decoy digests)
             const disclosed = map[digest]
-            if (!disclosed) {
-                throw new SdJwtError(
-                    `Could not find disclosure for digest ${digest}`
-                )
-            }
+            if (disclosed) {
+                // value is always the last item in the disclosure array
+                // We know this is an object, so the associated disclosure MUST have length 3
+                const value = [...disclosed.disclosure.decoded].pop()
+                if (disclosed.disclosure.decoded.length !== 3) {
+                    throw new SdJwtError(
+                        `Expected disclosure for value ${value} to have 3 items, but found ${disclosed.disclosure.decoded.length}`
+                    )
+                }
+                const key = disclosed.disclosure.decoded[1]
 
-            // value is always the last item in the disclosure array
-            // We know this is an object, so the associated disclosure MUST have length 3
-            const value = [...disclosed.disclosure.decoded].pop()
-            if (disclosed.disclosure.decoded.length !== 3) {
-                throw new SdJwtError(
-                    `Expected disclosure for value ${value} to have 3 items, but found ${disclosed.disclosure.decoded.length}`
-                )
-            }
-            const key = disclosed.disclosure.decoded[1]
-
-            // This checks if there's a nested disclosure anywhere down the tree
-            // So when a disclosure value is an object or array, it can contain disclosures
-            // of itself (using `_sd` and `...` keys)
-            if (isObject(value)) {
-                const unpacked = getPayloadDisclosureMapping(value, map)
-                if (unpacked && Object.keys(unpacked).length > 0) {
-                    payloadDisclosureMapping[key] = {
-                        ...unpacked,
-                        __digest: digest
+                // This checks if there's a nested disclosure anywhere down the tree
+                // So when a disclosure value is an object or array, it can contain disclosures
+                // of itself (using `_sd` and `...` keys)
+                if (isObject(value)) {
+                    const unpacked = getPayloadDisclosureMapping(value, map)
+                    if (unpacked && Object.keys(unpacked).length > 0) {
+                        payloadDisclosureMapping[key] = {
+                            ...unpacked,
+                            __digest: digest
+                        }
                     }
-                }
-                // If there's no nested disclosures, we add the digest directly
-                else {
-                    payloadDisclosureMapping[key] = digest
-                }
-            } else if (Array.isArray(value)) {
-                // Get nested disclosures for the array value
-                const nestedUnpackedArray = getArrayPayloadDisclosureMapping(
-                    value,
-                    map
-                )
+                    // If there's no nested disclosures, we add the digest directly
+                    else {
+                        payloadDisclosureMapping[key] = digest
+                    }
+                } else if (Array.isArray(value)) {
+                    // Get nested disclosures for the array value
+                    const nestedUnpackedArray =
+                        getArrayPayloadDisclosureMapping(value, map)
 
-                // If all entries are null, it means there's no nested disclosures
-                // And thus we push the digest directly
-                if (nestedUnpackedArray.every((item) => item === null)) {
-                    payloadDisclosureMapping[key] = digest
+                    // If all entries are null, it means there's no nested disclosures
+                    // And thus we push the digest directly
+                    if (nestedUnpackedArray.every((item) => item === null)) {
+                        payloadDisclosureMapping[key] = digest
+                    } else {
+                        payloadDisclosureMapping[key] = {
+                            // This will assign the indexes of the array as keys (so '0': 'value')
+                            // And will allow us to still keep the query path (so 'nested.0': 'value')
+                            // while also being able to include the `__digest` property to define the
+                            // encapsulating disclosure digest
+                            ...nestedUnpackedArray,
+                            // __digest is for encapsulating disclosure
+                            __digest: digest
+                        }
+                    }
                 } else {
-                    payloadDisclosureMapping[key] = {
-                        // This will assign the indexes of the array as keys (so '0': 'value')
-                        // And will allow us to still keep the query path (so 'nested.0': 'value')
-                        // while also being able to include the `__digest` property to define the
-                        // encapsulating disclosure digest
-                        ...nestedUnpackedArray,
-                        // __digest is for encapsulating disclosure
-                        __digest: digest
-                    }
+                    payloadDisclosureMapping[key] = digest
                 }
-            } else {
-                payloadDisclosureMapping[key] = digest
             }
         }
     }
