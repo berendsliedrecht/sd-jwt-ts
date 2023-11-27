@@ -37,8 +37,6 @@ export const getDisclosuresForPresentationFrame = async <
         // If the value is false, it means we don't want to disclose it
         if (node.value === false) continue
 
-        // FIXME: we should check whether the presentation frame matches the type of the payload. So if the presentation frame has an array as value, but the pretty payload
-        // has a number it should throw an error
         if (!hasByPath(prettyClaims, node.path)) {
             throw new SdJwtError(
                 `Path ${node.path.join(
