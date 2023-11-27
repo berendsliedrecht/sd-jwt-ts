@@ -28,7 +28,7 @@ const getArrayPayloadDisclosureMapping = (
                 const digest = item['...']
                 if (typeof digest !== 'string') {
                     throw new SdJwtError(
-                        `Expected value of '...' to be of type string, but found ${typeof digest}`
+                        `Expected value of key '...' to be of type string, but found ${typeof digest}`
                     )
                 }
                 const disclosed = map[digest]
