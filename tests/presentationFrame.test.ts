@@ -1,4 +1,4 @@
-import { deepStrictEqual } from 'node:assert'
+import assert, { deepStrictEqual } from 'node:assert'
 import { before, describe, it } from 'node:test'
 
 import { prelude } from './utils'
@@ -85,5 +85,53 @@ describe('presentationFrame', async () => {
             disclosures[8],
             disclosures[9]
         ])
+    })
+
+    it('error when presentation frame does not match payload structure', async () => {
+        const sdJwt = new SdJwt(
+            {
+                header: { alg: 'EdDSA' },
+                payload: {
+                    iss: 'https://example.org/issuer',
+                    nested_field: {
+                        more_nested_field: { a: [1, 2, 3, 4] }
+                    }
+                }
+            },
+            {
+                signer: () => new Uint8Array(32).fill(41),
+                saltGenerator: () => 'salt',
+                disclosureFrame: {
+                    iss: true,
+                    __decoyCount: 1,
+                    nested_field: {
+                        more_nested_field: { a: [true, true, false, true] },
+                        __decoyCount: 5
+                    }
+                },
+                hasherAndAlgorithm: {
+                    hasher: (data) => Buffer.from(data),
+                    algorithm: HasherAlgorithm.Sha256
+                }
+            }
+        )
+
+        // NOTE: we need to apply the disclosure frame, otherwise payload is the input payload
+        await sdJwt.applyDisclosureFrame()
+        const disclosures = sdJwt.disclosures!
+
+        await assert.rejects(
+            getDisclosuresForPresentationFrame(
+                sdJwt.payload!,
+                {
+                    // @ts-ignore
+                    nested_field: [true]
+                },
+                await sdJwt.getPrettyClaims(),
+                (data) => Buffer.from(data),
+                disclosures
+            ),
+            'Path nested_field.0 from presentation frame is not present in pretty SD-JWT payload.'
+        )
     })
 })
