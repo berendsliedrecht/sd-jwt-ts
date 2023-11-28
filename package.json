@@ -1,5 +1,6 @@
 {
     "name": "sd-jwt",
+    "version": "0.1.1",
     "private": true,
     "license": "(MIT OR Apache-2.0)",
     "author": "Berend Sliedrecht <sliedrecht@berend.io>",
@@ -27,11 +28,8 @@
         "release:root": "release-it"
     },
     "devDependencies": {
-        "@types/node": "*",
         "prettier": "*",
-        "release-it": "*",
-        "ts-node": "*",
-        "typescript": "*"
+        "release-it": "*"
     },
     "pnpm": {
         "overrides": {
@@ -42,6 +40,5 @@
             "ts-node": "^10.9.1",
             "typescript": "~5.3.2"
         }
-    },
-    "version": "0.1.1"
+    }
 }
