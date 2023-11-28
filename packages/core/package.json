@@ -4,7 +4,7 @@
     "description": "Core implementation of sd-jwt Draft 06 and sd-jwt-vc Draft 01",
     "license": "(MIT OR Apache-2.0)",
     "author": "Berend Sliedrecht <sliedrecht@berend.io>",
-    "readme": "README.md",
+    "readme": "../../README.md",
     "keywords": [
         "jwt",
         "jwt-sd",
