@@ -14,7 +14,7 @@ import {
     SignatureAndEncryptionAlgorithm,
     Signer,
     Verifier
-} from '../src'
+} from '@sd-jwt/core'
 
 const { privateKey, publicKey } = generateKeyPairSync('ed25519')
 

@@ -190,8 +190,8 @@ export class SdJwt<
             typeof keyBinding === 'string'
                 ? KeyBinding.fromCompact(keyBinding)
                 : keyBinding instanceof KeyBinding
-                ? keyBinding
-                : KeyBinding.fromJwt(keyBinding)
+                  ? keyBinding
+                  : KeyBinding.fromJwt(keyBinding)
 
         this.keyBinding = kb
         return this as ReturnSdJwtWithKeyBinding<Header, Payload, this>

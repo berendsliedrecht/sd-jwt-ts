@@ -13,7 +13,7 @@ import {
     SdJwt,
     SignatureAndEncryptionAlgorithm,
     KeyBinding
-} from '../src'
+} from '@sd-jwt/core'
 
 const { privateKey } = generateKeyPairSync('ed25519')
 

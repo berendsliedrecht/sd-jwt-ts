@@ -1,20 +1,9 @@
 {
-    "name": "jwt-sd",
-    "version": "0.2.1-alpha.0",
-    "description": "Implementation of sd-jwt Draft 05",
+    "name": "sd-jwt",
+    "private": true,
     "license": "(MIT OR Apache-2.0)",
-    "author": "Berend Sliedrecht <blu3beri@proton.me>",
+    "author": "Berend Sliedrecht <sliedrecht@berend.io>",
     "readme": "README.md",
-    "keywords": [
-        "jwt",
-        "jwt-sd",
-        "sd-jwt",
-        "decentralized-identity",
-        "ssi",
-        "oauth",
-        "oauth2",
-        "openid-connect"
-    ],
     "repository": {
         "url": "https://github.com/berendsliedrecht/sd-jwt-ts",
         "type": "git"
@@ -22,33 +11,36 @@
     "homepage": "https://github.com/berendsliedrecht/sd-jwt-ts",
     "bugs": {
         "url": "https://github.com/berendsliedrecht/sd-jwt-ts/issues",
-        "email": "blu3beri@proton.me"
+        "email": "sliedrecht@berend.io"
     },
-    "main": "build/index.js",
-    "files": [
-        "build",
-        "LICENSE-MIT",
-        "LICENSE-APACHE-2.0"
-    ],
     "scripts": {
-        "clean": "rm -rf build",
+        "clean": "rm -rf **/build",
         "clean:deps": "pnpm clean && rm -rf node_modules",
-        "build": "tsc",
-        "test": "node --require ts-node/register --test ./tests/*.test.ts",
+        "build": "pnpm -r build",
         "prettier": "prettier --ignore-path .gitignore .",
         "check-format": "pnpm prettier --list-different",
         "check-types": "pnpm build --noEmit",
         "format": "pnpm prettier --write",
-        "release": "release-it"
-    },
-    "dependencies": {
-        "buffer": "^6.0.3"
+        "test": "pnpm -r test",
+        "examples": "pnpm -r run:example",
+        "release": "pnpm -r release",
+        "release:root": "release-it"
     },
     "devDependencies": {
-        "@types/node": "^20.8.4",
-        "prettier": "^3.0.3",
-        "release-it": "16.2.1",
-        "ts-node": "^10.9.1",
-        "typescript": "~5.2.2"
+        "@types/node": "*",
+        "prettier": "*",
+        "release-it": "*",
+        "ts-node": "*",
+        "typescript": "*"
+    },
+    "pnpm": {
+        "overrides": {
+            "buffer": "^6.0.3",
+            "@types/node": "^20.10.0",
+            "prettier": "^3.1.0",
+            "release-it": "^17.0.0",
+            "ts-node": "^10.9.1",
+            "typescript": "~5.3.2"
+        }
     }
 }

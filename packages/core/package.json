@@ -1,0 +1,50 @@
+{
+    "name": "@sd-jwt/core",
+    "version": "0.0.0",
+    "description": "Core implementation of sd-jwt Draft 06 and sd-jwt-vc Draft 01",
+    "license": "(MIT OR Apache-2.0)",
+    "author": "Berend Sliedrecht <sliedrecht@berend.io>",
+    "readme": "README.md",
+    "keywords": [
+        "jwt",
+        "jwt-sd",
+        "sd-jwt",
+        "sd-jwt-vc",
+        "decentralized-identity",
+        "ssi",
+        "oauth",
+        "oauth2",
+        "openid-connect"
+    ],
+    "repository": {
+        "url": "https://github.com/berendsliedrecht/sd-jwt-ts",
+        "type": "git"
+    },
+    "homepage": "https://github.com/berendsliedrecht/sd-jwt-ts",
+    "bugs": {
+        "url": "https://github.com/berendsliedrecht/sd-jwt-ts/issues",
+        "email": "sliedrecht@berend.io"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "main": "build/index.js",
+    "files": [
+        "build",
+        "LICENSE-MIT",
+        "LICENSE-APACHE-2.0"
+    ],
+    "scripts": {
+        "build": "tsc",
+        "test": "node --require ts-node/register --test ./tests/*.test.ts",
+        "release": "release-it"
+    },
+    "dependencies": {
+        "buffer": "*"
+    },
+    "devDependencies": {
+        "@types/node": "*",
+        "ts-node": "*",
+        "typescript": "*"
+    }
+}

@@ -1,6 +1,5 @@
 {
     "compilerOptions": {
-        "baseUrl": "./src/",
         "outDir": "build",
         "target": "es2016",
         "lib": ["ES2021"],
@@ -11,5 +10,5 @@
         "declaration": true,
         "sourceMap": true
     },
-    "exclude": ["tests", "example"]
+    "exclude": ["**/tests", "**/build"]
 }

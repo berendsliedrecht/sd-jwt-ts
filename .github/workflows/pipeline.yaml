@@ -44,6 +44,11 @@ jobs:
             - name: Test
               run: pnpm test
 
+            - name: Examples
+              run: |
+                  pnpm build
+                  pnpm examples
+
     continious-deployment:
         if: github.event_name == 'workflow_dispatch'
 
@@ -75,11 +80,13 @@ jobs:
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
               run: |
                   echo ${{ inputs.release-type }}
-                  git config --global user.email "blu3beri@proton.me"
+                  git config --global user.email "sliedrecht@berend.io"
                   git config --global user.name "Berend Sliedrecht"
 
                   if [ ${{ inputs.release-type }} == 'alpha' ]; then
                     pnpm release --preRelease=${{ inputs.release-type }} --npm.tag=latest
+                    pnpm release:root --preRelease=${{ inputs.release-type }} --npm.tag=latest
                   else
                     pnpm release ${{ inputs.release-type }}
+                    pnpm release:root ${{ inputs.release-type }}
                   fi
