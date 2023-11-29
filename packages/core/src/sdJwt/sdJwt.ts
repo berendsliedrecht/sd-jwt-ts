@@ -254,16 +254,19 @@ export class SdJwt<
         this.payload = framedPayload as Payload
     }
 
-    public async disclosuresWithDigest(): Promise<DisclosureWithDigest[]> {
+    public async disclosuresWithDigest(): Promise<
+        DisclosureWithDigest[] | undefined
+    > {
         this.assertHashAndAlgorithm()
 
         if (!this.disclosures && this.disclosureFrame) {
             await this.applyDisclosureFrame()
         }
 
-        const disclosures = this.disclosures ?? []
+        if (!this.disclosures) return undefined
+
         return Promise.all(
-            disclosures.map((d) =>
+            this.disclosures.map((d) =>
                 d.withCalculateDigest(this.hasherAndAlgorithm!.hasher)
             )
         )
@@ -377,12 +380,7 @@ export class SdJwt<
         }
 
         // Calculate the digests for all disclosures
-        const disclosures = this.disclosures ?? []
-        const disclosuresWithDigest = await Promise.all(
-            disclosures.map((d) =>
-                d.withCalculateDigest(this.hasherAndAlgorithm!.hasher)
-            )
-        )
+        const disclosuresWithDigest = await this.disclosuresWithDigest()
 
         const requiredDisclosures = getDisclosuresForPresentationFrame(
             this.payload!,
@@ -494,14 +492,11 @@ export class SdJwt<
         this.assertPayload()
         this.assertHashAndAlgorithm()
 
-        // TODO: we should memoize the calculated hashes
-        const disclosuresWithDigest = await Promise.all(
-            this.disclosures?.map((d) =>
-                d.withCalculateDigest(this.hasherAndAlgorithm!.hasher)
-            ) ?? []
+        const disclosuresWithDigest = await this.disclosuresWithDigest()
+        const newPayload = swapClaims(
+            this.payload!,
+            disclosuresWithDigest ?? []
         )
-
-        const newPayload = swapClaims(this.payload!, disclosuresWithDigest)
 
         return newPayload as Claims
     }
