@@ -14,11 +14,7 @@ import {
     ReturnSdJwtWithPayload
 } from './types'
 import { sdJwtFromCompact } from './compact'
-import {
-    Disclosure,
-    DisclosureWithDigest,
-    isDisclosureWithDigest
-} from './disclosures'
+import { Disclosure, DisclosureWithDigest } from './disclosures'
 import { applyDisclosureFrame } from './disclosureFrame'
 import { swapClaims } from './swapClaim'
 import { getAllKeys, getValueByKeyAnyLevel } from '../utils'
