@@ -14,13 +14,13 @@ describe('swap claims', async () => {
                 _sd: ['JP2SEOtk1Nn7dVSy3KWgE51k4m5i22GfYw_FHr1Qq2E']
             }
 
-            const disclosure = new Disclosure('salt', 'value', 'key')
+            const disclosure = await new Disclosure(
+                'salt',
+                'value',
+                'key'
+            ).withCalculateDigest(hasherAndAlgorithm.hasher)
 
-            const prettyClaims = await swapClaims(
-                hasherAndAlgorithm.hasher,
-                payload,
-                [disclosure]
-            )
+            const prettyClaims = swapClaims(payload, [disclosure])
 
             deepStrictEqual(prettyClaims, { key: 'value' })
         })
@@ -32,13 +32,12 @@ describe('swap claims', async () => {
                 ]
             }
 
-            const disclosure = new Disclosure('salt', 'value')
+            const disclosure = await new Disclosure(
+                'salt',
+                'value'
+            ).withCalculateDigest(hasherAndAlgorithm.hasher)
 
-            const prettyClaims = await swapClaims(
-                hasherAndAlgorithm.hasher,
-                payload,
-                [disclosure]
-            )
+            const prettyClaims = swapClaims(payload, [disclosure])
 
             deepStrictEqual(prettyClaims, { someArray: ['value'] })
         })
@@ -48,13 +47,13 @@ describe('swap claims', async () => {
                 _sd: ['abba']
             }
 
-            const disclosure = new Disclosure('salt', 'value', 'key')
+            const disclosure = await new Disclosure(
+                'salt',
+                'value',
+                'key'
+            ).withCalculateDigest(hasherAndAlgorithm.hasher)
 
-            const prettyClaims = await swapClaims(
-                hasherAndAlgorithm.hasher,
-                payload,
-                [disclosure]
-            )
+            const prettyClaims = swapClaims(payload, [disclosure])
 
             deepStrictEqual(prettyClaims, {})
         })
@@ -64,13 +63,13 @@ describe('swap claims', async () => {
                 _sd: ['abba', 'JP2SEOtk1Nn7dVSy3KWgE51k4m5i22GfYw_FHr1Qq2E']
             }
 
-            const disclosure = new Disclosure('salt', 'value', 'key')
+            const disclosure = await new Disclosure(
+                'salt',
+                'value',
+                'key'
+            ).withCalculateDigest(hasherAndAlgorithm.hasher)
 
-            const prettyClaims = await swapClaims(
-                hasherAndAlgorithm.hasher,
-                payload,
-                [disclosure]
-            )
+            const prettyClaims = swapClaims(payload, [disclosure])
             deepStrictEqual(prettyClaims, { key: 'value' })
         })
     })
@@ -83,18 +82,21 @@ describe('swap claims', async () => {
                     'svTQmxMQAojzr63PVqHXnIUxqxyo-sHDzAMnLcKjKRs'
                 ]
             }
-            const disclosureOne = new Disclosure('salt', 'value', 'key')
-            const disclosureTwo = new Disclosure(
+            const disclosureOne = await new Disclosure(
+                'salt',
+                'value',
+                'key'
+            ).withCalculateDigest(hasherAndAlgorithm.hasher)
+            const disclosureTwo = await new Disclosure(
                 'salt',
                 { hello: 'world' },
                 'keyTwo'
-            )
+            ).withCalculateDigest(hasherAndAlgorithm.hasher)
 
-            const prettyClaims = await swapClaims(
-                hasherAndAlgorithm.hasher,
-                payload,
-                [disclosureOne, disclosureTwo]
-            )
+            const prettyClaims = swapClaims(payload, [
+                disclosureOne,
+                disclosureTwo
+            ])
             deepStrictEqual(prettyClaims, {
                 key: 'value',
                 keyTwo: { hello: 'world' }
@@ -108,14 +110,18 @@ describe('swap claims', async () => {
                     { '...': 'w9JvA2goSCRDWdWqyRHB9WfmK23_txf2qq6P_Vv77Xk' }
                 ]
             }
-            const disclosureOne = new Disclosure('salt', 'value')
-            const disclosureTwo = new Disclosure('salt', { hello: 'world' })
+            const disclosureOne = await new Disclosure(
+                'salt',
+                'value'
+            ).withCalculateDigest(hasherAndAlgorithm.hasher)
+            const disclosureTwo = await new Disclosure('salt', {
+                hello: 'world'
+            }).withCalculateDigest(hasherAndAlgorithm.hasher)
 
-            const prettyClaims = await swapClaims(
-                hasherAndAlgorithm.hasher,
-                payload,
-                [disclosureOne, disclosureTwo]
-            )
+            const prettyClaims = swapClaims(payload, [
+                disclosureOne,
+                disclosureTwo
+            ])
             deepStrictEqual(prettyClaims, {
                 someArray: ['value', { hello: 'world' }]
             })
@@ -135,19 +141,26 @@ describe('swap claims', async () => {
                 },
                 _sd_alg: 'sha-256'
             }
-            const disclosureOne = new Disclosure(
+            const disclosureOne = await new Disclosure(
                 'salt',
                 'toplevel',
                 'toplevelkey'
-            )
-            const disclosureTwo = new Disclosure('salt', 'nested', 'nestedkey')
-            const disclosureThree = new Disclosure('salt', 'arrayitem')
+            ).withCalculateDigest(hasherAndAlgorithm.hasher)
+            const disclosureTwo = await new Disclosure(
+                'salt',
+                'nested',
+                'nestedkey'
+            ).withCalculateDigest(hasherAndAlgorithm.hasher)
+            const disclosureThree = await new Disclosure(
+                'salt',
+                'arrayitem'
+            ).withCalculateDigest(hasherAndAlgorithm.hasher)
 
-            const prettyClaims = await swapClaims(
-                hasherAndAlgorithm.hasher,
-                payload,
-                [disclosureOne, disclosureTwo, disclosureThree]
-            )
+            const prettyClaims = swapClaims(payload, [
+                disclosureOne,
+                disclosureTwo,
+                disclosureThree
+            ])
 
             deepStrictEqual(prettyClaims, {
                 cleartextclaim: true,
@@ -193,14 +206,14 @@ describe('swap claims', async () => {
             )
             await sdJwt.applyDisclosureFrame()
 
-            const disclosures = sdJwt.disclosures ?? []
+            const disclosures = await Promise.all(
+                (sdJwt.disclosures ?? []).map((d) =>
+                    d.withCalculateDigest(hasherAndAlgorithm.hasher)
+                )
+            )
             const sdPayload = sdJwt.payload ?? {}
 
-            const receivedPrettyClaims = await swapClaims(
-                hasherAndAlgorithm.hasher,
-                sdPayload,
-                disclosures
-            )
+            const receivedPrettyClaims = swapClaims(sdPayload, disclosures)
 
             deepStrictEqual(receivedPrettyClaims, {
                 cleartext: 123,

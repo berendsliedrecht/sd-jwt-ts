@@ -91,10 +91,9 @@ export const testCreateDisclosureObjectAndHash = async (
     const disclosure = new Disclosure(input[0], input[2], input[1])
 
     strictEqual(disclosure.encoded, expectedDisclosure)
+    await disclosure.withCalculateDigest(hasherAndAlgorithm.hasher)
 
-    const hash = await disclosure.digest(hasherAndAlgorithm.hasher)
-
-    strictEqual(hash, expectedHash)
+    strictEqual(disclosure.digest, expectedHash)
 }
 
 export const testCreateDisclosureArrayAndHash = async (
@@ -106,7 +105,7 @@ export const testCreateDisclosureArrayAndHash = async (
 
     strictEqual(disclosure.encoded, expectedDisclosure)
 
-    const hash = await disclosure.digest(hasherAndAlgorithm.hasher)
+    await disclosure.withCalculateDigest(hasherAndAlgorithm.hasher)
 
-    strictEqual(hash, expectedHash)
+    strictEqual(disclosure.digest, expectedHash)
 }

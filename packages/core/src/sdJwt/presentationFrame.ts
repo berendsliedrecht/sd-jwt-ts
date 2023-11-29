@@ -1,24 +1,22 @@
 import { getByPath, hasByPath, traverseNodes } from '../utils'
-import { Disclosure } from './disclosures'
+import { DisclosureWithDigest } from './disclosures'
 import { SdJwtError } from './error'
-import { Hasher } from '../types'
 import { PresentationFrame } from '../types/present'
 import {
     getDisclosureMap,
     getPayloadDisclosureMapping
 } from './disclosureMapping'
 
-export const getDisclosuresForPresentationFrame = async <
+export const getDisclosuresForPresentationFrame = <
     Payload extends Record<string, unknown> = Record<string, unknown>
 >(
     signedPayload: Payload,
     presentationFrame: PresentationFrame<Payload>,
     prettyClaims: Payload,
-    hasher: Hasher,
-    disclosures: Array<Disclosure> = []
-): Promise<Array<Disclosure>> => {
+    disclosures: Array<DisclosureWithDigest> = []
+): Array<DisclosureWithDigest> => {
     const requiredDisclosureDigests = new Set<string>()
-    const disclosureMap = await getDisclosureMap(disclosures, hasher)
+    const disclosureMap = getDisclosureMap(disclosures)
     const payloadDisclosureMapping = getPayloadDisclosureMapping(
         signedPayload,
         disclosureMap
@@ -89,10 +87,8 @@ export const getDisclosuresForPresentationFrame = async <
             throw new Error('disclosure not found')
         }
 
-        await Promise.all(
-            disclosure.parentDisclosures.map(async (d) =>
-                requiredDisclosureDigests.add(await d.digest(hasher))
-            )
+        disclosure.parentDisclosures.forEach((d) =>
+            requiredDisclosureDigests.add(d.digest)
         )
     }
 

@@ -1,11 +1,9 @@
-import { Disclosure } from './disclosures'
-import { Hasher } from '../types'
+import { DisclosureWithDigest } from './disclosures'
 
-const shouldInsertDisclosure = async (
-    hasher: Hasher,
+const shouldInsertDisclosure = (
     key: string,
     value: unknown,
-    disclosures: Array<Disclosure>
+    disclosures: DisclosureWithDigest[]
 ) => {
     if (key !== '_sd') return []
     if (!Array.isArray(value)) return []
@@ -13,8 +11,7 @@ const shouldInsertDisclosure = async (
     const filteredDisclosures = []
 
     for (const d of disclosures) {
-        const digest = await d.digest(hasher)
-        if (value.includes(digest)) {
+        if (value.includes(d.digest)) {
             filteredDisclosures.push(d)
         }
     }
@@ -25,10 +22,9 @@ const shouldInsertDisclosure = async (
 const shouldIncludeCleartextClaim = (key: string, value: unknown) =>
     key !== '_sd' && key !== '_sd_alg' && typeof value !== 'object'
 
-export const swapClaims = async (
-    hasher: Hasher,
+export const swapClaims = (
     payload: Record<string, unknown>,
-    disclosures: Array<Disclosure>,
+    disclosures: DisclosureWithDigest[],
     newPayload: Record<string, unknown> = {}
 ) => {
     const entries = Object.entries(payload)
@@ -38,12 +34,7 @@ export const swapClaims = async (
         const [key, value] = entries[i]
 
         // See whether we have an `_sd` key with an array of disclosures.
-        const foundDisclosures = await shouldInsertDisclosure(
-            hasher,
-            key,
-            value,
-            disclosures
-        )
+        const foundDisclosures = shouldInsertDisclosure(key, value, disclosures)
 
         // Add the disclosed items to the pretty payload
         foundDisclosures.forEach((d) => {
@@ -63,11 +54,7 @@ export const swapClaims = async (
         }
 
         if (typeof value === 'object' && Array.isArray(value)) {
-            newPayload[key] = await swapClaimsInsideArray(
-                hasher,
-                value,
-                disclosures
-            )
+            newPayload[key] = swapClaimsInsideArray(value, disclosures)
             continue
         }
 
@@ -76,8 +63,7 @@ export const swapClaims = async (
             value !== null &&
             !Array.isArray(value)
         ) {
-            newPayload[key] = await swapClaims(
-                hasher,
+            newPayload[key] = swapClaims(
                 value as Record<string, unknown>,
                 disclosures
             )
@@ -87,10 +73,9 @@ export const swapClaims = async (
     return newPayload
 }
 
-const swapClaimsInsideArray = async (
-    hasher: Hasher,
+const swapClaimsInsideArray = (
     array: Array<unknown | { '...': string }>,
-    disclosures: Array<Disclosure>
+    disclosures: DisclosureWithDigest[]
 ) => {
     const processedArray = []
 
@@ -101,8 +86,7 @@ const swapClaimsInsideArray = async (
             let disclosureValue
 
             for (const d of disclosures) {
-                const digest = await d.digest(hasher)
-                if (digest === hash && d.decoded[2] === undefined) {
+                if (d.digest === hash && d.decoded[2] === undefined) {
                     disclosureValue = d.decoded[1]
                     disclosureFound = true
                     break
