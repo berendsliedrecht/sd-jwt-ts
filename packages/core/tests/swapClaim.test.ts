@@ -7,14 +7,14 @@ import { swapClaims } from '../src/sdJwt/swapClaim'
 
 import { hasherAndAlgorithm, saltGenerator, signer } from './utils'
 
-describe('swap claims', async () => {
-    describe('swap single claim', async () => {
-        it('swap object single claim', async () => {
+describe('swap claims', () => {
+    describe('swap single claim', () => {
+        it('swap object single claim', () => {
             const payload = {
                 _sd: ['JP2SEOtk1Nn7dVSy3KWgE51k4m5i22GfYw_FHr1Qq2E']
             }
 
-            const disclosure = await new Disclosure(
+            const disclosure = new Disclosure(
                 'salt',
                 'value',
                 'key'
@@ -25,14 +25,14 @@ describe('swap claims', async () => {
             deepStrictEqual(prettyClaims, { key: 'value' })
         })
 
-        it('swap array claim', async () => {
+        it('swap array claim', () => {
             const payload = {
                 someArray: [
                     { '...': '8szvPmTqpPa0pf0YcnIJ19jGuKuFNtKYFpQatP7dXNI' }
                 ]
             }
 
-            const disclosure = await new Disclosure(
+            const disclosure = new Disclosure(
                 'salt',
                 'value'
             ).withCalculateDigest(hasherAndAlgorithm.hasher)
@@ -42,12 +42,12 @@ describe('swap claims', async () => {
             deepStrictEqual(prettyClaims, { someArray: ['value'] })
         })
 
-        it('should not swap claim that is not in the object', async () => {
+        it('should not swap claim that is not in the object', () => {
             const payload = {
                 _sd: ['abba']
             }
 
-            const disclosure = await new Disclosure(
+            const disclosure = new Disclosure(
                 'salt',
                 'value',
                 'key'
@@ -58,12 +58,12 @@ describe('swap claims', async () => {
             deepStrictEqual(prettyClaims, {})
         })
 
-        it('should not swap claim that is not in the object, but only ones that work', async () => {
+        it('should not swap claim that is not in the object, but only ones that work', () => {
             const payload = {
                 _sd: ['abba', 'JP2SEOtk1Nn7dVSy3KWgE51k4m5i22GfYw_FHr1Qq2E']
             }
 
-            const disclosure = await new Disclosure(
+            const disclosure = new Disclosure(
                 'salt',
                 'value',
                 'key'
@@ -74,20 +74,20 @@ describe('swap claims', async () => {
         })
     })
 
-    describe('swap multiple claims', async () => {
-        it('swap object multiple claim', async () => {
+    describe('swap multiple claims', () => {
+        it('swap object multiple claim', () => {
             const payload = {
                 _sd: [
                     'JP2SEOtk1Nn7dVSy3KWgE51k4m5i22GfYw_FHr1Qq2E',
                     'svTQmxMQAojzr63PVqHXnIUxqxyo-sHDzAMnLcKjKRs'
                 ]
             }
-            const disclosureOne = await new Disclosure(
+            const disclosureOne = new Disclosure(
                 'salt',
                 'value',
                 'key'
             ).withCalculateDigest(hasherAndAlgorithm.hasher)
-            const disclosureTwo = await new Disclosure(
+            const disclosureTwo = new Disclosure(
                 'salt',
                 { hello: 'world' },
                 'keyTwo'
@@ -103,18 +103,18 @@ describe('swap claims', async () => {
             })
         })
 
-        it('swap multiple array claims', async () => {
+        it('swap multiple array claims', () => {
             const payload = {
                 someArray: [
                     { '...': '8szvPmTqpPa0pf0YcnIJ19jGuKuFNtKYFpQatP7dXNI' },
                     { '...': 'w9JvA2goSCRDWdWqyRHB9WfmK23_txf2qq6P_Vv77Xk' }
                 ]
             }
-            const disclosureOne = await new Disclosure(
+            const disclosureOne = new Disclosure(
                 'salt',
                 'value'
             ).withCalculateDigest(hasherAndAlgorithm.hasher)
-            const disclosureTwo = await new Disclosure('salt', {
+            const disclosureTwo = new Disclosure('salt', {
                 hello: 'world'
             }).withCalculateDigest(hasherAndAlgorithm.hasher)
 
@@ -127,7 +127,7 @@ describe('swap claims', async () => {
             })
         })
 
-        it('swap complex nested disclosures', async () => {
+        it('swap complex nested disclosures', () => {
             const payload = {
                 cleartextclaim: true,
                 _sd: ['g8mHOW_TLNiLKUpGdKmc7Lsh6CYaU2mtgk1-5eSjglg'],
@@ -141,17 +141,17 @@ describe('swap claims', async () => {
                 },
                 _sd_alg: 'sha-256'
             }
-            const disclosureOne = await new Disclosure(
+            const disclosureOne = new Disclosure(
                 'salt',
                 'toplevel',
                 'toplevelkey'
             ).withCalculateDigest(hasherAndAlgorithm.hasher)
-            const disclosureTwo = await new Disclosure(
+            const disclosureTwo = new Disclosure(
                 'salt',
                 'nested',
                 'nestedkey'
             ).withCalculateDigest(hasherAndAlgorithm.hasher)
-            const disclosureThree = await new Disclosure(
+            const disclosureThree = new Disclosure(
                 'salt',
                 'arrayitem'
             ).withCalculateDigest(hasherAndAlgorithm.hasher)
@@ -174,7 +174,7 @@ describe('swap claims', async () => {
         })
     })
 
-    describe('Roundtrip', async () => {
+    describe('Roundtrip', () => {
         it('should roundtrip from and to pretty claims', async () => {
             const prettyClaims = {
                 cleartext: 123,
@@ -206,11 +206,11 @@ describe('swap claims', async () => {
             )
             await sdJwt.applyDisclosureFrame()
 
-            const disclosures = await Promise.all(
-                (sdJwt.disclosures ?? []).map((d) =>
+            const disclosures =
+                sdJwt.disclosures?.map((d) =>
                     d.withCalculateDigest(hasherAndAlgorithm.hasher)
-                )
-            )
+                ) ?? []
+
             const sdPayload = sdJwt.payload ?? {}
 
             const receivedPrettyClaims = swapClaims(sdPayload, disclosures)

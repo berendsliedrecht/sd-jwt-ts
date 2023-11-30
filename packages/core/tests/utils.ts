@@ -47,10 +47,10 @@ export const prelude = () => {
         oldStringify(x, null, 0).split('",').join('", ').split('":').join('": ')
 }
 
-export const hasherAndAlgorithm: HasherAndAlgorithm = {
+export const hasherAndAlgorithm = {
     hasher: (input: string) => createHash('sha256').update(input).digest(),
     algorithm: HasherAlgorithm.Sha256
-}
+} as const satisfies HasherAndAlgorithm
 
 export const signer: Signer = (input, header) => {
     if (header.alg !== SignatureAndEncryptionAlgorithm.EdDSA) {
