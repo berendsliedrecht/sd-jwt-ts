@@ -22,6 +22,7 @@ import {
     SdJwt,
     SdJwtError
 } from '../src'
+import { DisclosureWithDigest } from '../src/sdJwt'
 
 describe('sd-jwt', async () => {
     before(prelude)
@@ -64,7 +65,8 @@ describe('sd-jwt', async () => {
                 }
             )
 
-            const [disclosure] = await sdJwt.disclosuresWithDigest()
+            const [disclosure] =
+                (await sdJwt.disclosuresWithDigest()) as DisclosureWithDigest[]
             assert.equal(disclosure.digest, 'aGFzaA')
             assert.deepEqual(disclosure, {
                 key: undefined,
