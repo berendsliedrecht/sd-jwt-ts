@@ -66,25 +66,47 @@ export class Disclosure {
         return this as DisclosureWithDigest
     }
 
-    public async withCalculateDigest(
-        hasher: Hasher,
+    public withCalculateDigest<HasherImplementation extends Hasher>(
+        hasher: HasherImplementation,
         // Whether to recalculate the digest, even if it is already set
         { recalculate = false }: { recalculate?: boolean } = {}
-    ): Promise<DisclosureWithDigest> {
-        if (!recalculate && isDisclosureWithDigest(this)) return this
+    ): WithCalculateDigestReturnType<HasherImplementation> {
+        // NOTE: the implementation of this method seems overly complex, but it allows
+        // us to return a promise if the hasher returns a promise, and a value otherwise.
+        // This allows this method to be used in environments where the calling scope
+        // is not async, as long as the hasher is not async either.
+        if (!recalculate && isDisclosureWithDigest(this)) {
+            return this as unknown as WithCalculateDigestReturnType<HasherImplementation>
+        }
 
         // Calculate digest
-        const hash = await hasher(this.encoded)
-        this.#digest = Base64url.encode(hash)
+        const hashResult = hasher(this.encoded)
 
-        // We know for sure that digest is defined now
-        return this as DisclosureWithDigest
+        // If promise, wait for it to resolve
+        if ('then' in hashResult) {
+            return hashResult.then((hash) => {
+                this.#digest = Base64url.encode(hash)
+
+                // We know for sure that digest is defined now
+                return this as DisclosureWithDigest
+            }) as unknown as WithCalculateDigestReturnType<HasherImplementation>
+        } else {
+            this.#digest = Base64url.encode(hashResult)
+
+            // We know for sure that digest is defined now
+            return this as unknown as WithCalculateDigestReturnType<HasherImplementation>
+        }
     }
 
     public toString() {
         return this.encoded
     }
 }
+
+export type WithCalculateDigestReturnType<HasherImplementation extends Hasher> =
+    ReturnType<HasherImplementation> extends Promise<any>
+        ? Promise<DisclosureWithDigest>
+        : DisclosureWithDigest
 
 export function isDisclosureWithDigest(
     disclosure: Disclosure
