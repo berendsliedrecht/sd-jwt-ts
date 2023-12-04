@@ -59,7 +59,11 @@ describe('presentationFrame', async () => {
         // NOTE: we need to apply the disclosure frame, otherwise payload is the input payload
         await sdJwt.applyDisclosureFrame()
         const disclosures = sdJwt.disclosures!
-        const requiredDisclosures = await getDisclosuresForPresentationFrame(
+
+        const disclosuresWithDigest = await Promise.all(
+            disclosures.map((d) => d.withCalculateDigest(Buffer.from))
+        )
+        const requiredDisclosures = getDisclosuresForPresentationFrame(
             sdJwt.payload!,
             {
                 nested_field: {
@@ -73,8 +77,7 @@ describe('presentationFrame', async () => {
                 mustDiscloseWholeObject: true
             },
             await sdJwt.getPrettyClaims(),
-            (data) => Buffer.from(data),
-            disclosures
+            disclosuresWithDigest
         )
 
         deepStrictEqual(requiredDisclosures, [
@@ -94,27 +97,27 @@ describe('presentationFrame', async () => {
                 'array',
                 [
                     {
-                        '...': 'V3lKellXeDBJaXdnVzNzaUxpNHVJam9nSWxZemJFdGxiR3hZWlVSQ1NtRllaRzVUVnpGSFpWZE9kRkpxVmxsbGEwcHRXa2N4UjJNeVVsaFdiVnBPVW1wcmVWZFdaRFJOVm5CVVUyMVJJbjFkWFE'
+                        '...': 'array_0_value_digest'
                     },
                     'array_1_value'
                 ]
-            ]),
+            ]).withDigest('array_digest'),
             Disclosure.fromArray([
                 'salt',
                 [
                     {
-                        '...': 'V3lKellXeDBJaXdnSW1GeWNtRjVYekJmZG1Gc2RXVmZNRjkyWVd4MVpTSmQ'
+                        '...': 'array_0_value_0_value_digest'
                     }
                 ]
-            ]),
-            Disclosure.fromArray(['salt', 'array_0_value_0_value'])
+            ]).withDigest('array_0_value_digest'),
+            Disclosure.fromArray(['salt', 'array_0_value_0_value']).withDigest(
+                'array_0_value_0_value_digest'
+            )
         ]
 
-        const requiredDisclosures = await getDisclosuresForPresentationFrame(
+        const requiredDisclosures = getDisclosuresForPresentationFrame(
             {
-                _sd: [
-                    'V3lKellXeDBJaXdnSW1GeWNtRjVJaXdnVzNzaUxpNHVJam9nSWxZemJFdGxiR3hZWlVSQ1NtRllaRzVXZWs1NllWVjRjRTVJVmtwaGJUbHVVMWQ0V21WdFNrWmtSM2hwVWpOb1dsZHNWbE5STVU1MFVteHNZVko2VmxWV2JuQkhVMFp3VjFwRk9XdFNhM0I0Vm0xNGMySkhSWGRqU0ZKWVlUSk9ORlZxU2s1bFZsWnpZVVprYVZadVFsQldWekYzWTIxV1YxcEdaR0ZTUmtwUFZtMDFRMVpXVlhsTlZrcEtZbXBHYTFkR1JTSjlMQ0poY25KaGVWOHhYM1poYkhWbElsMWQ'
-                ]
+                _sd: ['array_digest']
             },
             {
                 array: [true]
@@ -122,7 +125,6 @@ describe('presentationFrame', async () => {
             {
                 array: [['array_0_value_0_value'], 'array_1_value']
             },
-            (data) => Buffer.from(data),
             disclosures
         )
 
@@ -163,19 +165,22 @@ describe('presentationFrame', async () => {
 
         // NOTE: we need to apply the disclosure frame, otherwise payload is the input payload
         await sdJwt.applyDisclosureFrame()
-        const disclosures = sdJwt.disclosures!
+        const disclosures = await Promise.all(
+            sdJwt.disclosures!.map((d) => d.withCalculateDigest(Buffer.from))
+        )
+        const prettyClaims = await sdJwt.getPrettyClaims()
 
-        await assert.rejects(
-            getDisclosuresForPresentationFrame(
-                sdJwt.payload!,
-                {
-                    // @ts-ignore
-                    nested_field: [true]
-                },
-                await sdJwt.getPrettyClaims(),
-                (data) => Buffer.from(data),
-                disclosures
-            ),
+        assert.throws(
+            () =>
+                getDisclosuresForPresentationFrame(
+                    sdJwt.payload!,
+                    {
+                        // @ts-ignore
+                        nested_field: [true]
+                    },
+                    prettyClaims,
+                    disclosures
+                ),
             'Path nested_field.0 from presentation frame is not present in pretty SD-JWT payload.'
         )
     })

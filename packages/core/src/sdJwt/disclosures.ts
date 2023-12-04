@@ -1,12 +1,16 @@
 import { DisclosureItem, Hasher } from '../types'
 import { Base64url } from '../base64url'
 import { SdJwtError } from './error'
+import { isPromise } from '../utils'
+
+// Make the digest property required
+export type DisclosureWithDigest = Disclosure & { digest: string }
 
 export class Disclosure {
     private salt: string
     private key?: string
     private value: unknown
-    private _digest: string | undefined
+    #digest?: string
 
     public constructor(salt: string, value: unknown, key?: string) {
         if (typeof value === 'number' && isNaN(value)) {
@@ -48,17 +52,65 @@ export class Disclosure {
             : [this.salt, this.value]
     }
 
-    public async digest(hasher: Hasher) {
-        // Memoize value so we don't have to re-compute
-        if (!this._digest) {
-            const hash = await hasher(this.encoded)
-            this._digest = Base64url.encode(hash)
+    public get digest() {
+        return this.#digest
+    }
+
+    /**
+     * Set the digest of the disclosure.
+     *
+     * NOTE: this method statically sets the digest, and does not verify whether the digest is correct.
+     * If you want to calculate the digest, use the `withCalculateDigest` method instead.
+     */
+    public withDigest(digest: string): DisclosureWithDigest {
+        this.#digest = digest
+        return this as DisclosureWithDigest
+    }
+
+    public withCalculateDigest<HasherImplementation extends Hasher>(
+        hasher: HasherImplementation,
+        // Whether to recalculate the digest, even if it is already set
+        { recalculate = false }: { recalculate?: boolean } = {}
+    ): WithCalculateDigestReturnType<HasherImplementation> {
+        // NOTE: the implementation of this method seems overly complex, but it allows
+        // us to return a promise if the hasher returns a promise, and a value otherwise.
+        // This allows this method to be used in environments where the calling scope
+        // is not async, as long as the hasher is not async either.
+        if (!recalculate && isDisclosureWithDigest(this)) {
+            return this as unknown as WithCalculateDigestReturnType<HasherImplementation>
         }
 
-        return this._digest
+        // Calculate digest
+        const hashResult = hasher(this.encoded)
+
+        // If promise, wait for it to resolve
+        if (isPromise(hashResult)) {
+            return hashResult.then((hash) => {
+                this.#digest = Base64url.encode(hash)
+
+                // We know for sure that digest is defined now
+                return this as DisclosureWithDigest
+            }) as unknown as WithCalculateDigestReturnType<HasherImplementation>
+        } else {
+            this.#digest = Base64url.encode(hashResult)
+
+            // We know for sure that digest is defined now
+            return this as unknown as WithCalculateDigestReturnType<HasherImplementation>
+        }
     }
 
     public toString() {
         return this.encoded
     }
+}
+
+export type WithCalculateDigestReturnType<HasherImplementation extends Hasher> =
+    ReturnType<HasherImplementation> extends Promise<any>
+        ? Promise<DisclosureWithDigest>
+        : DisclosureWithDigest
+
+export function isDisclosureWithDigest(
+    disclosure: Disclosure
+): disclosure is DisclosureWithDigest {
+    return disclosure.digest !== undefined
 }

@@ -14,7 +14,7 @@ import {
     ReturnSdJwtWithPayload
 } from './types'
 import { sdJwtFromCompact } from './compact'
-import { Disclosure } from './disclosures'
+import { Disclosure, DisclosureWithDigest } from './disclosures'
 import { applyDisclosureFrame } from './disclosureFrame'
 import { swapClaims } from './swapClaim'
 import { getAllKeys, getValueByKeyAnyLevel } from '../utils'
@@ -250,6 +250,24 @@ export class SdJwt<
         this.payload = framedPayload as Payload
     }
 
+    public async disclosuresWithDigest(): Promise<
+        DisclosureWithDigest[] | undefined
+    > {
+        this.assertHashAndAlgorithm()
+
+        if (!this.disclosures && this.disclosureFrame) {
+            await this.applyDisclosureFrame()
+        }
+
+        if (!this.disclosures) return undefined
+
+        return Promise.all(
+            this.disclosures.map((d) =>
+                d.withCalculateDigest(this.hasherAndAlgorithm!.hasher)
+            )
+        )
+    }
+
     /**
      *
      * Assert that the disclosure frame is set.
@@ -357,12 +375,14 @@ export class SdJwt<
             )
         }
 
-        const requiredDisclosures = await getDisclosuresForPresentationFrame(
+        // Calculate the digests for all disclosures
+        const disclosuresWithDigest = await this.disclosuresWithDigest()
+
+        const requiredDisclosures = getDisclosuresForPresentationFrame(
             this.payload!,
             presentationFrame,
             await this.getPrettyClaims(),
-            this.hasherAndAlgorithm!.hasher,
-            this.disclosures
+            disclosuresWithDigest
         )
 
         return await this.__toCompact(requiredDisclosures, false)
@@ -468,10 +488,10 @@ export class SdJwt<
         this.assertPayload()
         this.assertHashAndAlgorithm()
 
-        const newPayload = await swapClaims(
-            this.hasherAndAlgorithm!.hasher,
+        const disclosuresWithDigest = await this.disclosuresWithDigest()
+        const newPayload = swapClaims(
             this.payload!,
-            this.disclosures ?? []
+            disclosuresWithDigest ?? []
         )
 
         return newPayload as Claims

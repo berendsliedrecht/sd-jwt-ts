@@ -22,6 +22,7 @@ import {
     SdJwt,
     SdJwtError
 } from '../src'
+import { DisclosureWithDigest } from '../src/sdJwt'
 
 describe('sd-jwt', async () => {
     before(prelude)
@@ -45,6 +46,33 @@ describe('sd-jwt', async () => {
                 .addHasherAlgorithmToPayload()
 
             assert(!sdJwt.checkHasher(HasherAlgorithm.Sha3_256))
+        })
+
+        it('returns disclosures with digests', async () => {
+            const sdJwt = new SdJwt<{ alg: string }, { arr: Array<string> }>(
+                {
+                    header: { alg: 'EdDSA' },
+                    payload: { arr: ['DE', 'FR'] }
+                },
+                {
+                    signer: () => new Uint8Array(32).fill(41),
+                    saltGenerator: () => 'salt',
+                    disclosureFrame: { arr: [true, false] },
+                    hasherAndAlgorithm: {
+                        hasher: () => Buffer.from('hash'),
+                        algorithm: HasherAlgorithm.Sha256
+                    }
+                }
+            )
+
+            const [disclosure] =
+                (await sdJwt.disclosuresWithDigest()) as DisclosureWithDigest[]
+            assert.equal(disclosure.digest, 'aGFzaA')
+            assert.deepEqual(disclosure, {
+                key: undefined,
+                salt: 'salt',
+                value: 'DE'
+            })
         })
     })
 

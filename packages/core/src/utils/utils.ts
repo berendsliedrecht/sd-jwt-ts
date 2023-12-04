@@ -145,3 +145,14 @@ export const hasByPath = (
 export function isObject(input: any): boolean {
     return typeof input === 'object' && input !== null && !Array.isArray(input)
 }
+
+export function isPromise<T>(value: Promise<T> | T): value is Promise<T> {
+    return (
+        value instanceof Promise ||
+        (value &&
+            typeof value === 'object' &&
+            value !== null &&
+            'then' in value &&
+            value.then === 'function')
+    )
+}

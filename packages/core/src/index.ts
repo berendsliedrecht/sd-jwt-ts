@@ -26,7 +26,8 @@ export type {
     SaltGenerator,
     DisclosureItem,
     DisclosureFrame,
-    HasherAndAlgorithm
+    HasherAndAlgorithm,
+    PresentationFrame
 } from './types'
 
 export type { SdJwtVcVerificationResult } from './sdJwtVc'

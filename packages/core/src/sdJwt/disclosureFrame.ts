@@ -1,7 +1,7 @@
 import { DisclosureFrame } from '../types'
 import { deleteByPath } from '../utils'
 import { createDecoys } from './decoys'
-import { Disclosure } from './disclosures'
+import { Disclosure, DisclosureWithDigest } from './disclosures'
 import { SdJwtError } from './error'
 import { SaltGenerator, Hasher } from '../types'
 
@@ -14,10 +14,10 @@ export const applyDisclosureFrame = async <
     frame: DisclosureFrame<Payload>,
     keys: Array<string> = [],
     cleanup: Array<Array<string>> = [],
-    disclosures: Array<Disclosure> = []
+    disclosures: Array<DisclosureWithDigest> = []
 ): Promise<{
     payload: Record<string, unknown>
-    disclosures: Array<Disclosure>
+    disclosures: Array<DisclosureWithDigest>
 }> => {
     for (const [key, frameValue] of Object.entries(frame)) {
         const newKeys = [...keys, key]
@@ -43,14 +43,17 @@ export const applyDisclosureFrame = async <
                 }
 
                 const salt = await saltGenerator()
-                const disclosure = new Disclosure(salt, payload[key], key)
+                const disclosure = await new Disclosure(
+                    salt,
+                    payload[key],
+                    key
+                ).withCalculateDigest(hasher)
                 disclosures.push(disclosure)
 
-                const digest = await disclosure.digest(hasher)
                 const sd: Array<string> = Array.from(
                     (payload._sd as string[]) ?? []
                 )
-                sd.push(digest)
+                sd.push(disclosure.digest)
 
                 //@ts-ignore
                 payload._sd = sd.sort()
@@ -106,11 +109,13 @@ export const applyDisclosureFrame = async <
 
                 if (frameValue) {
                     const salt = await saltGenerator()
-                    const disclosure = new Disclosure(salt, payloadValue)
+                    const disclosure = await new Disclosure(
+                        salt,
+                        payloadValue
+                    ).withCalculateDigest(hasher)
                     disclosures.push(disclosure)
 
-                    const digest = await disclosure.digest(hasher)
-                    newPayloadArray.push({ '...': digest })
+                    newPayloadArray.push({ '...': disclosure.digest })
                 } else {
                     newPayloadArray.push(payloadValue)
                 }

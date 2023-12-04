@@ -1,8 +1,7 @@
 // This file contains helpers functions for mapping between disclosures entries and the payload of an SD-JWT.
 
-import { Hasher } from '../types'
 import { isObject, traverseNodes } from '../utils'
-import { Disclosure } from './disclosures'
+import { DisclosureWithDigest } from './disclosures'
 import { SdJwtError } from './error'
 
 /**
@@ -10,8 +9,8 @@ import { SdJwtError } from './error'
  */
 export type DisclosureMap = {
     [digest: string]: {
-        disclosure: Disclosure
-        parentDisclosures: Disclosure[]
+        disclosure: DisclosureWithDigest
+        parentDisclosures: DisclosureWithDigest[]
     }
 }
 
@@ -276,23 +275,18 @@ export function getPayloadDisclosureMapping(payload: any, map: DisclosureMap) {
     return payloadDisclosureMapping
 }
 
-// @todo it would ben nice if we don't have to pass hasher around everywhere
-// but have a Disclosure type that includes the digest
-const getParentDisclosure = async (
-    disclosure: Disclosure,
-    digestMap: Record<string, Disclosure>,
-    hasher: Hasher
-): Promise<Disclosure[]> => {
-    const parent = digestMap[await disclosure.digest(hasher)]
+const getParentDisclosure = (
+    disclosure: DisclosureWithDigest,
+    digestMap: Record<string, DisclosureWithDigest>
+): DisclosureWithDigest[] => {
+    const parent = digestMap[disclosure.digest]
 
     if (!parent) {
         return []
     }
 
-    if (digestMap[await parent.digest(hasher)]) {
-        return [parent].concat(
-            await getParentDisclosure(parent, digestMap, hasher)
-        )
+    if (digestMap[disclosure.digest]) {
+        return [parent].concat(getParentDisclosure(parent, digestMap))
     }
 
     return [parent]
@@ -301,12 +295,11 @@ const getParentDisclosure = async (
 /**
  * Get a mapping from a digest to the corresponding disclosure and its parent disclosures.
  */
-export const getDisclosureMap = async (
-    disclosures: Disclosure[],
-    hasher: Hasher
-): Promise<DisclosureMap> => {
+export const getDisclosureMap = (
+    disclosures: DisclosureWithDigest[]
+): DisclosureMap => {
     const map: DisclosureMap = {}
-    const parentMap: Record<string, Disclosure> = {}
+    const parentMap: Record<string, DisclosureWithDigest> = {}
 
     for (const disclosure of disclosures) {
         // value is always the last item in the disclosure array
@@ -342,9 +335,9 @@ export const getDisclosureMap = async (
     }
 
     for (const disclosure of disclosures) {
-        const parent = await getParentDisclosure(disclosure, parentMap, hasher)
+        const parent = getParentDisclosure(disclosure, parentMap)
 
-        map[await disclosure.digest(hasher)] = {
+        map[disclosure.digest] = {
             disclosure,
             parentDisclosures: parent
         }
