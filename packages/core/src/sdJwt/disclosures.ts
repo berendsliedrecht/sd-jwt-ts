@@ -1,6 +1,7 @@
 import { DisclosureItem, Hasher } from '../types'
 import { Base64url } from '../base64url'
 import { SdJwtError } from './error'
+import { isPromise } from '../utils'
 
 // Make the digest property required
 export type DisclosureWithDigest = Disclosure & { digest: string }
@@ -83,7 +84,7 @@ export class Disclosure {
         const hashResult = hasher(this.encoded)
 
         // If promise, wait for it to resolve
-        if ('then' in hashResult) {
+        if (isPromise(hashResult)) {
             return hashResult.then((hash) => {
                 this.#digest = Base64url.encode(hash)
 
