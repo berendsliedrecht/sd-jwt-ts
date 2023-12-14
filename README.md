@@ -35,7 +35,7 @@ works in Node.js, the browser and React Native. Buffer is used internally for
 
 ### Usage
 
-I'd highly recommend to check out the [examples folder](example) to see how
+I'd highly recommend to check out the [examples folder](examples) to see how
 this library can be leveraged.
 
 ### Issuance API
@@ -92,6 +92,6 @@ Profile](https://vcstuff.github.io/oid4vc-haip-sd-jwt-vc/draft-oid4vc-haip-sd-jw
 may be used, the API is defined in a way which works in a primitive manner for
 now. For example, to present you can provide a list of indices of the
 disclosures which will be included. Examples of this can be found in the
-[examples folder](example). For verification a list of keys or required
+[examples folder](examples). For verification a list of keys or required
 claims can be provided. It does not matter whether these are selectively
 disclosable claims, or if they are included inside the payload.
