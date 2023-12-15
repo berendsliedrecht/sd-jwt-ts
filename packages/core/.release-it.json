@@ -1,3 +1,4 @@
 {
-    "git": false
+    "git": false,
+    "github": { "release": false }
 }
