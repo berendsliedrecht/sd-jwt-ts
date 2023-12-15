@@ -1,9 +1,9 @@
-import { Base64url } from '../base64url'
+import { Base64url } from '@sd-jwt/utils'
 import { JwtError } from './error'
 import { MakePropertyRequired, Signer } from '../types'
-import { jwtFromCompact } from './compact'
 import { Verifier } from '../types'
 import { getValueByKeyAnyLevel, simpleDeepEqual } from '../utils'
+import { jwtFromCompact } from '@sd-jwt/decode'
 
 type ReturnJwtWithHeaderAndPayload<
     H extends Record<string, unknown>,

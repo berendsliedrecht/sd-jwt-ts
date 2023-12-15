@@ -1,3 +1,4 @@
+import { keyBindingFromCompact } from '@sd-jwt/decode'
 import {
     Jwt,
     JwtAdditionalOptions,
@@ -116,8 +117,12 @@ export class KeyBinding<
         Header extends Record<string, unknown> = Record<string, unknown>,
         Payload extends Record<string, unknown> = Record<string, unknown>
     >(compact: string) {
-        const jwt = Jwt.fromCompact<Header, Payload>(compact)
-        const keyBinding = KeyBinding.fromJwt<Header, Payload>(jwt)
+        const { header, payload, signature } = keyBindingFromCompact<
+            KeyBindingHeader<Header>,
+            KeyBindingPayload<Payload>
+        >(compact)
+
+        const keyBinding = new KeyBinding({ header, payload, signature })
 
         return keyBinding as ReturnKeyBindingWithHeaderAndPayload<
             Header,

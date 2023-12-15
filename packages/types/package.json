@@ -1,7 +1,7 @@
 {
-    "name": "@sd-jwt/core",
+    "name": "@sd-jwt/types",
     "version": "0.1.2-alpha.0",
-    "description": "Core implementation of sd-jwt Draft 06 and sd-jwt-vc Draft 01",
+    "description": "Common types of sd-jwt Draft 06 and sd-jwt-vc Draft 01",
     "license": "(MIT OR Apache-2.0)",
     "author": "Berend Sliedrecht <sliedrecht@berend.io>",
     "readme": "../../README.md",
@@ -36,13 +36,7 @@
     ],
     "scripts": {
         "build": "tsc",
-        "test": "node --require ts-node/register --test ./tests/*.test.ts",
         "release": "release-it"
-    },
-    "dependencies": {
-        "@sd-jwt/decode": "workspace:*",
-        "@sd-jwt/types": "workspace:*",
-        "@sd-jwt/utils": "workspace:*"
     },
     "devDependencies": {
         "@types/node": "*",

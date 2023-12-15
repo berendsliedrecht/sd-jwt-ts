@@ -1,5 +1,5 @@
 import { DisclosureItem, Hasher } from '../types'
-import { Base64url } from '../base64url'
+import { Base64url } from '@sd-jwt/utils'
 import { SdJwtError } from './error'
 import { isPromise } from '../utils'
 

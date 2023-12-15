@@ -1,7 +1,9 @@
-import { ReturnSdJwtWithHeaderAndPayload, sdJwtFromCompact } from '../sdJwt'
+import { Disclosure, ReturnSdJwtWithHeaderAndPayload } from '../sdJwt'
 import { SdJwt, SdJwtVerificationResult } from '../sdJwt'
 import { JwtError } from '../jwt'
 import { Verifier } from '../types'
+import { sdJwtVcFromCompact } from '@sd-jwt/decode'
+import { KeyBinding } from '../keyBinding'
 
 export type SdJwtVcVerificationResult = SdJwtVerificationResult & {
     containsExpectedKeyBinding: boolean
@@ -52,8 +54,29 @@ export class SdJwtVc<
         Header extends Record<string, unknown> = Record<string, unknown>,
         Payload extends Record<string, unknown> = Record<string, unknown>
     >(compact: string) {
-        const { disclosures, keyBinding, signature, payload, header } =
-            sdJwtFromCompact<Header, Payload>(compact)
+        const {
+            disclosures: d,
+            keyBinding: kb,
+            signature,
+            payload,
+            header
+        } = sdJwtVcFromCompact<Header, Payload>(compact)
+
+        const disclosures = d?.map(
+            (disclosure) =>
+                new Disclosure(
+                    disclosure.salt,
+                    disclosure.value,
+                    disclosure.key
+                )
+        )
+
+        const keyBinding = kb
+            ? new KeyBinding()
+                  .withHeader(kb.header)
+                  .withHeader(kb.payload)
+                  .withSignature(kb.signature)
+            : undefined
 
         const sdJwtVc = new SdJwtVc<Header, Payload>({
             header,
@@ -62,8 +85,6 @@ export class SdJwtVc<
             disclosures,
             keyBinding
         })
-
-        sdJwtVc.validateSdJwtVc()
 
         return sdJwtVc as ReturnSdJwtWithHeaderAndPayload<
             Header,

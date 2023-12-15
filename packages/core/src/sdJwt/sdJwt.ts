@@ -1,4 +1,4 @@
-import { Base64url } from '../base64url'
+import { Base64url } from '@sd-jwt/utils'
 import { SdJwtError } from './error'
 import {
     DisclosureFrame,
@@ -13,14 +13,14 @@ import {
     ReturnSdJwtWithKeyBinding,
     ReturnSdJwtWithPayload
 } from './types'
-import { sdJwtFromCompact } from './compact'
 import { Disclosure, DisclosureWithDigest } from './disclosures'
 import { applyDisclosureFrame } from './disclosureFrame'
 import { swapClaims } from './swapClaim'
 import { getAllKeys, getValueByKeyAnyLevel } from '../utils'
-import { HasherAlgorithm } from '../hasherAlgorithm'
 import { PresentationFrame } from '../types/present'
 import { getDisclosuresForPresentationFrame } from './presentationFrame'
+import { sdJwtFromCompact } from '@sd-jwt/decode'
+import { HasherAlgorithm } from '@sd-jwt/utils'
 
 export type SdJwtToCompactOptions<
     DisclosablePayload extends Record<string, unknown>
@@ -99,8 +99,29 @@ export class SdJwt<
         Header extends Record<string, unknown> = Record<string, unknown>,
         Payload extends Record<string, unknown> = Record<string, unknown>
     >(compact: string) {
-        const { disclosures, keyBinding, signature, payload, header } =
-            sdJwtFromCompact<Header, Payload>(compact)
+        const {
+            disclosures: d,
+            keyBinding: kb,
+            signature,
+            payload,
+            header
+        } = sdJwtFromCompact<Header, Payload>(compact)
+
+        const disclosures = d?.map(
+            (disclosure) =>
+                new Disclosure(
+                    disclosure.salt,
+                    disclosure.value,
+                    disclosure.key
+                )
+        )
+
+        const keyBinding = kb
+            ? new KeyBinding()
+                  .withHeader(kb.header)
+                  .withPayload(kb.payload)
+                  .withSignature(kb.signature)
+            : undefined
 
         const sdJwt = new SdJwt<Header, Payload>({
             header,

@@ -1,24 +1,16 @@
-import { KeyBinding } from '../keyBinding'
-import { Disclosure } from './disclosures'
-import { ExpandedJwt, jwtFromCompact } from '../jwt'
-
-export type ExpandedSdJwt<
-    H extends Record<string, unknown> = Record<string, unknown>,
-    P extends Record<string, unknown> = Record<string, unknown>
-> = ExpandedJwt<H, P> & {
-    disclosures?: Array<Disclosure>
-    keyBinding?: KeyBinding
-}
+import { disclosureFromString } from '../disclosures/fromString'
+import { jwtFromCompact } from '../jwt'
+import { keyBindingFromCompact } from '../keyBinding'
 
 export const sdJwtFromCompact = <
-    H extends Record<string, unknown> = Record<string, unknown>,
-    P extends Record<string, unknown> = Record<string, unknown>
+    Header extends Record<string, unknown> = Record<string, unknown>,
+    Payload extends Record<string, unknown> = Record<string, unknown>
 >(
     compact: string
-): ExpandedSdJwt<H, P> => {
+) => {
     const [jwtWithoutDisclosures, ...encodedDisclosures] = compact.split('~')
 
-    const { header, payload, signature } = jwtFromCompact<H, P>(
+    const { header, payload, signature } = jwtFromCompact<Header, Payload>(
         jwtWithoutDisclosures
     )
 
@@ -42,10 +34,10 @@ export const sdJwtFromCompact = <
         : undefined
 
     const keyBinding = compactKeyBinding
-        ? KeyBinding.fromCompact(compactKeyBinding)
+        ? keyBindingFromCompact(compactKeyBinding)
         : undefined
 
-    const disclosures = encodedDisclosures.map(Disclosure.fromString)
+    const disclosures = encodedDisclosures.map(disclosureFromString)
 
     return {
         header,

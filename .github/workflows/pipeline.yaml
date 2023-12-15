@@ -38,6 +38,9 @@ jobs:
             - name: Check formatting
               run: pnpm check-format
 
+            - name: Build
+              run: pnpm build
+
             - name: Check types
               run: pnpm check-types
 

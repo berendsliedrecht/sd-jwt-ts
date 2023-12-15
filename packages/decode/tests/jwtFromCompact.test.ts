@@ -1,14 +1,9 @@
-import { before, describe, it } from 'node:test'
+import { describe, it } from 'node:test'
 import { deepStrictEqual, throws } from 'node:assert'
 
-import { prelude } from './utils'
-
-import { JwtError } from '../src'
 import { jwtFromCompact } from '../src/jwt'
 
 describe('jwt from compact', () => {
-    before(prelude)
-
     describe('succesful decoding of compact jwt', () => {
         it('simple jwt 01', () => {
             const compact =
@@ -41,19 +36,19 @@ describe('jwt from compact', () => {
             const compact =
                 'eyJraWQiOiJhIn0.eyJleHAiOjEyM30.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio~'
 
-            throws(() => jwtFromCompact(compact), JwtError)
+            throws(() => jwtFromCompact(compact), Error)
         })
 
         it('do not allow more than 2 periods (.)', () => {
             const compact = 'e.e.e.e.e.e.e'
 
-            throws(() => jwtFromCompact(compact), JwtError)
+            throws(() => jwtFromCompact(compact), Error)
         })
 
         it('do not allow less than 2 periods (.)', () => {
             const compact = 'e.e'
 
-            throws(() => jwtFromCompact(compact), JwtError)
+            throws(() => jwtFromCompact(compact), Error)
         })
     })
 })

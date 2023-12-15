@@ -32,10 +32,11 @@ export type {
 
 export type { SdJwtVcVerificationResult } from './sdJwtVc'
 
-export { HasherAlgorithm } from './hasherAlgorithm'
 export { SignatureAndEncryptionAlgorithm } from './signatureAndEncryptionAlgorithm'
 
 export { SdJwt, Disclosure, SdJwtError } from './sdJwt'
 export { KeyBinding } from './keyBinding'
 export { Jwt, JwtError } from './jwt'
 export { SdJwtVc, SdJwtVcError } from './sdJwtVc'
+
+export { HasherAlgorithm } from '@sd-jwt/utils'

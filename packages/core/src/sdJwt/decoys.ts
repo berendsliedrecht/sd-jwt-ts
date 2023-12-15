@@ -1,6 +1,6 @@
 import { SaltGenerator, Hasher } from '../types'
 import { SdJwtError } from './error'
-import { Base64url } from '../base64url'
+import { Base64url } from '@sd-jwt/utils'
 
 export const createDecoys = async (
     count: number,
