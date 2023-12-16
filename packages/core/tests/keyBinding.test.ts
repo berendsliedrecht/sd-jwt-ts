@@ -1,9 +1,9 @@
 import { before, describe, it } from 'node:test'
-import { doesNotReject, rejects } from 'node:assert'
+import { doesNotReject, rejects, strictEqual } from 'node:assert'
 
-import { prelude } from './utils'
+import { hasherAndAlgorithm, prelude } from './utils'
 
-import { KeyBinding } from '../src'
+import { KeyBinding, SdJwt } from '../src'
 
 describe('key binding', async () => {
     before(prelude)
@@ -157,6 +157,51 @@ describe('key binding', async () => {
             })
 
             await rejects(jwt.assertValidForKeyBinding)
+        })
+    })
+
+    describe('Integrity Protection', async () => {
+        it('create key binding with integrity protection', async () => {
+            const keyBinding = new KeyBinding(
+                {
+                    header: { alg: 'ES256', typ: 'kb+jwt' },
+                    payload: {
+                        aud: 'https://example.org/aud',
+                        nonce: 'abcd',
+                        iat: 1200
+                    },
+                    signature: new Uint8Array(32).fill(42)
+                },
+                { hasher: hasherAndAlgorithm }
+            )
+
+            const sdjwt = new SdJwt(
+                {
+                    header: { val: 'one', val2: 'three' },
+                    payload: { iss: 'me', secret: 'not-really' },
+                    keyBinding
+                },
+                {
+                    disclosureFrame: { secret: true },
+                    saltGenerator: () => 'salt',
+                    hasherAndAlgorithm,
+                    signer: () => new Uint8Array(32).fill(42)
+                }
+            )
+
+            const presentation = await sdjwt.present({ secret: true })
+
+            const kbWithIntegrityProtection =
+                await keyBinding.withIntegrityProtection(presentation)
+
+            console.log(await kbWithIntegrityProtection.toCompact())
+
+            const compact = await kbWithIntegrityProtection.toCompact()
+
+            strictEqual(
+                compact,
+                'eyJhbGciOiAiRVMyNTYiLCAidHlwIjogImtiK2p3dCJ9.eyJhdWQiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZy9hdWQiLCAibm9uY2UiOiAiYWJjZCIsICJpYXQiOiAxMjAwLCJfc2RfaGFzaCI6ICJER2FtSmJOS3oweFg5X3F4ejFTUm0ybkQxVm9qem9iN3NFZndMS2dZOXdZIn0.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
+            )
         })
     })
 })

@@ -241,7 +241,7 @@ describe('sd-jwt', async () => {
                         .withSaltGenerator(() => 'salt')
                         .toCompact(),
                 new SdJwtError(
-                    'A hasher and algorithm must be set in order to create a digest of a disclosure. You can set it with this.withHasherAndAlgorithm()'
+                    'A hasher and algorithm must be set in order to create a digest of a disclosure. You can set it with this.withHasher()'
                 )
             )
         })
