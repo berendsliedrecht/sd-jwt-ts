@@ -74,7 +74,7 @@ export class SdJwtVc<
         const keyBinding = kb
             ? new KeyBinding()
                   .withHeader(kb.header)
-                  .withHeader(kb.payload)
+                  .withPayload(kb.payload)
                   .withSignature(kb.signature)
             : undefined
 
