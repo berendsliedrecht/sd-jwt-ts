@@ -278,58 +278,6 @@ describe('sd-jwt-vc', async () => {
             )
         })
 
-        it('validate that required claim (cnf) are included in payload', async () => {
-            const sdJwtVc = new SdJwtVc({
-                header: {
-                    alg: SignatureAndEncryptionAlgorithm.EdDSA,
-                    typ: 'vc+sd-jwt'
-                },
-                payload: {
-                    vct: 'IdentityCredential',
-                    iss: 'https://example.org/issuer',
-                    iat: 1698056110,
-                    given_name: 'John',
-                    family_name: 'Doe',
-                    email: 'johndoe@example.com',
-                    phone_number: '+1-202-555-0101',
-                    address: {
-                        street_address: '123 Main St',
-                        locality: 'Anytown',
-                        region: 'Anystate',
-                        country: 'US'
-                    },
-                    birthdate: '1940-01-01',
-                    is_over_18: true,
-                    is_over_21: true,
-                    is_over_65: true
-                }
-            })
-                .withDisclosureFrame({
-                    is_over_65: true,
-                    is_over_21: true,
-                    is_over_18: true,
-                    birthdate: true,
-                    email: true,
-                    address: true,
-                    given_name: true,
-                    family_name: true,
-                    phone_number: true
-                })
-                .withSigner(() => new Uint8Array(32).fill(42))
-                .withHasher({
-                    hasher: Buffer.from,
-                    algorithm: HasherAlgorithm.Sha256
-                })
-                .withSaltGenerator(() => 'salt')
-
-            await rejects(
-                async () => await sdJwtVc.toCompact(),
-                new SdJwtVcError(
-                    "jwt is not valid for usage with sd-jwt-vc. Error: Claim key 'cnf' not found in any level within the payload"
-                )
-            )
-        })
-
         it('validate that required claim (typ) are included in header', async () => {
             const sdJwtVc = new SdJwtVc({
                 header: {

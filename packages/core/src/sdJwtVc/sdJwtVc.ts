@@ -33,7 +33,10 @@ export class SdJwtVc<
             this.assertClaimInPayload('iss')
             this.assertClaimInPayload('vct')
             this.assertClaimInPayload('iat')
-            this.assertClaimInPayload('cnf', expectedCnfClaim)
+
+            if (expectedCnfClaim) {
+                this.assertClaimInPayload('cnf', expectedCnfClaim)
+            }
         } catch (e) {
             if (e instanceof Error) {
                 e.message = `jwt is not valid for usage with sd-jwt-vc. Error: ${e.message}`
