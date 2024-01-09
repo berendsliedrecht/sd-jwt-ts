@@ -4,7 +4,7 @@ import { deepStrictEqual, throws } from 'node:assert'
 import { jwtFromCompact } from '../src/jwt'
 
 describe('jwt from compact', () => {
-    describe('succesful decoding of compact jwt', () => {
+    describe('successful decoding of compact jwt', () => {
         it('simple jwt 01', () => {
             const compact =
                 'eyJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJodHRwczovL2V4YW1wbGUub3JnIn0.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
