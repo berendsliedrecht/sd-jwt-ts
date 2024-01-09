@@ -432,7 +432,7 @@ describe('sd-jwt-vc', async () => {
             )
         })
 
-        it('validate that required claim (alg) are included in header', async () => {
+        it('validate that required claim (typ) are included in header', async () => {
             const sdJwtVc = new SdJwtVc({
                 header: {
                     alg: SignatureAndEncryptionAlgorithm.EdDSA,
@@ -482,6 +482,75 @@ describe('sd-jwt-vc', async () => {
                     "jwt is not valid for usage with sd-jwt-vc. Error: Claim key 'typ' was found, but values did not match within the header"
                 )
             )
+        })
+
+        it('validate that non selectively discloseable claims (iss, iat, nbf, exp, cnf, vct, status) are not disclosed', async () => {
+            const disclosureFrame = {
+                is_over_65: true,
+                is_over_21: true,
+                is_over_18: true,
+                birthdate: true,
+                email: true,
+                address: true,
+                given_name: true,
+                family_name: true,
+                phone_number: true
+            } as const
+            const sdJwtVc = new SdJwtVc({
+                header: {
+                    alg: SignatureAndEncryptionAlgorithm.EdDSA,
+                    typ: 'vc+sd-jwt'
+                },
+                payload: {
+                    vct: 'IdentityCredential',
+                    iss: 'https://example.org/issuer',
+                    iat: 1698056110,
+                    cnf: publicHolderKeyJwk,
+                    given_name: 'John',
+                    family_name: 'Doe',
+                    email: 'johndoe@example.com',
+                    phone_number: '+1-202-555-0101',
+                    address: {
+                        street_address: '123 Main St',
+                        locality: 'Anytown',
+                        region: 'Anystate',
+                        country: 'US'
+                    },
+                    birthdate: '1940-01-01',
+                    is_over_18: true,
+                    is_over_21: true,
+                    is_over_65: true
+                }
+            })
+                .withSigner(() => new Uint8Array(32).fill(42))
+                .withHasher({
+                    hasher: Buffer.from,
+                    algorithm: HasherAlgorithm.Sha256
+                })
+                .withSaltGenerator(() => 'salt')
+
+            for (const claimKey of [
+                'iss',
+                'iat',
+                'nbf',
+                'exp',
+                'cnf',
+                'vct',
+                'status'
+            ]) {
+                await rejects(
+                    async () =>
+                        await sdJwtVc
+                            .withDisclosureFrame({
+                                ...disclosureFrame,
+                                [claimKey]: true
+                            })
+                            .toCompact(),
+                    new SdJwtVcError(
+                        `jwt is not valid for usage with sd-jwt-vc. Error: Claim key '${claimKey}' was found in the disclosure frame. This claim is not allowed to be selectively disclosed`
+                    )
+                )
+            }
         })
     })
 

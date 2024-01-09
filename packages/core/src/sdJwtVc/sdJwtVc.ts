@@ -16,9 +16,20 @@ export class SdJwtVc<
 > extends SdJwt<Header, Payload> {
     public assertNonSelectivelyDisclosableClaims() {
         if (!this.disclosureFrame) return
-        ;['iss', 'vct', 'iat', 'cnf'].forEach(
-            this.assertNonSelectivelyDisclosableClaim
-        )
+
+        const nonSelectivelyDisclosableClaims = [
+            'iss',
+            'iat',
+            'nbf',
+            'exp',
+            'cnf',
+            'vct',
+            'status'
+        ] as const
+
+        for (const claimKey of nonSelectivelyDisclosableClaims) {
+            this.assertNonSelectivelyDisclosableClaim(claimKey)
+        }
     }
 
     private validateSdJwtVc(expectedCnfClaim?: Record<string, unknown>) {

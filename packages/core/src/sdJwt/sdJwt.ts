@@ -483,8 +483,9 @@ export class SdJwt<
     public assertNonSelectivelyDisclosableClaim(claimKey: string) {
         try {
             this.assertClaimInDisclosureFrame(claimKey)
-        } catch {
-            return
+        } catch (error) {
+            // Check if it's an SdJwtError (to prevent other errors making the method not throw)
+            if (error instanceof SdJwtError) return
         }
         throw new SdJwtError(
             `Claim key '${claimKey}' was found in the disclosure frame. This claim is not allowed to be selectively disclosed`
@@ -493,9 +494,12 @@ export class SdJwt<
 
     public assertNonSelectivelyDisclosableClaims() {
         if (!this.disclosureFrame) return
-        ;['_sd', '_sd_alg', '...'].forEach(
-            this.assertNonSelectivelyDisclosableClaim
-        )
+
+        // NOTE: we don't include any properties here as it is a SHOULD
+        // in the spec, and not a MUST
+        for (const claimKey of ['_sd', '_sd_alg', '...']) {
+            this.assertNonSelectivelyDisclosableClaim(claimKey)
+        }
     }
 
     /**
