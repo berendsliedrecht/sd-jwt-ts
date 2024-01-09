@@ -1,6 +1,11 @@
 import { before, describe, it } from 'node:test'
 import { createPublicKey, verify } from 'node:crypto'
-import assert, { deepStrictEqual, rejects, strictEqual } from 'node:assert'
+import assert, {
+    deepStrictEqual,
+    doesNotThrow,
+    rejects,
+    strictEqual
+} from 'node:assert'
 import {
     hasherAndAlgorithm,
     keyBindingSigner,
@@ -18,6 +23,7 @@ import {
     SignatureAndEncryptionAlgorithm,
     SdJwtVcError
 } from '../src'
+import { writeFileSync } from 'node:fs'
 
 describe('sd-jwt-vc', async () => {
     before(prelude)
@@ -380,7 +386,7 @@ describe('sd-jwt-vc', async () => {
             )
         })
 
-        it('validate that required claim (alg) are included in header', async () => {
+        it('validate that required claim (type) are included in header', async () => {
             const sdJwtVc = new SdJwtVc({
                 header: {
                     alg: SignatureAndEncryptionAlgorithm.EdDSA,
@@ -732,6 +738,16 @@ describe('sd-jwt-vc', async () => {
                 isValid: true,
                 isKeyBindingValid: true
             })
+        })
+    })
+
+    describe('sd-jwt-vc from compact', () => {
+        it('is allowed to have a sd-jwt-vc without cnf claim', () => {
+            doesNotThrow(() =>
+                SdJwtVc.fromCompact(
+                    'eyJhbGciOiAiRWREU0EiLCAidHlwIjogInZjK3NkLWp3dCJ9.eyJ2Y3QiOiAiSWRlbnRpdHlDcmVkZW50aWFsIiwgImlzcyI6ICJodHRwczovL2V4YW1wbGUub3JnL2lzc3VlciIsICJpYXQiOiAxNjk4MDU2MTEwLCJfc2RfYWxnIjogInNoYS0yNTYiLCAiX3NkIjogWyJWM2xLZWxsWGVEQkphWGRuU1cxR2ExcElTbXhqTTAxcFRFTkNOMGx1VGpCamJWWnNaRVk1YUZwSFVubGFXRTU2U1dwdlowbHFSWGxOZVVKT1dWZHNkVWxHVGpCSmFYZG5TVzE0ZGxreVJuTmhXRkkxU1dwdlowbHJSblZsV0ZKMlpESTBhVXhEUVdsamJWWnVZVmM1ZFVscWIyZEphMFoxWlZoT01GbFlVbXhKYVhkblNXMU9kbVJYTlRCamJtdHBUMmxCYVZaV1RXbG1WakEiLCAiVjNsS2VsbFhlREJKYVhkblNXMUtjR051VW05YVIwWXdXbE5KYzBsRFNYaFBWRkYzVEZSQmVFeFVRWGhKYkRBIiwgIlYzbEtlbGxYZURCSmFYZG5TVzFXZEZsWGJITkphWGRuU1cxd2RtRkhOV3RpTWxaQldsaG9hR0pZUW5OYVV6VnFZakl3YVZoUiIsICJWM2xLZWxsWGVEQkphWGRuU1cxYWFHSlhiSE5sVmpsMVdWY3hiRWxwZDJkSmExSjJXbE5LWkEiLCAiVjNsS2VsbFhlREJKYVhkblNXMWtjR1J0Vm5WWU1qVm9ZbGRWYVV4RFFXbFRiVGx2WW1sS1pBIiwgIlYzbEtlbGxYZURCSmFYZG5TVzFzZWxneU9USmFXRXBtVFZSbmFVeERRakJqYmxac1dGRSIsICJWM2xLZWxsWGVEQkphWGRuU1cxc2VsZ3lPVEphV0VwbVRXcEZhVXhEUWpCamJsWnNXRkUiLCAiVjNsS2VsbFhlREJKYVhkblNXMXNlbGd5T1RKYVdFcG1UbXBWYVV4RFFqQmpibFpzV0ZFIiwgIlYzbEtlbGxYZURCSmFYZG5TVzVDYjJJeU5XeFlNalV4WWxkS2JHTnBTWE5KUTBseVRWTXdlVTFFU1hST1ZGVXhURlJCZUUxRVJXbFlVUSJdfQ.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio~WyJzYWx0IiwgImlzX292ZXJfNjUiLCB0cnVlXQ~WyJzYWx0IiwgImlzX292ZXJfMjEiLCB0cnVlXQ~WyJzYWx0IiwgImlzX292ZXJfMTgiLCB0cnVlXQ~WyJzYWx0IiwgImJpcnRoZGF0ZSIsICIxOTQwLTAxLTAxIl0~WyJzYWx0IiwgImVtYWlsIiwgImpvaG5kb2VAZXhhbXBsZS5jb20iXQ~WyJzYWx0IiwgImFkZHJlc3MiLCB7InN0cmVldF9hZGRyZXNzIjogIjEyMyBNYWluIFN0IiwgImxvY2FsaXR5IjogIkFueXRvd24iLCAicmVnaW9uIjogIkFueXN0YXRlIiwgImNvdW50cnkiOiAiVVMifV0~WyJzYWx0IiwgImdpdmVuX25hbWUiLCAiSm9obiJd~WyJzYWx0IiwgImZhbWlseV9uYW1lIiwgIkRvZSJd~WyJzYWx0IiwgInBob25lX251bWJlciIsICIrMS0yMDItNTU1LTAxMDEiXQ~'
+                )
+            )
         })
     })
 })
