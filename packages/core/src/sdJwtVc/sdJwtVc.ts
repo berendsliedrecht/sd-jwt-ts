@@ -6,7 +6,7 @@ import { sdJwtVcFromCompact } from '@sd-jwt/decode'
 import { KeyBinding } from '../keyBinding'
 
 export type SdJwtVcVerificationResult = SdJwtVerificationResult & {
-    containsExpectedKeyBinding: boolean
+    containsExpectedKeyBinding?: boolean
     containsRequiredVcProperties: boolean
 }
 
@@ -141,6 +141,9 @@ export class SdJwtVc<
             } else {
                 sdJwtVerificationResult.containsRequiredVcProperties = false
             }
+
+            // The verification result is not valid if an error occurred
+            sdJwtVerificationResult.isValid = false
         }
 
         return sdJwtVerificationResult

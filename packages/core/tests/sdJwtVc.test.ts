@@ -547,7 +547,7 @@ describe('sd-jwt-vc', async () => {
             })
         })
 
-        it('Validate the sd-jwt-vc with cnf and keybinding, where cnf does not match the expected cnf', async () => {
+        it('Validate the sd-jwt-vc with cnf and keybinding', async () => {
             const cnf = publicHolderKeyJwk
 
             const keyBinding = await new KeyBinding({
@@ -641,7 +641,8 @@ describe('sd-jwt-vc', async () => {
                 isKeyBindingValid: true
             })
         })
-        it('Validate the sd-jwt-vc with cnf and keybinding', async () => {
+
+        it('Validate the sd-jwt-vc with cnf and keybinding, where cnf does not match the expected cnf', async () => {
             const cnf = publicHolderKeyJwk
 
             const keyBinding = await new KeyBinding({
@@ -735,7 +736,7 @@ describe('sd-jwt-vc', async () => {
                 containsRequiredVcProperties: true,
                 containsExpectedKeyBinding: false,
                 isSignatureValid: true,
-                isValid: true,
+                isValid: false,
                 isKeyBindingValid: true
             })
         })
