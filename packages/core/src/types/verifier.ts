@@ -14,5 +14,5 @@ export type VerifyOptions<Header extends Record<string, unknown>> = {
 }
 export type Verifier<
     Header extends Record<string, unknown> = Record<string, unknown>,
-    options extends Record<string, unknown> = VerifyOptions<Header>
+    options extends VerifyOptions<Header> = VerifyOptions<Header>
 > = (options: options) => OrPromise<boolean>
