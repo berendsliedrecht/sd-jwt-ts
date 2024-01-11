@@ -8,13 +8,19 @@ export const sdJwtFromCompact = <
 >(
     compact: string
 ) => {
+    if (!compact.includes('~')) {
+        throw new Error(
+            'compact is not a valid sd-jwt. It must contain at least one ~'
+        )
+    }
     const [jwtWithoutDisclosures, ...encodedDisclosures] = compact.split('~')
 
     const { header, payload, signature } = jwtFromCompact<Header, Payload>(
         jwtWithoutDisclosures
     )
 
-    if (encodedDisclosures.length === 0) {
+    // No KB-JWT or disclosures
+    if (encodedDisclosures.length === 1 && encodedDisclosures[0] === '') {
         return {
             header,
             payload,
@@ -22,18 +28,13 @@ export const sdJwtFromCompact = <
         }
     }
 
-    const hasKeyBinding = !compact.endsWith('~')
-
     // If the disclosure array ends with an `~` we do not have
     // a key binding and `String.split` takes it as an empty string
     // as element which we would not like to include in the disclosures.
-    if (!hasKeyBinding) encodedDisclosures.pop()
+    const compactKeyBinding = encodedDisclosures.pop()
+    const hasKeyBinding = compactKeyBinding && compactKeyBinding !== ''
 
-    const compactKeyBinding = hasKeyBinding
-        ? encodedDisclosures.pop()
-        : undefined
-
-    const keyBinding = compactKeyBinding
+    const keyBinding = hasKeyBinding
         ? keyBindingFromCompact(compactKeyBinding)
         : undefined
 

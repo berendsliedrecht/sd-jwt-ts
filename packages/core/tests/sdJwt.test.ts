@@ -123,7 +123,7 @@ describe('sd-jwt', async () => {
                 signature: Uint8Array.from([1, 2, 3])
             }).toCompact()
 
-            deepStrictEqual(sdJwt, 'eyJraWQiOiAiYSJ9.eyJleHAiOiAxMjN9.AQID')
+            deepStrictEqual(sdJwt, 'eyJraWQiOiAiYSJ9.eyJleHAiOiAxMjN9.AQID~')
         })
 
         it('should create a simple jwt with builder', async () => {
@@ -133,7 +133,7 @@ describe('sd-jwt', async () => {
                 .withSignature(Uint8Array.from([1, 2, 3]))
                 .toCompact()
 
-            deepStrictEqual(sdJwt, 'eyJraWQiOiAiYSJ9.eyJleHAiOiAxMjN9.AQID')
+            deepStrictEqual(sdJwt, 'eyJraWQiOiAiYSJ9.eyJleHAiOiAxMjN9.AQID~')
         })
 
         it('should create a simple jwt with builder', async () => {
@@ -143,7 +143,7 @@ describe('sd-jwt', async () => {
                 .withSignature(Uint8Array.from([1, 2, 3]))
                 .toCompact()
 
-            deepStrictEqual(sdJwt, 'eyJraWQiOiAiYSJ9.eyJleHAiOiAxMjN9.AQID')
+            deepStrictEqual(sdJwt, 'eyJraWQiOiAiYSJ9.eyJleHAiOiAxMjN9.AQID~')
         })
 
         it('should create a simple jwt with add builder', async () => {
@@ -153,12 +153,12 @@ describe('sd-jwt', async () => {
                 .withSignature(Uint8Array.from([1, 2, 3]))
                 .toCompact()
 
-            deepStrictEqual(sdJwt, 'eyJraWQiOiAiYSJ9.eyJleHAiOiAxMjN9.AQID')
+            deepStrictEqual(sdJwt, 'eyJraWQiOiAiYSJ9.eyJleHAiOiAxMjN9.AQID~')
         })
 
         it('should create an instance of sdJwt from a compact sdJwt', async () => {
             const sdJwt = SdJwt.fromCompact<{ kid: string }, { exp: number }>(
-                'eyJraWQiOiJhIn0.eyJleHAiOjEyM30.AQID'
+                'eyJraWQiOiJhIn0.eyJleHAiOjEyM30.AQID~'
             )
 
             deepStrictEqual(sdJwt.header.kid, 'a')
@@ -432,7 +432,6 @@ describe('sd-jwt', async () => {
             )
 
             const compactSdJwt = await sdJwt.toCompact()
-
             assert(!compactSdJwt.endsWith('~'))
 
             strictEqual(
@@ -1212,7 +1211,7 @@ describe('sd-jwt', async () => {
 
             strictEqual(
                 presentation,
-                'eyJhbGciOiAiRWREU0EifQ.eyJfc2RfYWxnIjogInNoYS0yNTYiLCAiX3NkIjogWyJJVlVxckNOcGl4SGxyYlo2S2JrNUxtcTFIdUcxS2Z2UXVZSkNONk9sTjNNIiwgIm9jTDJOTXhwVTBWR240clptbVFaUFZObU1RNTVsZlFTMlBmMkh1Y2s5amMiXX0.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
+                'eyJhbGciOiAiRWREU0EifQ.eyJfc2RfYWxnIjogInNoYS0yNTYiLCAiX3NkIjogWyJJVlVxckNOcGl4SGxyYlo2S2JrNUxtcTFIdUcxS2Z2UXVZSkNONk9sTjNNIiwgIm9jTDJOTXhwVTBWR240clptbVFaUFZObU1RNTVsZlFTMlBmMkh1Y2s5amMiXX0.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio~'
             )
         })
 
