@@ -321,7 +321,7 @@ export class SdJwt<
     private assertHashAndAlgorithm() {
         if (!this.hasherAndAlgorithm) {
             throw new SdJwtError(
-                'A hasher and algorithm must be set in order to create a digest of a disclosure. You can set it with this.withHasherAndAlgorithm()'
+                'A hasher and algorithm must be set in order to create a digest of a disclosure. You can set it with this.withHasher()'
             )
         }
     }
@@ -563,16 +563,9 @@ export class SdJwt<
         const sDisclosures =
             disclosures && disclosures.length > 0
                 ? `~${disclosures.join('~')}~`
-                : ''
+                : '~'
 
-        const kb = await this.keyBinding?.toCompact()
-
-        const sKeyBinding = this.keyBinding
-            ? sDisclosures.length > 0
-                ? kb
-                : `~${kb}`
-            : ''
-
-        return `${compactHeader}.${compactPayload}.${sSignature}${sDisclosures}${sKeyBinding}`
+        const kb = (await this.keyBinding?.toCompact()) ?? ''
+        return `${compactHeader}.${compactPayload}.${sSignature}${sDisclosures}${kb}`
     }
 }

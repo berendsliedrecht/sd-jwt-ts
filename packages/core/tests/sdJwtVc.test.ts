@@ -1,6 +1,11 @@
 import { before, describe, it } from 'node:test'
 import { createPublicKey, verify } from 'node:crypto'
-import assert, { deepStrictEqual, rejects, strictEqual } from 'node:assert'
+import assert, {
+    deepStrictEqual,
+    doesNotThrow,
+    rejects,
+    strictEqual
+} from 'node:assert'
 import {
     hasherAndAlgorithm,
     keyBindingSigner,
@@ -18,6 +23,7 @@ import {
     SignatureAndEncryptionAlgorithm,
     SdJwtVcError
 } from '../src'
+import { writeFileSync } from 'node:fs'
 
 describe('sd-jwt-vc', async () => {
     before(prelude)
@@ -274,58 +280,6 @@ describe('sd-jwt-vc', async () => {
                 async () => await sdJwtVc.toCompact(),
                 new SdJwtVcError(
                     "jwt is not valid for usage with sd-jwt-vc. Error: Claim key 'iat' not found in any level within the payload"
-                )
-            )
-        })
-
-        it('validate that required claim (cnf) are included in payload', async () => {
-            const sdJwtVc = new SdJwtVc({
-                header: {
-                    alg: SignatureAndEncryptionAlgorithm.EdDSA,
-                    typ: 'vc+sd-jwt'
-                },
-                payload: {
-                    vct: 'IdentityCredential',
-                    iss: 'https://example.org/issuer',
-                    iat: 1698056110,
-                    given_name: 'John',
-                    family_name: 'Doe',
-                    email: 'johndoe@example.com',
-                    phone_number: '+1-202-555-0101',
-                    address: {
-                        street_address: '123 Main St',
-                        locality: 'Anytown',
-                        region: 'Anystate',
-                        country: 'US'
-                    },
-                    birthdate: '1940-01-01',
-                    is_over_18: true,
-                    is_over_21: true,
-                    is_over_65: true
-                }
-            })
-                .withDisclosureFrame({
-                    is_over_65: true,
-                    is_over_21: true,
-                    is_over_18: true,
-                    birthdate: true,
-                    email: true,
-                    address: true,
-                    given_name: true,
-                    family_name: true,
-                    phone_number: true
-                })
-                .withSigner(() => new Uint8Array(32).fill(42))
-                .withHasher({
-                    hasher: Buffer.from,
-                    algorithm: HasherAlgorithm.Sha256
-                })
-                .withSaltGenerator(() => 'salt')
-
-            await rejects(
-                async () => await sdJwtVc.toCompact(),
-                new SdJwtVcError(
-                    "jwt is not valid for usage with sd-jwt-vc. Error: Claim key 'cnf' not found in any level within the payload"
                 )
             )
         })
@@ -662,7 +616,7 @@ describe('sd-jwt-vc', async () => {
             })
         })
 
-        it('Validate the sd-jwt-vc with cnf and keybinding, where cnf does not match the expected cnf', async () => {
+        it('Validate the sd-jwt-vc with cnf and keybinding', async () => {
             const cnf = publicHolderKeyJwk
 
             const keyBinding = await new KeyBinding({
@@ -756,7 +710,8 @@ describe('sd-jwt-vc', async () => {
                 isKeyBindingValid: true
             })
         })
-        it('Validate the sd-jwt-vc with cnf and keybinding', async () => {
+
+        it('Validate the sd-jwt-vc with cnf and keybinding, where cnf does not match the expected cnf', async () => {
             const cnf = publicHolderKeyJwk
 
             const keyBinding = await new KeyBinding({
@@ -850,9 +805,19 @@ describe('sd-jwt-vc', async () => {
                 containsRequiredVcProperties: true,
                 containsExpectedKeyBinding: false,
                 isSignatureValid: true,
-                isValid: true,
+                isValid: false,
                 isKeyBindingValid: true
             })
+        })
+    })
+
+    describe('sd-jwt-vc from compact', () => {
+        it('is allowed to have a sd-jwt-vc without cnf claim', () => {
+            doesNotThrow(() =>
+                SdJwtVc.fromCompact(
+                    'eyJhbGciOiAiRWREU0EiLCAidHlwIjogInZjK3NkLWp3dCJ9.eyJ2Y3QiOiAiSWRlbnRpdHlDcmVkZW50aWFsIiwgImlzcyI6ICJodHRwczovL2V4YW1wbGUub3JnL2lzc3VlciIsICJpYXQiOiAxNjk4MDU2MTEwLCJfc2RfYWxnIjogInNoYS0yNTYiLCAiX3NkIjogWyJWM2xLZWxsWGVEQkphWGRuU1cxR2ExcElTbXhqTTAxcFRFTkNOMGx1VGpCamJWWnNaRVk1YUZwSFVubGFXRTU2U1dwdlowbHFSWGxOZVVKT1dWZHNkVWxHVGpCSmFYZG5TVzE0ZGxreVJuTmhXRkkxU1dwdlowbHJSblZsV0ZKMlpESTBhVXhEUVdsamJWWnVZVmM1ZFVscWIyZEphMFoxWlZoT01GbFlVbXhKYVhkblNXMU9kbVJYTlRCamJtdHBUMmxCYVZaV1RXbG1WakEiLCAiVjNsS2VsbFhlREJKYVhkblNXMUtjR051VW05YVIwWXdXbE5KYzBsRFNYaFBWRkYzVEZSQmVFeFVRWGhKYkRBIiwgIlYzbEtlbGxYZURCSmFYZG5TVzFXZEZsWGJITkphWGRuU1cxd2RtRkhOV3RpTWxaQldsaG9hR0pZUW5OYVV6VnFZakl3YVZoUiIsICJWM2xLZWxsWGVEQkphWGRuU1cxYWFHSlhiSE5sVmpsMVdWY3hiRWxwZDJkSmExSjJXbE5LWkEiLCAiVjNsS2VsbFhlREJKYVhkblNXMWtjR1J0Vm5WWU1qVm9ZbGRWYVV4RFFXbFRiVGx2WW1sS1pBIiwgIlYzbEtlbGxYZURCSmFYZG5TVzFzZWxneU9USmFXRXBtVFZSbmFVeERRakJqYmxac1dGRSIsICJWM2xLZWxsWGVEQkphWGRuU1cxc2VsZ3lPVEphV0VwbVRXcEZhVXhEUWpCamJsWnNXRkUiLCAiVjNsS2VsbFhlREJKYVhkblNXMXNlbGd5T1RKYVdFcG1UbXBWYVV4RFFqQmpibFpzV0ZFIiwgIlYzbEtlbGxYZURCSmFYZG5TVzVDYjJJeU5XeFlNalV4WWxkS2JHTnBTWE5KUTBseVRWTXdlVTFFU1hST1ZGVXhURlJCZUUxRVJXbFlVUSJdfQ.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio~WyJzYWx0IiwgImlzX292ZXJfNjUiLCB0cnVlXQ~WyJzYWx0IiwgImlzX292ZXJfMjEiLCB0cnVlXQ~WyJzYWx0IiwgImlzX292ZXJfMTgiLCB0cnVlXQ~WyJzYWx0IiwgImJpcnRoZGF0ZSIsICIxOTQwLTAxLTAxIl0~WyJzYWx0IiwgImVtYWlsIiwgImpvaG5kb2VAZXhhbXBsZS5jb20iXQ~WyJzYWx0IiwgImFkZHJlc3MiLCB7InN0cmVldF9hZGRyZXNzIjogIjEyMyBNYWluIFN0IiwgImxvY2FsaXR5IjogIkFueXRvd24iLCAicmVnaW9uIjogIkFueXN0YXRlIiwgImNvdW50cnkiOiAiVVMifV0~WyJzYWx0IiwgImdpdmVuX25hbWUiLCAiSm9obiJd~WyJzYWx0IiwgImZhbWlseV9uYW1lIiwgIkRvZSJd~WyJzYWx0IiwgInBob25lX251bWJlciIsICIrMS0yMDItNTU1LTAxMDEiXQ~'
+                )
+            )
         })
     })
 })

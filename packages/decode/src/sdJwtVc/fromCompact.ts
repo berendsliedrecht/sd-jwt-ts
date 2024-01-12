@@ -15,7 +15,6 @@ export const sdJwtVcFromCompact = <
         assertClaimInObject(sdJwt.payload, 'iss')
         assertClaimInObject(sdJwt.payload, 'vct')
         assertClaimInObject(sdJwt.payload, 'iat')
-        assertClaimInObject(sdJwt.payload, 'cnf')
     } catch (e) {
         if (e instanceof Error) {
             e.message = `jwt is not valid for usage with sd-jwt-vc. Error: ${e.message}`

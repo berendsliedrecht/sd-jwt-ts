@@ -6,7 +6,7 @@ import { sdJwtVcFromCompact } from '@sd-jwt/decode'
 import { KeyBinding } from '../keyBinding'
 
 export type SdJwtVcVerificationResult = SdJwtVerificationResult & {
-    containsExpectedKeyBinding: boolean
+    containsExpectedKeyBinding?: boolean
     containsRequiredVcProperties: boolean
 }
 
@@ -44,7 +44,10 @@ export class SdJwtVc<
             this.assertClaimInPayload('iss')
             this.assertClaimInPayload('vct')
             this.assertClaimInPayload('iat')
-            this.assertClaimInPayload('cnf', expectedCnfClaim)
+
+            if (expectedCnfClaim) {
+                this.assertClaimInPayload('cnf', expectedCnfClaim)
+            }
         } catch (e) {
             if (e instanceof Error) {
                 e.message = `jwt is not valid for usage with sd-jwt-vc. Error: ${e.message}`
@@ -149,6 +152,9 @@ export class SdJwtVc<
             } else {
                 sdJwtVerificationResult.containsRequiredVcProperties = false
             }
+
+            // The verification result is not valid if an error occurred
+            sdJwtVerificationResult.isValid = false
         }
 
         return sdJwtVerificationResult
