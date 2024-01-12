@@ -1,6 +1,6 @@
 {
     "name": "@sd-jwt/decode",
-    "version": "0.1.2-alpha.0",
+    "version": "0.1.2-alpha.1",
     "description": "Decode implementation of sd-jwt Draft 06 and sd-jwt-vc Draft 01",
     "license": "(MIT OR Apache-2.0)",
     "author": "Berend Sliedrecht <sliedrecht@berend.io>",
