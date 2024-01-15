@@ -1,7 +1,6 @@
 {
     "npmClient": "pnpm",
     "version": "0.1.2-alpha.4",
-    "createRelease": "github",
     "exact": true,
     "message": "chore(release): %s"
 }
