@@ -2,10 +2,7 @@ name: 'Pipeline'
 
 on:
     push:
-        tags:
-            - 'v*'
-        branches:
-            - main
+        branches: [main]
 
     pull_request:
         types: [opened, synchronize]
@@ -81,6 +78,7 @@ jobs:
               run: npm config set //registry.npmjs.org/:_authToken $NPM_TOKEN
 
             - name: Publish
+              id: publish
               env:
                   GH_TOKEN: ${{ secrets.GH_TOKEN }}
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -95,15 +93,14 @@ jobs:
                     pnpm release ${{ inputs.release-type }} --yes
                   fi
 
-    create-release:
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
-        name: 'Create Release'
-        runs-on: ubuntu-latest
+                  version=$(node -p "require('./lerna.json').version")
+                  echo "LERNA_VERSION=$version" >> "$GITHUB_OUTPUT"
 
-        steps:
             - name: Create Github Release
               uses: softprops/action-gh-release@v1
               with:
                   generate_release_notes: true
-                  prerelease: ${{ contains(github.ref, '-alpha.') }}
+                  prerelease: ${{ inputs.release-type == 'alpha' }}
                   token: ${{ secrets.GH_TOKEN }}
+                  tag_name: v${{ steps.publish.outputs.LERNA_VERSION }}
+                  name: Release v${{ steps.publish.outputs.LERNA_VERSION }}
