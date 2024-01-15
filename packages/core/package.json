@@ -36,8 +36,7 @@
     ],
     "scripts": {
         "build": "tsc",
-        "test": "node --require ts-node/register --test ./tests/*.test.ts",
-        "release": "release-it"
+        "test": "node --require ts-node/register --test ./tests/*.test.ts"
     },
     "dependencies": {
         "@sd-jwt/decode": "workspace:*",

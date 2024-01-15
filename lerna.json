@@ -1,0 +1,11 @@
+{
+    "npmClient": "pnpm",
+    "version": "0.1.2-alpha.3",
+    "commands": {
+        "version": {
+            "createRelease": "github",
+            "exact": true,
+            "message": "chore(release): %s"
+        }
+    }
+}

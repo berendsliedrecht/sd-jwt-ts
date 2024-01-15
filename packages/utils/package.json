@@ -35,8 +35,7 @@
         "../../LICENSE-APACHE-2.0"
     ],
     "scripts": {
-        "build": "tsc",
-        "release": "release-it"
+        "build": "tsc"
     },
     "dependencies": {
         "@sd-jwt/types": "workspace:*",
