@@ -2,7 +2,10 @@ name: 'Pipeline'
 
 on:
     push:
-        branches: ['main']
+        tags:
+            - 'v*'
+        branches:
+            - main
 
     pull_request:
         types: [opened, synchronize]
@@ -24,6 +27,7 @@ jobs:
     continous-integration:
         name: 'Continuous Integration'
         runs-on: ubuntu-latest
+        if: github.event_name != 'workflow_dispatch' && !startsWith(github.ref, 'refs/tags/')
 
         steps:
             - uses: actions/checkout@v3
@@ -91,3 +95,16 @@ jobs:
                   else
                     pnpm release ${{ inputs.release-type }} --yes
                   fi
+
+    create-release:
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        name: 'Create Release'
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Create Github Release
+              uses: softprops/action-gh-release@v1
+              with:
+                  generate_release_notes: true
+                  prerelease: ${{ contains(github.ref, '-alpha.') }}
+                  token: ${{ secrets.GH_TOKEN }}
