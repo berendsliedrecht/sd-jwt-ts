@@ -30,9 +30,7 @@
     },
     "main": "build/index.js",
     "files": [
-        "build",
-        "../../LICENSE-MIT",
-        "../../LICENSE-APACHE-2.0"
+        "build"
     ],
     "scripts": {
         "build": "tsc"
