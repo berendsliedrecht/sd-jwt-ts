@@ -1,6 +1,6 @@
 {
     "npmClient": "pnpm",
-    "version": "0.1.2-alpha.5",
+    "version": "0.1.2-alpha.6",
     "exact": true,
     "message": "chore(release): %s"
 }
