@@ -1,6 +1,7 @@
 {
     "name": "@sd-jwt/examples-complex",
     "author": "Berend Sliedrecht <sliedrecht@berend.io>",
+    "private": true,
     "scripts": {
         "run:example": "ts-node index.ts"
     },
