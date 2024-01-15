@@ -27,7 +27,6 @@ jobs:
     continous-integration:
         name: 'Continuous Integration'
         runs-on: ubuntu-latest
-        if: ${{ github.event_name != 'workflow_dispatch' }}
 
         steps:
             - uses: actions/checkout@v3
