@@ -1,15 +1,26 @@
 import type { AsyncHasher, DisclosureWithDigest, Hasher } from '@sd-jwt/types'
-
+import { isPromise } from '@sd-jwt/utils'
 import { HasherAlgorithm } from '@sd-jwt/utils'
 import { sdJwtVcFromCompact } from './fromCompact'
 import { getValueByKeyAnyLevel, swapClaims } from '@sd-jwt/utils'
 import { disclosureCalculateDigest } from '../disclosures/calculateDigest'
-import { disclosureToArray } from '../disclosures/toArray'
+
+interface DecodeSdJwtVcResult {
+    compactSdJwtVc: string
+    signedPayload: Record<string, unknown>
+    header: Record<string, unknown>
+    signature: Uint8Array
+    keyBinding?: Record<string, unknown>
+    disclosures: Array<DisclosureWithDigest>
+    decodedPayload: Record<string, unknown>
+}
 
 export const decodeSdJwtVc = <HI extends Hasher | AsyncHasher>(
     compact: string,
     hasher: HI
-) => {
+): HI extends AsyncHasher
+    ? Promise<DecodeSdJwtVcResult>
+    : DecodeSdJwtVcResult => {
     const { header, payload, signature, keyBinding, disclosures } =
         sdJwtVcFromCompact(compact)
 
@@ -17,26 +28,59 @@ export const decodeSdJwtVc = <HI extends Hasher | AsyncHasher>(
         getValueByKeyAnyLevel<HasherAlgorithm>(payload, '_sd_alg') ??
         HasherAlgorithm.Sha256
 
-    const disclosureWithDigests =
-        disclosures?.map((d) => ({
-            digest: disclosureCalculateDigest(d, hasherAlgorithm, hasher),
-            decoded: d,
-            encoded: disclosureToArray(d)
-        })) ?? []
+    const disclosuresWithDigestsResult = (disclosures?.map((disclosure) => {
+        const digestResult = disclosureCalculateDigest(
+            disclosure,
+            hasherAlgorithm,
+            hasher
+        )
 
-    return {
+        return isPromise(digestResult)
+            ? digestResult.then((digest) => ({ ...disclosure, digest }))
+            : { ...disclosure, digest: digestResult }
+    }) ?? []) as
+        | Array<DisclosureWithDigest>
+        | Array<Promise<DisclosureWithDigest>>
+
+    const basePayload = {
         compactSdJwtVc: compact,
         signedPayload: payload,
         header,
         signature,
-        keyBinding,
-        disclosures: disclosureWithDigests,
-        decodedPayload: swapClaims(
-            payload,
-            disclosureWithDigests.map((d) => ({
-                ...d.decoded,
-                digest: d.digest
-            })) as unknown as Array<DisclosureWithDigest>
-        )
+        keyBinding
+    } as const
+
+    if (isAsyncCalculateDigestReturnType(disclosuresWithDigestsResult)) {
+        return Promise.all(disclosuresWithDigestsResult).then(
+            (disclosureWithDigests) => ({
+                ...basePayload,
+                disclosures: disclosureWithDigests,
+                decodedPayload: swapClaims(
+                    basePayload.signedPayload,
+                    disclosureWithDigests
+                )
+            })
+        ) as HI extends AsyncHasher
+            ? Promise<DecodeSdJwtVcResult>
+            : DecodeSdJwtVcResult
+    } else {
+        return {
+            ...basePayload,
+            disclosures: disclosuresWithDigestsResult,
+            decodedPayload: swapClaims(
+                basePayload.signedPayload,
+                disclosuresWithDigestsResult
+            )
+        } as HI extends AsyncHasher
+            ? Promise<DecodeSdJwtVcResult>
+            : DecodeSdJwtVcResult
     }
+}
+
+function isAsyncCalculateDigestReturnType(
+    disclosureWithDigests: Array<
+        Promise<DisclosureWithDigest> | DisclosureWithDigest
+    >
+): disclosureWithDigests is Array<Promise<DisclosureWithDigest>> {
+    return isPromise(disclosureWithDigests[0])
 }

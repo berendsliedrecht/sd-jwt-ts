@@ -6,8 +6,8 @@ import { disclosureToArray } from './toArray'
 export type CalculateDigestReturnType<
     HasherImplementation extends Hasher | AsyncHasher
 > = ReturnType<HasherImplementation> extends Promise<any>
-    ? Promise<DisclosureWithDigest>
-    : DisclosureWithDigest
+    ? Promise<string>
+    : string
 
 export const disclosureCalculateDigest = <HI extends Hasher | AsyncHasher>(
     disclosure: Disclosure,
