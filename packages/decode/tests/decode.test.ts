@@ -80,30 +80,36 @@ describe('decode sd jwt vc', () => {
                     salt: 'salt',
                     key: 'is_over_65',
                     value: true,
+                    encoded: 'WyJzYWx0IiwiaXNfb3Zlcl82NSIsdHJ1ZV0',
                     digest: 'sN_ge0pHXF6qmsYnX1A9SdwJ8ch8aENkxbODsT74YwI'
                 },
                 {
                     salt: 'salt',
                     key: 'is_over_21',
                     value: true,
+                    encoded: 'WyJzYWx0IiwiaXNfb3Zlcl8yMSIsdHJ1ZV0',
                     digest: 'R1zTUvOYHgcepj0jHypGHz9EHttVKft0yswbc9ETPbU'
                 },
                 {
                     salt: 'salt',
                     key: 'email',
                     value: 'johndoe@example.com',
+                    encoded:
+                        'WyJzYWx0IiwiZW1haWwiLCJqb2huZG9lQGV4YW1wbGUuY29tIl0',
                     digest: 'psauKUNWEi09nu3Cl89xKXgmpWENZl5uy1N1nyn_jMk'
                 },
                 {
                     salt: 'salt',
                     key: 'country',
                     value: 'US',
+                    encoded: 'WyJzYWx0IiwiY291bnRyeSIsIlVTIl0',
                     digest: 'om5ZztZHB-Gd00LG21CV_xM4FaENSoiaOXnTAJNczB4'
                 },
                 {
                     salt: 'salt',
                     key: 'given_name',
                     value: 'John',
+                    encoded: 'WyJzYWx0IiwiZ2l2ZW5fbmFtZSIsIkpvaG4iXQ',
                     digest: 'eDqQpdTXJXbWhf-EsI7zw5X6OvYmFN-UZQQMesXwKPw'
                 }
             ],

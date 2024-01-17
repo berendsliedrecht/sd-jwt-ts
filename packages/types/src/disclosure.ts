@@ -4,6 +4,7 @@ export type Disclosure = {
     salt: string
     key?: string
     value: unknown
+    encoded: string
 }
 
 export type DisclosureWithDigest = Disclosure & { digest: string }

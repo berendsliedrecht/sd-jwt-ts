@@ -59,7 +59,9 @@ describe('sd-jwt from compact', () => {
                     {
                         key: 'iss',
                         salt: 'salt',
-                        value: 'https://example.org/issuer'
+                        value: 'https://example.org/issuer',
+                        encoded:
+                            'WyJzYWx0IiwgImlzcyIsICJodHRwczovL2V4YW1wbGUub3JnL2lzc3VlciJd'
                     }
                 ]
             })
@@ -91,7 +93,9 @@ describe('sd-jwt from compact', () => {
                     {
                         key: 'iss',
                         salt: 'salt',
-                        value: 'https://example.org/issuer'
+                        value: 'https://example.org/issuer',
+                        encoded:
+                            'WyJzYWx0IiwgImlzcyIsICJodHRwczovL2V4YW1wbGUub3JnL2lzc3VlciJd'
                     }
                 ]
             })
