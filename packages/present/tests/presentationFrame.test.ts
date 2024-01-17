@@ -1,10 +1,13 @@
 import assert, { deepStrictEqual } from 'node:assert'
 import { before, describe, it } from 'node:test'
 
-import { prelude } from './utils'
+import { prelude } from '../../core/tests/utils'
 
-import { getDisclosuresForPresentationFrame } from '../src/sdJwt/presentationFrame'
-import { Disclosure, HasherAlgorithm, SdJwt } from '../src'
+import { getDisclosuresForPresentationFrame } from '../src'
+import { HasherAlgorithm } from '@sd-jwt/utils'
+import { Disclosure, SdJwt } from '../../core/src'
+import { DisclosureWithDigest } from '@sd-jwt/types'
+import { writeFileSync } from 'node:fs'
 
 describe('presentationFrame', async () => {
     before(prelude)
@@ -61,8 +64,15 @@ describe('presentationFrame', async () => {
         const disclosures = sdJwt.disclosures!
 
         const disclosuresWithDigest = await Promise.all(
-            disclosures.map((d) => d.withCalculateDigest(Buffer.from))
+            disclosures.map((d) =>
+                d.withCalculateDigest({
+                    hasher: (data) => Buffer.from(data),
+                    algorithm: HasherAlgorithm.Sha256
+                })
+            )
         )
+
+        const jsonDisclosures = disclosuresWithDigest.map((d) => d.asJson())
         const requiredDisclosures = getDisclosuresForPresentationFrame(
             sdJwt.payload!,
             {
@@ -77,43 +87,50 @@ describe('presentationFrame', async () => {
                 mustDiscloseWholeObject: true
             },
             await sdJwt.getPrettyClaims(),
-            disclosuresWithDigest
+            jsonDisclosures
         )
 
         deepStrictEqual(requiredDisclosures, [
-            disclosures[1],
-            disclosures[3],
-            disclosures[5],
-            disclosures[7],
-            disclosures[8],
-            disclosures[9]
+            jsonDisclosures[1],
+            jsonDisclosures[3],
+            jsonDisclosures[5],
+            jsonDisclosures[7],
+            jsonDisclosures[8],
+            jsonDisclosures[9]
         ])
     })
 
     it('arrays and nested arrays', async () => {
         const disclosures = [
-            Disclosure.fromArray([
-                'salt',
-                'array',
-                [
+            {
+                salt: 'salt',
+                key: 'array',
+                value: [
                     {
                         '...': 'array_0_value_digest'
                     },
                     'array_1_value'
-                ]
-            ]).withDigest('array_digest'),
-            Disclosure.fromArray([
-                'salt',
-                [
+                ],
+                digest: 'array_digest',
+                encoded: ''
+            },
+            {
+                salt: 'salt',
+                digest: 'array_0_value_digest',
+                value: [
                     {
                         '...': 'array_0_value_0_value_digest'
                     }
-                ]
-            ]).withDigest('array_0_value_digest'),
-            Disclosure.fromArray(['salt', 'array_0_value_0_value']).withDigest(
-                'array_0_value_0_value_digest'
-            )
-        ]
+                ],
+                encoded: ''
+            },
+            {
+                salt: 'salt',
+                value: 'array_0_value_0_value',
+                digest: 'array_0_value_0_value_digest',
+                encoded: ''
+            }
+        ] satisfies DisclosureWithDigest[]
 
         const requiredDisclosures = getDisclosuresForPresentationFrame(
             {
@@ -129,8 +146,8 @@ describe('presentationFrame', async () => {
         )
 
         deepStrictEqual(
-            [...requiredDisclosures].sort(),
-            [...disclosures].sort()
+            requiredDisclosures.map((d) => d.digest).sort(),
+            disclosures.map((d) => d.digest).sort()
         )
     })
 
@@ -166,7 +183,12 @@ describe('presentationFrame', async () => {
         // NOTE: we need to apply the disclosure frame, otherwise payload is the input payload
         await sdJwt.applyDisclosureFrame()
         const disclosures = await Promise.all(
-            sdJwt.disclosures!.map((d) => d.withCalculateDigest(Buffer.from))
+            sdJwt.disclosures!.map((d) =>
+                d.withCalculateDigest({
+                    hasher: (data) => Buffer.from(data),
+                    algorithm: HasherAlgorithm.Sha256
+                })
+            )
         )
         const prettyClaims = await sdJwt.getPrettyClaims()
 
@@ -179,7 +201,7 @@ describe('presentationFrame', async () => {
                         nested_field: [true]
                     },
                     prettyClaims,
-                    disclosures
+                    disclosures.map((d) => d.asJson())
                 ),
             'Path nested_field.0 from presentation frame is not present in pretty SD-JWT payload.'
         )

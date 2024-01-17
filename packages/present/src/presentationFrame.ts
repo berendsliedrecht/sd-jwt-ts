@@ -1,20 +1,20 @@
-import { getByPath, hasByPath, traverseNodes } from '../utils'
-import { DisclosureWithDigest } from './disclosures'
-import { SdJwtError } from './error'
-import { PresentationFrame } from '../types/present'
+import { getByPath, hasByPath } from '@sd-jwt/utils'
+import { DisclosureWithDigest } from '@sd-jwt/types'
 import {
     getDisclosureMap,
     getPayloadDisclosureMapping
 } from './disclosureMapping'
+import { traverseNodes } from './traverse'
+import { PresentationFrame } from './types'
 
-export const getDisclosuresForPresentationFrame = <
+export function getDisclosuresForPresentationFrame<
     Payload extends Record<string, unknown> = Record<string, unknown>
 >(
     signedPayload: Payload,
     presentationFrame: PresentationFrame<Payload>,
     prettyClaims: Payload,
     disclosures: Array<DisclosureWithDigest> = []
-): Array<DisclosureWithDigest> => {
+): Array<DisclosureWithDigest> {
     const requiredDisclosureDigests = new Set<string>()
     const disclosureMap = getDisclosureMap(disclosures)
     const payloadDisclosureMapping = getPayloadDisclosureMapping(
@@ -25,7 +25,7 @@ export const getDisclosuresForPresentationFrame = <
     // No disclosures needed
     if (payloadDisclosureMapping === null) {
         if (disclosures.length > 0) {
-            throw new SdJwtError(
+            throw new Error(
                 'Payload disclosure mapping is null, but disclosures are present.'
             )
         }
@@ -38,7 +38,7 @@ export const getDisclosuresForPresentationFrame = <
         if (!node.isLeaf) continue
 
         if (typeof node.value !== 'boolean') {
-            throw new SdJwtError(
+            throw new Error(
                 `Expected leaf value in presentation frame to be of type boolean, but found ${typeof node.value}`
             )
         }
@@ -47,7 +47,7 @@ export const getDisclosuresForPresentationFrame = <
         if (node.value === false) continue
 
         if (!hasByPath(prettyClaims, node.path)) {
-            throw new SdJwtError(
+            throw new Error(
                 `Path ${node.path.join(
                     '.'
                 )} from presentation frame is not present in pretty SD-JWT payload. The presentation frame may only include properties that are present in the SD-JWT payload.`

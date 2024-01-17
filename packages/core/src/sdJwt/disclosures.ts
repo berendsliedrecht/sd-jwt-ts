@@ -1,7 +1,12 @@
-import { DisclosureItem, Hasher } from '../types'
-import { Base64url } from '@sd-jwt/utils'
+import { disclosureCalculateDigest } from '@sd-jwt/decode'
+import { AsyncHasher, Hasher } from '@sd-jwt/types'
+import { Base64url, HasherAlgorithm, isPromise } from '@sd-jwt/utils'
+import { DisclosureItem, HasherAndAlgorithm } from '../types'
 import { SdJwtError } from './error'
-import { isPromise } from '../utils'
+import {
+    DisclosureWithDigest as DisclosureWithDigestJson,
+    Disclosure as DisclosureJson
+} from '@sd-jwt/types'
 
 // Make the digest property required
 export type DisclosureWithDigest = Disclosure & { digest: string }
@@ -67,8 +72,10 @@ export class Disclosure {
         return this as DisclosureWithDigest
     }
 
-    public withCalculateDigest<HasherImplementation extends Hasher>(
-        hasher: HasherImplementation,
+    public withCalculateDigest<
+        HasherImplementation extends Hasher | AsyncHasher
+    >(
+        hasherAndAlgorithm: HasherAndAlgorithm<HasherImplementation>,
         // Whether to recalculate the digest, even if it is already set
         { recalculate = false }: { recalculate?: boolean } = {}
     ): WithCalculateDigestReturnType<HasherImplementation> {
@@ -80,19 +87,22 @@ export class Disclosure {
             return this as unknown as WithCalculateDigestReturnType<HasherImplementation>
         }
 
-        // Calculate digest
-        const hashResult = hasher(this.encoded)
+        const digestResult = disclosureCalculateDigest(
+            this.asJson(),
+            // TODO: string vs HasherAlgorithm
+            hasherAndAlgorithm.algorithm as HasherAlgorithm,
+            hasherAndAlgorithm.hasher
+        )
 
-        // If promise, wait for it to resolve
-        if (isPromise(hashResult)) {
-            return hashResult.then((hash) => {
-                this.#digest = Base64url.encode(hash)
+        if (isPromise(digestResult)) {
+            return digestResult.then((digest) => {
+                this.#digest = digest
 
                 // We know for sure that digest is defined now
-                return this as DisclosureWithDigest
+                return this
             }) as unknown as WithCalculateDigestReturnType<HasherImplementation>
         } else {
-            this.#digest = Base64url.encode(hashResult)
+            this.#digest = digestResult
 
             // We know for sure that digest is defined now
             return this as unknown as WithCalculateDigestReturnType<HasherImplementation>
@@ -102,12 +112,43 @@ export class Disclosure {
     public toString() {
         return this.encoded
     }
+
+    public asJson() {
+        return {
+            encoded: this.encoded,
+            salt: this.salt,
+            value: this.value,
+            key: this.key,
+            digest: this.digest
+        } as this extends DisclosureWithDigest
+            ? DisclosureWithDigestJson
+            : DisclosureJson
+    }
+
+    public static fromJson<D extends DisclosureJson | DisclosureWithDigestJson>(
+        disclosureJson: D
+    ) {
+        const disclosure = new Disclosure(
+            disclosureJson.salt,
+            disclosureJson.value,
+            disclosureJson.key
+        )
+
+        if ('digest' in disclosureJson) {
+            disclosure.withDigest(disclosureJson.digest)
+        }
+
+        return disclosure as D extends DisclosureWithDigestJson
+            ? DisclosureWithDigest
+            : Disclosure
+    }
 }
 
-export type WithCalculateDigestReturnType<HasherImplementation extends Hasher> =
-    ReturnType<HasherImplementation> extends Promise<any>
-        ? Promise<DisclosureWithDigest>
-        : DisclosureWithDigest
+export type WithCalculateDigestReturnType<
+    HasherImplementation extends Hasher | AsyncHasher
+> = ReturnType<HasherImplementation> extends Promise<any>
+    ? Promise<DisclosureWithDigest>
+    : DisclosureWithDigest
 
 export function isDisclosureWithDigest(
     disclosure: Disclosure

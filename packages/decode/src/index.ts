@@ -7,5 +7,6 @@ export {
     disclosureCalculateDigest,
     disclosureToArray,
     disclosureFromArray,
-    disclosureFromString
+    disclosureFromString,
+    decodeDisclosuresInPayload
 } from './disclosures'

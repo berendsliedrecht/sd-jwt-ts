@@ -4,5 +4,5 @@ import { disclosureFromArray } from './fromArray'
 
 export const disclosureFromString = (s: string): Disclosure => {
     const item = Base64url.decodeToJson<DisclosureArray>(s)
-    return disclosureFromArray(item)
+    return { ...disclosureFromArray(item), encoded: s }
 }

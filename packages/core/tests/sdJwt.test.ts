@@ -1230,7 +1230,8 @@ describe('sd-jwt', async () => {
                     await sdJwt.present({
                         name: 'string'
                     }),
-                SdJwtError
+                Error,
+                'Expected leaf value in presentation frame to be of type boolean, but found string'
             )
         })
 
@@ -1249,7 +1250,8 @@ describe('sd-jwt', async () => {
                     await sdJwt.present({
                         name: true
                     }),
-                SdJwtError
+                Error,
+                'Path name from presentation frame is not present in pretty SD-JWT payload. The presentation frame may only include properties that are present in the SD-JWT payload.'
             )
         })
     })

@@ -2,8 +2,9 @@ import type { AsyncHasher, DisclosureWithDigest, Hasher } from '@sd-jwt/types'
 import { isPromise } from '@sd-jwt/utils'
 import { HasherAlgorithm } from '@sd-jwt/utils'
 import { sdJwtVcFromCompact } from './fromCompact'
-import { getValueByKeyAnyLevel, swapClaims } from '@sd-jwt/utils'
+import { getValueByKeyAnyLevel } from '@sd-jwt/utils'
 import { disclosureCalculateDigest } from '../disclosures/calculateDigest'
+import { decodeDisclosuresInPayload } from '../disclosures'
 
 interface DecodeSdJwtVcResult {
     compactSdJwtVc: string
@@ -55,7 +56,7 @@ export const decodeSdJwtVc = <HI extends Hasher | AsyncHasher>(
             (disclosureWithDigests) => ({
                 ...basePayload,
                 disclosures: disclosureWithDigests,
-                decodedPayload: swapClaims(
+                decodedPayload: decodeDisclosuresInPayload(
                     basePayload.signedPayload,
                     disclosureWithDigests
                 )
@@ -67,7 +68,7 @@ export const decodeSdJwtVc = <HI extends Hasher | AsyncHasher>(
         return {
             ...basePayload,
             disclosures: disclosuresWithDigestsResult,
-            decodedPayload: swapClaims(
+            decodedPayload: decodeDisclosuresInPayload(
                 basePayload.signedPayload,
                 disclosuresWithDigestsResult
             )
