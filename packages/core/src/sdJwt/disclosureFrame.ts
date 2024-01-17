@@ -1,15 +1,15 @@
-import { DisclosureFrame } from '../types'
-import { deleteByPath } from '../utils'
+import { DisclosureFrame, HasherAndAlgorithm } from '../types'
+import { deleteByPath } from '@sd-jwt/utils'
 import { createDecoys } from './decoys'
 import { Disclosure, DisclosureWithDigest } from './disclosures'
 import { SdJwtError } from './error'
-import { SaltGenerator, Hasher } from '../types'
+import { SaltGenerator } from '../types'
 
 export const applyDisclosureFrame = async <
     Payload extends Record<string, unknown> = Record<string, unknown>
 >(
     saltGenerator: SaltGenerator,
-    hasher: Hasher,
+    hasherAndAlgorithm: HasherAndAlgorithm,
     payload: Payload,
     frame: DisclosureFrame<Payload>,
     keys: Array<string> = [],
@@ -27,7 +27,11 @@ export const applyDisclosureFrame = async <
                 (payload._sd as string[]) ?? []
             )
 
-            const decoys = await createDecoys(frameValue, saltGenerator, hasher)
+            const decoys = await createDecoys(
+                frameValue,
+                saltGenerator,
+                hasherAndAlgorithm
+            )
             decoys.forEach((digest) => sd.push(digest))
 
             // @ts-ignore
@@ -47,7 +51,7 @@ export const applyDisclosureFrame = async <
                     salt,
                     payload[key],
                     key
-                ).withCalculateDigest(hasher)
+                ).withCalculateDigest(hasherAndAlgorithm)
                 disclosures.push(disclosure)
 
                 const sd: Array<string> = Array.from(
@@ -66,7 +70,7 @@ export const applyDisclosureFrame = async <
         ) {
             await applyDisclosureFrame(
                 saltGenerator,
-                hasher,
+                hasherAndAlgorithm,
                 payload[key] as Payload,
                 frameValue as DisclosureFrame<Payload>,
                 newKeys,
@@ -112,7 +116,7 @@ export const applyDisclosureFrame = async <
                     const disclosure = await new Disclosure(
                         salt,
                         payloadValue
-                    ).withCalculateDigest(hasher)
+                    ).withCalculateDigest(hasherAndAlgorithm)
                     disclosures.push(disclosure)
 
                     newPayloadArray.push({ '...': disclosure.digest })

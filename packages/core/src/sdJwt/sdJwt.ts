@@ -1,26 +1,30 @@
-import { Base64url } from '@sd-jwt/utils'
-import { SdJwtError } from './error'
+import { decodeDisclosuresInPayload, sdJwtFromCompact } from '@sd-jwt/decode'
+import {
+    PresentationFrame,
+    getDisclosuresForPresentationFrame
+} from '@sd-jwt/present'
+import {
+    Base64url,
+    HasherAlgorithm,
+    getAllKeys,
+    getValueByKeyAnyLevel
+} from '@sd-jwt/utils'
+import { Jwt, JwtAdditionalOptions, JwtVerificationResult } from '../jwt/jwt'
+import { KeyBinding } from '../keyBinding'
 import {
     DisclosureFrame,
     HasherAndAlgorithm,
     SaltGenerator,
     Verifier
 } from '../types'
-import { Jwt, JwtAdditionalOptions, JwtVerificationResult } from '../jwt/jwt'
-import { KeyBinding } from '../keyBinding'
+import { applyDisclosureFrame } from './disclosureFrame'
+import { Disclosure, DisclosureWithDigest } from './disclosures'
+import { SdJwtError } from './error'
 import {
     ReturnSdJwtWithHeaderAndPayload,
     ReturnSdJwtWithKeyBinding,
     ReturnSdJwtWithPayload
 } from './types'
-import { Disclosure, DisclosureWithDigest } from './disclosures'
-import { applyDisclosureFrame } from './disclosureFrame'
-import { swapClaims } from './swapClaim'
-import { getAllKeys, getValueByKeyAnyLevel } from '../utils'
-import { PresentationFrame } from '../types/present'
-import { getDisclosuresForPresentationFrame } from './presentationFrame'
-import { sdJwtFromCompact } from '@sd-jwt/decode'
-import { HasherAlgorithm } from '@sd-jwt/utils'
 
 export type SdJwtToCompactOptions<
     DisclosablePayload extends Record<string, unknown>
@@ -262,7 +266,7 @@ export class SdJwt<
         const { payload: framedPayload, disclosures } =
             await applyDisclosureFrame(
                 this.saltGenerator!,
-                this.hasherAndAlgorithm!.hasher,
+                this.hasherAndAlgorithm!,
                 this.addHasherAlgorithmToPayload().payload!,
                 this.disclosureFrame!
             )
@@ -284,7 +288,7 @@ export class SdJwt<
 
         return Promise.all(
             this.disclosures.map((d) =>
-                d.withCalculateDigest(this.hasherAndAlgorithm!.hasher)
+                d.withCalculateDigest(this.hasherAndAlgorithm!)
             )
         )
     }
@@ -403,10 +407,13 @@ export class SdJwt<
             this.payload!,
             presentationFrame,
             await this.getPrettyClaims(),
-            disclosuresWithDigest
+            disclosuresWithDigest?.map((d) => d.asJson())
         )
 
-        return await this.__toCompact(requiredDisclosures, false)
+        return await this.__toCompact(
+            requiredDisclosures.map((d) => Disclosure.fromJson(d)),
+            false
+        )
     }
 
     /**
@@ -514,9 +521,9 @@ export class SdJwt<
         this.assertHashAndAlgorithm()
 
         const disclosuresWithDigest = await this.disclosuresWithDigest()
-        const newPayload = swapClaims(
+        const newPayload = decodeDisclosuresInPayload(
             this.payload!,
-            disclosuresWithDigest ?? []
+            disclosuresWithDigest?.map((d) => d.asJson()) ?? []
         )
 
         return newPayload as Claims

@@ -1,8 +1,7 @@
 // This file contains helpers functions for mapping between disclosures entries and the payload of an SD-JWT.
-
-import { isObject, traverseNodes } from '../utils'
-import { DisclosureWithDigest } from './disclosures'
-import { SdJwtError } from './error'
+import { DisclosureWithDigest } from '@sd-jwt/types'
+import { isObject } from '@sd-jwt/utils'
+import { traverseNodes } from './traverse'
 
 /**
  * Mapping from a digest to the corresponding disclosure and its parent disclosures.
@@ -74,7 +73,7 @@ function getArrayPayloadDisclosureMapping(
             if ('...' in item) {
                 const digest = item['...']
                 if (typeof digest !== 'string') {
-                    throw new SdJwtError(
+                    throw new Error(
                         `Expected value of key '...' to be of type string, but found ${typeof digest}`
                     )
                 }
@@ -83,7 +82,7 @@ function getArrayPayloadDisclosureMapping(
                 const disclosed = map[digest]
                 if (disclosed) {
                     // value is always the last item in the disclosure array
-                    const value = [...disclosed.disclosure.decoded].pop()
+                    const value = disclosed.disclosure.value
 
                     // Recursively look if the disclosed value contains any disclosure references
                     // of itself. Based on the type we can decide how to handle it.
@@ -204,7 +203,7 @@ export function getPayloadDisclosureMapping(payload: any, map: DisclosureMap) {
     // If the payload contains a _sd property, it means there's disclosures
     if (payload._sd) {
         if (!Array.isArray(payload._sd)) {
-            throw new SdJwtError(
+            throw new Error(
                 `Expect value of '_sd' to be of type array, but found ${typeof payload._sd}`
             )
         }
@@ -212,7 +211,7 @@ export function getPayloadDisclosureMapping(payload: any, map: DisclosureMap) {
         // We are going to resolve all digests
         for (const digest of payload._sd) {
             if (typeof digest !== 'string') {
-                throw new SdJwtError(
+                throw new Error(
                     `Expected entries in '_sd' property to be of type string, found ${typeof digest}`
                 )
             }
@@ -222,13 +221,13 @@ export function getPayloadDisclosureMapping(payload: any, map: DisclosureMap) {
             if (disclosed) {
                 // value is always the last item in the disclosure array
                 // We know this is an object, so the associated disclosure MUST have length 3
-                const value = [...disclosed.disclosure.decoded].pop()
-                if (disclosed.disclosure.decoded.length !== 3) {
-                    throw new SdJwtError(
-                        `Expected disclosure for value ${value} to have 3 items, but found ${disclosed.disclosure.decoded.length}`
+                const value = disclosed.disclosure.value
+                const key = disclosed.disclosure.key
+                if (!key) {
+                    throw new Error(
+                        `Expected disclosure for value ${value} to have a key, but key was undefined`
                     )
                 }
-                const key = disclosed.disclosure.decoded[1]
 
                 // This checks if there's a nested disclosure anywhere down the tree
                 // So when a disclosure value is an object or array, it can contain disclosures
@@ -302,22 +301,21 @@ export const getDisclosureMap = (
     const parentMap: Record<string, DisclosureWithDigest> = {}
 
     for (const disclosure of disclosures) {
-        // value is always the last item in the disclosure array
-        const value = [...disclosure.decoded].pop()
+        const value = disclosure.value
 
         traverseNodes(value).forEach(({ path, value }) => {
             const lastPathItem = path[path.length - 1]
 
             if (lastPathItem === '_sd') {
                 if (!Array.isArray(value)) {
-                    throw new SdJwtError(
+                    throw new Error(
                         `Expect value of '_sd' to be of type array, but found ${typeof value}`
                     )
                 }
 
                 value.forEach((digest) => {
                     if (typeof digest !== 'string') {
-                        throw new SdJwtError(
+                        throw new Error(
                             `Expected entries in '_sd' property to be of type string, found ${typeof digest}`
                         )
                     }
@@ -325,7 +323,7 @@ export const getDisclosureMap = (
                 })
             } else if (lastPathItem === '...') {
                 if (typeof value !== 'string') {
-                    throw new SdJwtError(
+                    throw new Error(
                         `Expected value of '...' to be of type string, but found ${typeof value}`
                     )
                 }

@@ -1,7 +1,4 @@
-export const traverseNodes = (
-    object: any,
-    path: PathNode[] = []
-): LeafNode[] => {
+export function traverseNodes(object: any, path: PathNode[] = []): LeafNode[] {
     const result: LeafNode[] = []
 
     if (typeof object !== 'object' || object === null) {

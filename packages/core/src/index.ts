@@ -19,15 +19,13 @@ export type {
 } from './jwt'
 
 export type {
-    Hasher,
     Signer,
     Verifier,
     VerifyOptions,
     SaltGenerator,
     DisclosureItem,
     DisclosureFrame,
-    HasherAndAlgorithm,
-    PresentationFrame
+    HasherAndAlgorithm
 } from './types'
 
 export type { SdJwtVcVerificationResult } from './sdJwtVc'
@@ -39,4 +37,7 @@ export { KeyBinding } from './keyBinding'
 export { Jwt, JwtError } from './jwt'
 export { SdJwtVc, SdJwtVcError } from './sdJwtVc'
 
+// Re-export from sub-packages
 export { HasherAlgorithm } from '@sd-jwt/utils'
+export type { Hasher, AsyncHasher } from '@sd-jwt/types'
+export type { PresentationFrame } from '@sd-jwt/present'

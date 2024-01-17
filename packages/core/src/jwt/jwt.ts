@@ -2,7 +2,7 @@ import { Base64url } from '@sd-jwt/utils'
 import { JwtError } from './error'
 import { MakePropertyRequired, Signer } from '../types'
 import { Verifier } from '../types'
-import { getValueByKeyAnyLevel, simpleDeepEqual } from '../utils'
+import { getValueByKeyAnyLevel, simpleDeepEqual } from '@sd-jwt/utils'
 import { jwtFromCompact } from '@sd-jwt/decode'
 
 type ReturnJwtWithHeaderAndPayload<

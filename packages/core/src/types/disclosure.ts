@@ -1,4 +1,4 @@
-import { BaseFrame } from './frame'
+import { BaseFrame } from '@sd-jwt/types'
 
 export type DisclosureItem = [string, string, unknown] | [string, unknown]
 

@@ -71,7 +71,7 @@ describe('sd-jwt-vc', async () => {
                 })
                 .withSigner(() => new Uint8Array(32).fill(42))
                 .withHasher({
-                    hasher: Buffer.from,
+                    hasher: (data) => Buffer.from(data),
                     algorithm: HasherAlgorithm.Sha256
                 })
                 .withSaltGenerator(() => 'salt')
@@ -163,7 +163,7 @@ describe('sd-jwt-vc', async () => {
                 })
                 .withSigner(() => new Uint8Array(32).fill(42))
                 .withHasher({
-                    hasher: Buffer.from,
+                    hasher: (data) => Buffer.from(data),
                     algorithm: HasherAlgorithm.Sha256
                 })
                 .withSaltGenerator(() => 'salt')
@@ -217,7 +217,7 @@ describe('sd-jwt-vc', async () => {
                 })
                 .withSigner(() => new Uint8Array(32).fill(42))
                 .withHasher({
-                    hasher: Buffer.from,
+                    hasher: (data) => Buffer.from(data),
                     algorithm: HasherAlgorithm.Sha256
                 })
                 .withSaltGenerator(() => 'salt')
@@ -271,7 +271,7 @@ describe('sd-jwt-vc', async () => {
                 })
                 .withSigner(() => new Uint8Array(32).fill(42))
                 .withHasher({
-                    hasher: Buffer.from,
+                    hasher: (data) => Buffer.from(data),
                     algorithm: HasherAlgorithm.Sha256
                 })
                 .withSaltGenerator(() => 'salt')
@@ -322,7 +322,7 @@ describe('sd-jwt-vc', async () => {
                 })
                 .withSigner(() => new Uint8Array(32).fill(42))
                 .withHasher({
-                    hasher: Buffer.from,
+                    hasher: (data) => Buffer.from(data),
                     algorithm: HasherAlgorithm.Sha256
                 })
                 .withSaltGenerator(() => 'salt')
@@ -373,7 +373,7 @@ describe('sd-jwt-vc', async () => {
                 })
                 .withSigner(() => new Uint8Array(32).fill(42))
                 .withHasher({
-                    hasher: Buffer.from,
+                    hasher: (data) => Buffer.from(data),
                     algorithm: HasherAlgorithm.Sha256
                 })
                 .withSaltGenerator(() => 'salt')
@@ -425,7 +425,7 @@ describe('sd-jwt-vc', async () => {
                 })
                 .withSigner(() => new Uint8Array(32).fill(42))
                 .withHasher({
-                    hasher: Buffer.from,
+                    hasher: (data) => Buffer.from(data),
                     algorithm: HasherAlgorithm.Sha256
                 })
                 .withSaltGenerator(() => 'salt')
@@ -478,7 +478,7 @@ describe('sd-jwt-vc', async () => {
             })
                 .withSigner(() => new Uint8Array(32).fill(42))
                 .withHasher({
-                    hasher: Buffer.from,
+                    hasher: (data) => Buffer.from(data),
                     algorithm: HasherAlgorithm.Sha256
                 })
                 .withSaltGenerator(() => 'salt')

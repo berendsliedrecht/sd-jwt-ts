@@ -1,7 +1,7 @@
 {
-    "name": "@sd-jwt/utils",
+    "name": "@sd-jwt/present",
     "version": "0.1.2-alpha.8",
-    "description": "Utility functions for sd-jwt Draft 06 and sd-jwt-vc Draft 01",
+    "description": "Presentation implementation of sd-jwt Draft 06 and sd-jwt-vc Draft 01",
     "license": "(MIT OR Apache-2.0)",
     "author": "Berend Sliedrecht <sliedrecht@berend.io>",
     "readme": "../../README.md",
@@ -38,7 +38,7 @@
     },
     "dependencies": {
         "@sd-jwt/types": "workspace:*",
-        "buffer": "*"
+        "@sd-jwt/utils": "workspace:*"
     },
     "devDependencies": {
         "@types/node": "*",

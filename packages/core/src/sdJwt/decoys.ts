@@ -1,11 +1,11 @@
-import { SaltGenerator, Hasher } from '../types'
+import { HasherAndAlgorithm, SaltGenerator } from '../types'
 import { SdJwtError } from './error'
 import { Base64url } from '@sd-jwt/utils'
 
 export const createDecoys = async (
     count: number,
     saltGenerator: SaltGenerator,
-    hasher: Hasher
+    hasherAndAlgorithm: HasherAndAlgorithm
 ) => {
     if (count < 0) {
         throw new SdJwtError(`Negative count of ${count} is not allowed.`)
@@ -22,7 +22,10 @@ export const createDecoys = async (
     const decoys: Array<string> = []
     for (let i = 0; i < count; i++) {
         const salt = await saltGenerator()
-        const decoy = await hasher(salt)
+        const decoy = await hasherAndAlgorithm.hasher(
+            salt,
+            hasherAndAlgorithm.algorithm
+        )
         const encodedDecoy = Base64url.encode(decoy)
         decoys.push(encodedDecoy)
     }

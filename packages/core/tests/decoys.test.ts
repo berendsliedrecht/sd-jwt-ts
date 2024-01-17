@@ -10,11 +10,10 @@ describe('decoys', async () => {
     before(prelude)
 
     it('Create correct amount of decoys', async () => {
-        const decoys = await createDecoys(
-            10,
-            () => 'salt',
-            (input) => Uint8Array.from(Buffer.from(input))
-        )
+        const decoys = await createDecoys(10, () => 'salt', {
+            hasher: (input) => Buffer.from(input),
+            algorithm: 'sha-256'
+        })
 
         deepStrictEqual(
             decoys,
@@ -26,7 +25,10 @@ describe('decoys', async () => {
         const decoys = await createDecoys(
             10,
             () => getRandomValues(Buffer.alloc(128 / 8)).toString('base64url'),
-            (input) => createHash('sha256').update(input).digest()
+            {
+                hasher: (input) => createHash('sha256').update(input).digest(),
+                algorithm: 'sha-256'
+            }
         )
 
         decoys.forEach((d) => strictEqual(d.length, 43))

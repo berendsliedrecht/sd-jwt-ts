@@ -1,32 +1,10 @@
-import { DisclosureWithDigest } from './disclosures'
+import { DisclosureWithDigest } from '@sd-jwt/types'
 
-const shouldInsertDisclosure = (
-    key: string,
-    value: unknown,
-    disclosures: DisclosureWithDigest[]
-) => {
-    if (key !== '_sd') return []
-    if (!Array.isArray(value)) return []
-
-    const filteredDisclosures = []
-
-    for (const d of disclosures) {
-        if (value.includes(d.digest)) {
-            filteredDisclosures.push(d)
-        }
-    }
-
-    return filteredDisclosures
-}
-
-const shouldIncludeCleartextClaim = (key: string, value: unknown) =>
-    key !== '_sd' && key !== '_sd_alg' && typeof value !== 'object'
-
-export const swapClaims = (
+export function decodeDisclosuresInPayload(
     payload: Record<string, unknown>,
-    disclosures: DisclosureWithDigest[],
+    disclosures: Array<DisclosureWithDigest>,
     newPayload: Record<string, unknown> = {}
-) => {
+) {
     const entries = Object.entries(payload)
 
     // Loop over de payload
@@ -38,8 +16,7 @@ export const swapClaims = (
 
         // Add the disclosed items to the pretty payload
         foundDisclosures.forEach((d) => {
-            const [, disclosureKey, disclosureValue] = d.decoded
-            newPayload[disclosureKey as string] = disclosureValue
+            newPayload[d.key as string] = d.value
         })
 
         // Skip the rest as  `_sd` is a special case
@@ -63,7 +40,7 @@ export const swapClaims = (
             value !== null &&
             !Array.isArray(value)
         ) {
-            newPayload[key] = swapClaims(
+            newPayload[key] = decodeDisclosuresInPayload(
                 value as Record<string, unknown>,
                 disclosures
             )
@@ -73,10 +50,10 @@ export const swapClaims = (
     return newPayload
 }
 
-const swapClaimsInsideArray = (
+function swapClaimsInsideArray(
     array: Array<unknown | { '...': string }>,
-    disclosures: DisclosureWithDigest[]
-) => {
+    disclosures: Array<DisclosureWithDigest>
+) {
     const processedArray = []
 
     for (const el of array) {
@@ -85,23 +62,42 @@ const swapClaimsInsideArray = (
             let disclosureFound = false
             let disclosureValue
 
-            for (const d of disclosures) {
-                if (d.digest === hash && d.decoded[2] === undefined) {
-                    disclosureValue = d.decoded[1]
+            disclosureLoop: for (const d of disclosures) {
+                if (d.digest === hash && d.key === undefined) {
+                    disclosureValue = d.value
                     disclosureFound = true
-                    break
+                    break disclosureLoop
                 }
             }
 
-            if (disclosureFound) {
-                processedArray.push(disclosureValue)
-            } else {
-                processedArray.push(el)
-            }
+            processedArray.push(disclosureFound ? disclosureValue : el)
         } else {
             processedArray.push(el)
         }
     }
 
     return processedArray
+}
+
+function shouldInsertDisclosure(
+    key: string,
+    value: unknown,
+    disclosures: Array<DisclosureWithDigest>
+) {
+    if (key !== '_sd') return []
+    if (!Array.isArray(value)) return []
+
+    const filteredDisclosures = []
+
+    for (const d of disclosures) {
+        if (value.includes(d.digest)) {
+            filteredDisclosures.push(d)
+        }
+    }
+
+    return filteredDisclosures
+}
+
+function shouldIncludeCleartextClaim(key: string, value: unknown) {
+    return key !== '_sd' && key !== '_sd_alg' && typeof value !== 'object'
 }
