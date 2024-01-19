@@ -90,7 +90,7 @@ jobs:
                   if [ ${{ inputs.release-type }} == 'alpha' ]; then
                     pnpm release prerelease --yes
                   else
-                    pnpm release ${{ inputs.release-type }} --yes
+                    pnpm release ${{ inputs.release-type }} --force-publish --no-private --yes
                   fi
 
                   version=$(node -p "require('./lerna.json').version")
