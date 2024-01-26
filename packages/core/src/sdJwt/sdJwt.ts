@@ -430,20 +430,22 @@ export class SdJwt<
     public async verify(
         verifier: Verifier<Header>,
         requiredClaimKeys?: Array<keyof Payload | string>,
-        publicKeyJwk?: Record<string, unknown>
+        kbJwtPublicKeyJwk?: Record<string, unknown>,
+        issuerPublicKeyJwk?: Record<string, unknown>
     ): Promise<SdJwtVerificationResult> {
         this.assertSignature()
 
         const jwtVerificationResult = (await super.verify(
             verifier,
-            requiredClaimKeys
+            requiredClaimKeys,
+            issuerPublicKeyJwk
         )) as SdJwtVerificationResult
 
         if (this.keyBinding) {
             const { isValid } = await this.keyBinding.verify(
                 verifier as Verifier,
                 [],
-                publicKeyJwk
+                kbJwtPublicKeyJwk
             )
 
             jwtVerificationResult.isKeyBindingValid = isValid

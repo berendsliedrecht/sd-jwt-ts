@@ -8,6 +8,7 @@ import assert, {
 } from 'node:assert'
 import {
     hasherAndAlgorithm,
+    issuerPublicKeyJwk,
     keyBindingSigner,
     prelude,
     publicHolderKeyJwk,
@@ -806,6 +807,106 @@ describe('sd-jwt-vc', async () => {
                 containsExpectedKeyBinding: false,
                 isSignatureValid: true,
                 isValid: false,
+                isKeyBindingValid: true
+            })
+        })
+
+        it('Validate the sd-jwt-vc with cnf and keybinding but with issuer and kb public key jwk passed in', async () => {
+            const keyBinding = await new KeyBinding({
+                header: {
+                    alg: SignatureAndEncryptionAlgorithm.EdDSA,
+                    typ: 'kb+jwt'
+                },
+                payload: {
+                    aud: 'https://example.org/audience',
+                    iat: 1698056120,
+                    nonce: 'some-nonce'
+                }
+            })
+                .withSigner(keyBindingSigner)
+                .toCompact()
+
+            const sdJwtVc = new SdJwtVc({
+                header: {
+                    alg: SignatureAndEncryptionAlgorithm.EdDSA,
+                    typ: 'vc+sd-jwt'
+                },
+                payload: {
+                    vct: 'IdentityCredential',
+                    iss: 'https://example.org/issuer',
+                    iat: 1698056110,
+                    cnf: {
+                        kid: 'https://example.org/holder'
+                    },
+                    given_name: 'John',
+                    family_name: 'Doe',
+                    email: 'johndoe@example.com',
+                    phone_number: '+1-202-555-0101',
+                    address: {
+                        street_address: '123 Main St',
+                        locality: 'Anytown',
+                        region: 'Anystate',
+                        country: 'US'
+                    },
+                    birthdate: '1940-01-01',
+                    is_over_18: true,
+                    is_over_21: true,
+                    is_over_65: true
+                }
+            })
+                .withDisclosureFrame({
+                    is_over_65: true,
+                    is_over_21: true,
+                    is_over_18: true,
+                    birthdate: true,
+                    email: true,
+                    address: true,
+                    given_name: true,
+                    family_name: true,
+                    phone_number: true
+                })
+                .withSigner(signer)
+                .withHasher(hasherAndAlgorithm)
+                .withSaltGenerator(saltGenerator)
+                .withKeyBinding(keyBinding)
+
+            const sdJwtVcWithSignature = await sdJwtVc.signAndAdd()
+
+            const result = await sdJwtVcWithSignature.verify(
+                ({ publicKeyJwk, header, message, signature }) => {
+                    if (header.alg !== SignatureAndEncryptionAlgorithm.EdDSA) {
+                        throw new Error(
+                            `Unsupported algorithm in header: ${header.alg}`
+                        )
+                    }
+
+                    if (!publicKeyJwk) {
+                        throw new Error('Expecting publicKeyJwk to be defined')
+                    }
+
+                    const publicKey = createPublicKey({
+                        key: publicKeyJwk,
+                        format: 'jwk'
+                    })
+
+                    return verify(
+                        null,
+                        Buffer.from(message),
+                        publicKey,
+                        signature
+                    )
+                },
+                undefined,
+                { kid: 'https://example.org/holder' },
+                publicHolderKeyJwk.jwk,
+                issuerPublicKeyJwk
+            )
+
+            deepStrictEqual(result, {
+                containsRequiredVcProperties: true,
+                containsExpectedKeyBinding: true,
+                isSignatureValid: true,
+                isValid: true,
                 isKeyBindingValid: true
             })
         })
