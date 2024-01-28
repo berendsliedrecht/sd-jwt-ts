@@ -1,5 +1,4 @@
 export * from './utils'
-export * from './hasher'
 export * from './signer'
 export * from './verifier'
 export * from './disclosure'
