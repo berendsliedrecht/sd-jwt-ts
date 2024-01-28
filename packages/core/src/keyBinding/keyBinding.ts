@@ -32,7 +32,12 @@ export type KeyBindingPayload<
 export type KeyBindingOptions<
     Header extends Record<string, unknown> = Record<string, unknown>,
     Payload extends Record<string, unknown> = Record<string, unknown>
-> = JwtOptions<KeyBindingHeader<Header>, KeyBindingPayload<Payload>>
+> = JwtOptions<KeyBindingHeader<Header>, KeyBindingPayload<Payload>> & {
+    /**
+     * The compact SD-JWT over which the key binding should provide integrity
+     */
+    compactSdJwt?: string
+}
 
 export type KeyBindingAdditionalOptions<
     Header extends Record<string, unknown> = Record<string, unknown>
@@ -45,6 +50,8 @@ export class KeyBinding<
     Payload extends Record<string, unknown> = Record<string, unknown>
 > extends Jwt<Header, Payload> {
     public override signer?: Signer<Header>
+
+    public expectedSdHash?: string
 
     public constructor(
         options?: KeyBindingOptions<Header, Payload>,
@@ -95,7 +102,15 @@ export class KeyBinding<
         requiredClaims?: Array<keyof Payload | string>,
         publicKeyJwk?: Record<string, unknown>
     ): Promise<KeyBindingVerificationResult> {
-        this.assertValidForKeyBinding()
+        if (!this.expectedSdHash) {
+            throw new Error(
+                'Expected sd hash is required for verification of key binding JWT'
+            )
+        }
+
+        // TODO: should _sd_hash also be a verification property (true/false)
+        // or should it throw?
+        await this.assertValidForKeyBinding(this.expectedSdHash)
 
         const jwtVerificationResult = await super.verify(
             verifySignature,
@@ -131,6 +146,18 @@ export class KeyBinding<
         >
     }
 
+    public withSdHash(sdHash: string) {
+        this.addPayloadClaim('_sd_hash', sdHash)
+
+        return this
+    }
+
+    public withExpectedSdHash(expectedSdHash: string) {
+        this.expectedSdHash = expectedSdHash
+
+        return this
+    }
+
     /**
      *
      * Asserts the required properties for valid key binding.
@@ -138,7 +165,7 @@ export class KeyBinding<
      * @throws when a claim in the header, or payload, is invalid
      *
      */
-    public async assertValidForKeyBinding() {
+    public async assertValidForKeyBinding(expectedSdHash?: string) {
         try {
             this.assertHeader()
             this.assertPayload()
@@ -155,6 +182,15 @@ export class KeyBinding<
             this.assertClaimInPayload('iat')
             this.assertClaimInPayload('nonce')
             this.assertClaimInPayload('aud')
+
+            if (expectedSdHash ?? this.expectedSdHash) {
+                this.assertClaimInPayload(
+                    '_sd_hash',
+                    expectedSdHash ?? this.expectedSdHash
+                )
+            } else {
+                this.assertClaimInPayload('_sd_hash')
+            }
         } catch (e) {
             if (e instanceof Error) {
                 e.message = `jwt is not valid for usage with key binding. Error: ${e.message}`

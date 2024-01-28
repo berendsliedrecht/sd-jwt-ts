@@ -1,6 +1,6 @@
 import type { AsyncHasher, DisclosureWithDigest, Hasher } from '@sd-jwt/types'
+import { HasherAlgorithm } from '@sd-jwt/types'
 import { isPromise } from '@sd-jwt/utils'
-import { HasherAlgorithm } from '@sd-jwt/utils'
 import { sdJwtVcFromCompact } from './fromCompact'
 import { getValueByKeyAnyLevel } from '@sd-jwt/utils'
 import { disclosureCalculateDigest } from '../disclosures/calculateDigest'

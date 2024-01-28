@@ -241,7 +241,7 @@ describe('sd-jwt', async () => {
                         .withSaltGenerator(() => 'salt')
                         .toCompact(),
                 new SdJwtError(
-                    'A hasher and algorithm must be set in order to create a digest of a disclosure. You can set it with this.withHasher()'
+                    'A hasher and algorithm must be set in order to create a digests for disclosures or integrity protection of a kb-jwt. You can set it with this.withHasher()'
                 )
             )
         })
@@ -436,7 +436,7 @@ describe('sd-jwt', async () => {
 
             strictEqual(
                 compactSdJwt,
-                'eyJhbGciOiAiRWREU0EifQ.eyJfc2RfYWxnIjogInNoYS0yNTYiLCAiX3NkIjogWyJhR0Z6YUEiLCAiYUdGemFBIl19.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwgImlzcyIsICJodHRwczovL2V4YW1wbGUub3JnL2lzc3VlciJd~eyJ0eXAiOiAia2Irand0IiwgImFsZyI6ICJFUzI1NiJ9.eyJpYXQiOiAxMjMsIm5vbmNlIjogInNlY3VyZS1ub25jZSIsICJhdWQiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZy9hdWRpZW5jZSJ9.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
+                'eyJhbGciOiAiRWREU0EifQ.eyJfc2RfYWxnIjogInNoYS0yNTYiLCAiX3NkIjogWyJhR0Z6YUEiLCAiYUdGemFBIl19.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwgImlzcyIsICJodHRwczovL2V4YW1wbGUub3JnL2lzc3VlciJd~eyJ0eXAiOiAia2Irand0IiwgImFsZyI6ICJFUzI1NiJ9.eyJpYXQiOiAxMjMsIm5vbmNlIjogInNlY3VyZS1ub25jZSIsICJhdWQiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZy9hdWRpZW5jZSIsICJfc2RfaGFzaCI6ICJhR0Z6YUEifQ.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
             )
         })
 
@@ -484,7 +484,7 @@ describe('sd-jwt', async () => {
 
             strictEqual(
                 compactSdJwt,
-                'eyJhbGciOiAiRWREU0EifQ.eyJpc3MiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZy9pc3N1ZXIifQ.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~eyJ0eXAiOiAia2Irand0IiwgImFsZyI6ICJFUzI1NiJ9.eyJpYXQiOiAxMjMsIm5vbmNlIjogInNlY3VyZS1ub25jZSIsICJhdWQiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZy9hdWRpZW5jZSJ9.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
+                'eyJhbGciOiAiRWREU0EifQ.eyJpc3MiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZy9pc3N1ZXIifQ.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~eyJ0eXAiOiAia2Irand0IiwgImFsZyI6ICJFUzI1NiJ9.eyJpYXQiOiAxMjMsIm5vbmNlIjogInNlY3VyZS1ub25jZSIsICJhdWQiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZy9hdWRpZW5jZSIsICJfc2RfaGFzaCI6ICJhR0Z6YUEifQ.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
             )
         })
 
@@ -575,11 +575,14 @@ describe('sd-jwt', async () => {
 
             strictEqual(
                 compactSdJwt,
-                'eyJhbGciOiAiRWREU0EifQ.eyJfc2RfYWxnIjogInNoYS0yNTYiLCAiX3NkIjogWyJhR0Z6YUEiLCAiYUdGemFBIl19.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwgImlzcyIsICJodHRwczovL2V4YW1wbGUub3JnL2lzc3VlciJd~eyJ0eXAiOiAia2Irand0IiwgImFsZyI6ICJFUzI1NiJ9.eyJpYXQiOiAxMjMsIm5vbmNlIjogInNlY3VyZS1ub25jZSIsICJhdWQiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZy9hdWRpZW5jZSJ9.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
+                'eyJhbGciOiAiRWREU0EifQ.eyJfc2RfYWxnIjogInNoYS0yNTYiLCAiX3NkIjogWyJhR0Z6YUEiLCAiYUdGemFBIl19.KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk~WyJzYWx0IiwgImlzcyIsICJodHRwczovL2V4YW1wbGUub3JnL2lzc3VlciJd~eyJ0eXAiOiAia2Irand0IiwgImFsZyI6ICJFUzI1NiJ9.eyJpYXQiOiAxMjMsIm5vbmNlIjogInNlY3VyZS1ub25jZSIsICJhdWQiOiAiaHR0cHM6Ly9leGFtcGxlLm9yZy9hdWRpZW5jZSIsICJfc2RfaGFzaCI6ICJhR0Z6YUEifQ.KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio'
             )
 
-            const fromCompactSdJwt = SdJwt.fromCompact(compactSdJwt).withSigner(
-                () => new Uint8Array(32).fill(42)
+            const fromCompactSdJwt = SdJwt.fromCompact(compactSdJwt).withHasher(
+                {
+                    hasher: () => Buffer.from('hash'),
+                    algorithm: HasherAlgorithm.Sha256
+                }
             )
 
             const roundTrippedSdJwt = await fromCompactSdJwt.toCompact()
@@ -963,7 +966,8 @@ describe('sd-jwt', async () => {
 
             strictEqual(typeof compact, 'string')
 
-            const sdJwtFromCompact = SdJwt.fromCompact(compact)
+            const sdJwtFromCompact =
+                SdJwt.fromCompact(compact).withHasher(hasherAndAlgorithm)
 
             const { isValid, isSignatureValid, isKeyBindingValid } =
                 await sdJwtFromCompact.verify(verifier)

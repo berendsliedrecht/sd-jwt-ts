@@ -100,6 +100,8 @@ export class SdJwtVc<
             keyBinding
         })
 
+        sdJwtVc.compact = compact
+
         return sdJwtVc as ReturnSdJwtWithHeaderAndPayload<
             Header,
             Payload,
