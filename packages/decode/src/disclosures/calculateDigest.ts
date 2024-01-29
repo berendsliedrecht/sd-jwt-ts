@@ -1,6 +1,6 @@
-import type { AsyncHasher, Hasher } from '@sd-jwt/types'
-import type { Disclosure, DisclosureWithDigest } from '@sd-jwt/types'
-import { Base64url, HasherAlgorithm, isPromise } from '@sd-jwt/utils'
+import type { AsyncHasher, Hasher, HasherAlgorithm } from '@sd-jwt/types'
+import type { Disclosure } from '@sd-jwt/types'
+import { Base64url, isPromise } from '@sd-jwt/utils'
 import { disclosureToArray } from './toArray'
 
 export type CalculateDigestReturnType<

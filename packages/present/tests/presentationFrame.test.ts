@@ -4,10 +4,8 @@ import { before, describe, it } from 'node:test'
 import { prelude } from '../../core/tests/utils'
 
 import { getDisclosuresForPresentationFrame } from '../src'
-import { HasherAlgorithm } from '@sd-jwt/utils'
-import { Disclosure, SdJwt } from '../../core/src'
-import { DisclosureWithDigest } from '@sd-jwt/types'
-import { writeFileSync } from 'node:fs'
+import { SdJwt } from '../../core/src'
+import { DisclosureWithDigest, HasherAlgorithm } from '@sd-jwt/types'
 
 describe('presentationFrame', async () => {
     before(prelude)

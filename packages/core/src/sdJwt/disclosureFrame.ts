@@ -1,9 +1,10 @@
-import { DisclosureFrame, HasherAndAlgorithm } from '../types'
+import { DisclosureFrame } from '../types'
 import { deleteByPath } from '@sd-jwt/utils'
 import { createDecoys } from './decoys'
 import { Disclosure, DisclosureWithDigest } from './disclosures'
 import { SdJwtError } from './error'
 import { SaltGenerator } from '../types'
+import type { HasherAndAlgorithm } from '@sd-jwt/types'
 
 export const applyDisclosureFrame = async <
     Payload extends Record<string, unknown> = Record<string, unknown>

@@ -84,6 +84,11 @@ export class Jwt<
     public signature?: Uint8Array
 
     /**
+     * When the JWT was initialized from it's compact variant we store the compact version, so we can use it when needing the encoded version.
+     */
+    public compact?: string
+
+    /**
      *
      * Callback that will be used when creating a signature over the JWT.
      *
@@ -123,6 +128,8 @@ export class Jwt<
             payload,
             signature
         })
+
+        jwt.compact = compact
 
         return jwt as ReturnJwtWithHeaderAndPayload<Header, Payload, typeof jwt>
     }

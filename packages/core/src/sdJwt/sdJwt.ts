@@ -1,22 +1,16 @@
-import { decodeDisclosuresInPayload, sdJwtFromCompact } from '@sd-jwt/decode'
+import {
+    calculateSdHash,
+    decodeDisclosuresInPayload,
+    sdJwtFromCompact
+} from '@sd-jwt/decode'
 import {
     PresentationFrame,
     getDisclosuresForPresentationFrame
 } from '@sd-jwt/present'
-import {
-    Base64url,
-    HasherAlgorithm,
-    getAllKeys,
-    getValueByKeyAnyLevel
-} from '@sd-jwt/utils'
+import { Base64url, getAllKeys, getValueByKeyAnyLevel } from '@sd-jwt/utils'
 import { Jwt, JwtAdditionalOptions, JwtVerificationResult } from '../jwt/jwt'
 import { KeyBinding } from '../keyBinding'
-import {
-    DisclosureFrame,
-    HasherAndAlgorithm,
-    SaltGenerator,
-    Verifier
-} from '../types'
+import { DisclosureFrame, SaltGenerator, Verifier } from '../types'
 import { applyDisclosureFrame } from './disclosureFrame'
 import { Disclosure, DisclosureWithDigest } from './disclosures'
 import { SdJwtError } from './error'
@@ -25,6 +19,7 @@ import {
     ReturnSdJwtWithKeyBinding,
     ReturnSdJwtWithPayload
 } from './types'
+import { HasherAlgorithm, HasherAndAlgorithm } from '@sd-jwt/types'
 
 export type SdJwtToCompactOptions<
     DisclosablePayload extends Record<string, unknown>
@@ -135,6 +130,7 @@ export class SdJwt<
             keyBinding
         })
 
+        sdJwt.compact = compact
         return sdJwt as ReturnSdJwtWithHeaderAndPayload<
             Header,
             Payload,
@@ -209,7 +205,7 @@ export class SdJwt<
      *
      */
     public withKeyBinding(
-        keyBinding: Jwt | KeyBinding | string
+        keyBinding: Jwt | KeyBinding<any, any> | string
     ): ReturnSdJwtWithKeyBinding<Header, Payload, this> {
         const kb =
             typeof keyBinding === 'string'
@@ -325,7 +321,7 @@ export class SdJwt<
     private assertHashAndAlgorithm() {
         if (!this.hasherAndAlgorithm) {
             throw new SdJwtError(
-                'A hasher and algorithm must be set in order to create a digest of a disclosure. You can set it with this.withHasher()'
+                'A hasher and algorithm must be set in order to create a digests for disclosures or integrity protection of a kb-jwt. You can set it with this.withHasher()'
             )
         }
     }
@@ -435,6 +431,10 @@ export class SdJwt<
     ): Promise<SdJwtVerificationResult> {
         this.assertSignature()
 
+        if (this.keyBinding) {
+            this.assertHashAndAlgorithm()
+        }
+
         const jwtVerificationResult = (await super.verify(
             verifier,
             requiredClaimKeys,
@@ -442,6 +442,12 @@ export class SdJwt<
         )) as SdJwtVerificationResult
 
         if (this.keyBinding) {
+            if (!this.keyBinding.expectedSdHash) {
+                // Calculate and set expected _sd_hash
+                const sdHash = await this.calculateSdHash()
+                this.keyBinding.withExpectedSdHash(sdHash)
+            }
+
             const { isValid } = await this.keyBinding.verify(
                 verifier as Verifier,
                 [],
@@ -554,7 +560,9 @@ export class SdJwt<
         this.assertHeader()
         this.assertPayload()
 
-        await this.keyBinding?.assertValidForKeyBinding()
+        if (this.keyBinding && !this.keyBinding.expectedSdHash) {
+            this.assertHashAndAlgorithm()
+        }
 
         if (this.disclosureFrame && shouldApplyFrame) {
             await this.applyDisclosureFrame()
@@ -574,7 +582,50 @@ export class SdJwt<
                 ? `~${disclosures.join('~')}~`
                 : '~'
 
+        const sdJwtWithoutKb = `${compactHeader}.${compactPayload}.${sSignature}${sDisclosures}`
+
+        if (this.keyBinding) {
+            const sdHash =
+                this.keyBinding.expectedSdHash ??
+                (await this.calculateSdHash(sdJwtWithoutKb))
+
+            if (
+                this.keyBinding.signature &&
+                !this.keyBinding.payload?._sd_hash
+            ) {
+                throw new SdJwtError(
+                    "Key binding is already signed, but missing _sd_hash. If you're manually signing the kb-jwt, make sure the correct _sd_hash is set."
+                )
+            }
+
+            // If the signature is already set we don't want to add the _sd_hash ourselves
+            // Also the signature won't be re-calculated if it's already set -- this seems like a security issue to me
+            if (
+                !this.keyBinding.signature &&
+                !this.keyBinding.payload?._sd_hash
+            ) {
+                this.keyBinding.withSdHashClaim(sdHash)
+            }
+
+            // Make sure the sd_hash is valid. If there's already a signature set
+            // this will ensure the signature was made with the correct _sd_hash
+            await this.keyBinding.assertValidForKeyBinding(sdHash)
+        }
+
         const kb = (await this.keyBinding?.toCompact()) ?? ''
-        return `${compactHeader}.${compactPayload}.${sSignature}${sDisclosures}${kb}`
+        return sdJwtWithoutKb + kb
+    }
+
+    private async calculateSdHash(compact?: string) {
+        this.assertHashAndAlgorithm()
+        const c = compact ?? this.compact
+
+        if (!c) {
+            throw new SdJwtError(
+                "Unable to calculate _sd_hash for sd-jwt, without 'compact' variant to compare _sd_hash. Use `fromCompact`, or call `sdJwt.keyBinding.withExpectedSdHash` to set the expected _sd_hash."
+            )
+        }
+
+        return calculateSdHash(c, this.hasherAndAlgorithm!)
     }
 }

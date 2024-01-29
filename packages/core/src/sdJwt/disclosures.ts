@@ -1,7 +1,12 @@
 import { disclosureCalculateDigest } from '@sd-jwt/decode'
-import { AsyncHasher, Hasher } from '@sd-jwt/types'
-import { Base64url, HasherAlgorithm, isPromise } from '@sd-jwt/utils'
-import { DisclosureItem, HasherAndAlgorithm } from '../types'
+import {
+    AsyncHasher,
+    Hasher,
+    HasherAlgorithm,
+    HasherAndAlgorithm
+} from '@sd-jwt/types'
+import { Base64url, isPromise } from '@sd-jwt/utils'
+import { DisclosureItem } from '../types'
 import { SdJwtError } from './error'
 import {
     DisclosureWithDigest as DisclosureWithDigestJson,

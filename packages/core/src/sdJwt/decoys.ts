@@ -1,4 +1,5 @@
-import { HasherAndAlgorithm, SaltGenerator } from '../types'
+import type { HasherAndAlgorithm } from '@sd-jwt/types'
+import { SaltGenerator } from '../types'
 import { SdJwtError } from './error'
 import { Base64url } from '@sd-jwt/utils'
 
