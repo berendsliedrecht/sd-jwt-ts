@@ -739,6 +739,7 @@ describe('sd-jwt-vc', async () => {
                     nonce: 'some-nonce'
                 }
             })
+                .withSdHashClaim('hash')
                 .withSigner(keyBindingSigner)
                 .toCompact()
 
@@ -785,6 +786,9 @@ describe('sd-jwt-vc', async () => {
                 .withHasher(hasherAndAlgorithm)
                 .withSaltGenerator(saltGenerator)
                 .withKeyBinding(keyBinding)
+
+            // Set expected sd_hash (as actual hash is different)
+            sdJwtVc.keyBinding.withExpectedSdHash('hash')
 
             const sdJwtVcWithSignature = await sdJwtVc.signAndAdd()
 
