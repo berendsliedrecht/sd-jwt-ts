@@ -123,16 +123,21 @@ export class SdJwtVc<
     public override async verify(
         verifier: Verifier<Header>,
         requiredClaimKeys?: Array<keyof Payload | string>,
-        expectedCnfClaim?: Record<string, unknown>
+        expectedCnfClaim?: Record<string, unknown>,
+        kbJwtPublicKeyJwk?: Record<string, unknown>,
+        issuerPublicKeyJwk?: Record<string, unknown>
     ): Promise<SdJwtVcVerificationResult> {
-        const publicKeyJwk = (
-            this.payload?.cnf as Record<string, unknown> | undefined
-        )?.jwk as Record<string, unknown> | undefined
+        const kbJwtPublicKeyJwkToUse =
+            kbJwtPublicKeyJwk ??
+            ((this.payload?.cnf as Record<string, unknown> | undefined)?.jwk as
+                | Record<string, unknown>
+                | undefined)
 
         const sdJwtVerificationResult = (await super.verify(
             verifier,
             requiredClaimKeys,
-            publicKeyJwk
+            kbJwtPublicKeyJwkToUse,
+            issuerPublicKeyJwk
         )) as SdJwtVcVerificationResult
 
         try {

@@ -20,6 +20,8 @@ import {
 
 const { publicKey, privateKey } = generateKeyPairSync('ed25519')
 
+export const issuerPublicKeyJwk = publicKey.export({ format: 'jwk' })
+
 export const privateHolderKeyJwk = {
     jwk: {
         crv: 'Ed25519',
