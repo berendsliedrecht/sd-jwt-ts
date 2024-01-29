@@ -7,7 +7,7 @@ export class Base64url {
      *
      */
     public static encode(input: string | Uint8Array | Buffer): string {
-        return Buffer.from(input).toString('base64url')
+        return base64ToBase64URL(Buffer.from(input).toString('base64'))
     }
 
     /**
@@ -18,7 +18,9 @@ export class Base64url {
     public static encodeFromJson(
         input: Record<string, unknown> | Array<unknown>
     ): string {
-        return Buffer.from(JSON.stringify(input)).toString('base64url')
+        return base64ToBase64URL(
+            Buffer.from(JSON.stringify(input)).toString('base64')
+        )
     }
 
     /**
@@ -32,7 +34,7 @@ export class Base64url {
             unknown
         >
     >(input: string): T {
-        return JSON.parse(Buffer.from(input, 'base64url').toString()) as T
+        return JSON.parse(Buffer.from(input, 'base64').toString()) as T
     }
 
     /**
@@ -41,6 +43,10 @@ export class Base64url {
      *
      */
     public static decode(input: string): Uint8Array {
-        return Uint8Array.from(Buffer.from(input, 'base64url'))
+        return Uint8Array.from(Buffer.from(input, 'base64'))
     }
+}
+
+export function base64ToBase64URL(base64: string) {
+    return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
 }
