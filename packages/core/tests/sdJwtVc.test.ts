@@ -538,7 +538,7 @@ describe('sd-jwt-vc', async () => {
                     nonce: 'some-nonce'
                 }
             })
-                .withSdHash('hash')
+                .withSdHashClaim('hash')
                 .withSigner(keyBindingSigner)
                 .toCompact()
 
@@ -638,7 +638,7 @@ describe('sd-jwt-vc', async () => {
                 }
             })
                 .withSigner(keyBindingSigner)
-                .withSdHash('hash')
+                .withSdHashClaim('hash')
                 .toCompact()
 
             const sdJwtVc = new SdJwtVc({

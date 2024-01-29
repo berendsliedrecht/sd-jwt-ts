@@ -146,7 +146,7 @@ export class KeyBinding<
         >
     }
 
-    public withSdHash(sdHash: string) {
+    public withSdHashClaim(sdHash: string) {
         this.addPayloadClaim('_sd_hash', sdHash)
 
         return this

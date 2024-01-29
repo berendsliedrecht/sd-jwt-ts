@@ -602,7 +602,7 @@ export class SdJwt<
                 !this.keyBinding.signature &&
                 !this.keyBinding.payload?._sd_hash
             ) {
-                this.keyBinding.withSdHash(sdHash)
+                this.keyBinding.withSdHashClaim(sdHash)
             }
 
             // Make sure the sd_hash is valid. If there's already a signature set
